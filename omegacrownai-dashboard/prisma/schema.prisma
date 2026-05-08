@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  projects     Project[]
+}
+
+model Project {
+  id          String           @id @default(cuid())
+  name        String
+  owner       User             @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  createdAt   DateTime         @default(now())
+
+  chatThreads ChatThread[]
+  executions  AgentExecution[]
+}
+
+model ChatThread {
+  id         String        @id @default(cuid())
+  project    Project       @relation(fields: [projectId], references: [id])
+  projectId  String
+  title      String        @default("Project Chat")
+  createdAt  DateTime      @default(now())
+
+  messages   ChatMessage[]
+}
+
+model ChatMessage {
+  id         String      @id @default(cuid())
+  thread     ChatThread  @relation(fields: [threadId], references: [id])
+  threadId   String
+  role       String
+  content    String
+  createdAt  DateTime    @default(now())
+}
+
+model AgentExecution {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  prompt    String
+  intents   Json
+  agents    Json
+  execution Json
+  reply     String
+  createdAt DateTime @default(now())
+}
+
+model TradingWatchlist {
+  id         String   @id @default(cuid())
+  ownerEmail String  @unique
+  name       String  @default("Default Watchlist")
+  symbols    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TradingSignalAlert {
+  id            String   @id @default(cuid())
+  ownerEmail    String   @unique
+  signal        String   @default("BUY WATCH")
+  minConfidence Int      @default(75)
+  isEnabled     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PublishedSite {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  executionId String   @unique
+  projectId   String
+  ownerEmail  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GuestAiUsage {
+  id        String   @id @default(cuid())
+  usageKey String   @unique
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usageKey])
+}
+
+model GuestAiUsage {
+  id        String   @id @default(cuid())
+  usageKey String   @unique
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([usageKey])
+}

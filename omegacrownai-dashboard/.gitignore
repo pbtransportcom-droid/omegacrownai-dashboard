@@ -1,0 +1,23 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/lib/generated/prisma
+
+# local env files
+.env
+.env.local
+.env.production
+.env*.local
+
+# Next build output
+.next
+out
+
+# dependencies
+node_modules
+
+# backups
+*.tar.gz
+*.bak
+*.safe_online_*

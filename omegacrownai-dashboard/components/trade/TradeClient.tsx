@@ -1,0 +1,1371 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+type Candle = {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+type TradePlan = {
+  entryZone?: number[];
+  stopLoss?: number;
+  takeProfit?: number[];
+  support?: number;
+  resistance?: number;
+};
+
+type TradeResult = {
+  ok: boolean;
+  provider?: string;
+  marketType?: string;
+  symbol?: string;
+  price?: number;
+  changePercent?: number;
+  signal?: string;
+  confidence?: number;
+  risk?: string;
+  analysis?: string;
+  disclaimer?: string;
+  candles?: Candle[];
+  indicators?: {
+    sma20?: number;
+    sma50?: number;
+    rsi?: number;
+  };
+  tradePlan?: TradePlan;
+  error?: string;
+};
+
+type RankedTrade = {
+  rank: number;
+  symbol: string;
+  type?: string;
+  price: number;
+  signal: string;
+  verdict?: string;
+  bestTiming?: string;
+  confidence: number;
+  risk: string;
+  changePercent: number;
+  indicators: {
+    rsi14?: number;
+    sma20?: number;
+    sma50?: number;
+  };
+  tradePlan: TradePlan;
+  reasons: string[];
+};
+
+type RankResult = {
+  ok: boolean;
+  system?: string;
+  provider?: string;
+  timeframe?: string;
+  ranked?: RankedTrade[];
+  failed?: any[];
+  disclaimer?: string;
+  error?: string;
+};
+
+function buildFallbackLevels(result: TradeResult | null): TradePlan | undefined {
+  if (!result?.price) return undefined;
+
+  const price = Number(result.price);
+
+  return {
+    entryZone: [
+      Number((price * 0.992).toFixed(6)),
+      Number((price * 1.006).toFixed(6)),
+    ],
+    stopLoss: Number((price * 0.965).toFixed(6)),
+    takeProfit: [
+      Number((price * 1.035).toFixed(6)),
+      Number((price * 1.07).toFixed(6)),
+    ],
+    support:
+      result.indicators?.sma50 ||
+      Number((price * 0.97).toFixed(6)),
+    resistance:
+      result.indicators?.sma20 && result.indicators.sma20 > price
+        ? result.indicators.sma20
+        : Number((price * 1.035).toFixed(6)),
+  };
+}
+
+function TradingChart({
+  candles,
+  levels,
+}: {
+  candles: Candle[];
+  levels?: TradePlan;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !candles || candles.length < 2) return;
+
+    const parent = canvas.parentElement;
+    const width = parent?.clientWidth || 900;
+    const height = 420;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    const visible = candles.slice(-80);
+    const padding = 46;
+    const volumeHeight = 80;
+    const chartBottom = height - volumeHeight - 24;
+
+    const highs = visible.map((c) => c.high);
+    const lows = visible.map((c) => c.low);
+    const volumes = visible.map((c) => c.volume || 0);
+
+    const levelValues = [
+      levels?.support,
+      levels?.resistance,
+      levels?.stopLoss,
+      ...(levels?.entryZone || []),
+      ...(levels?.takeProfit || []),
+    ].filter((value) => typeof value === "number" && Number.isFinite(value)) as number[];
+
+    const minPrice = Math.min(...lows, ...levelValues);
+    const maxPrice = Math.max(...highs, ...levelValues);
+    const priceRange = maxPrice - minPrice || 1;
+    const maxVolume = Math.max(...volumes, 1);
+
+    const xAt = (index: number) =>
+      padding + (index / Math.max(1, visible.length - 1)) * (width - padding * 2);
+
+    const yPrice = (price: number) =>
+      padding + ((maxPrice - price) / priceRange) * (chartBottom - padding);
+
+    // Background
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(0, 0, width, height);
+
+    // Grid and price labels
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "11px Arial";
+
+    [0, 0.25, 0.5, 0.75, 1].forEach((ratio) => {
+      const price = maxPrice - ratio * priceRange;
+      const y = yPrice(price);
+
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+
+      ctx.fillText(price.toFixed(4), width - padding + 6, y + 4);
+    });
+
+    // Entry zone
+    if (levels?.entryZone?.[0] && levels?.entryZone?.[1]) {
+      const y1 = yPrice(levels.entryZone[0]);
+      const y2 = yPrice(levels.entryZone[1]);
+      ctx.fillStyle = "rgba(167, 139, 250, 0.12)";
+      ctx.fillRect(padding, Math.min(y1, y2), width - padding * 2, Math.max(4, Math.abs(y1 - y2)));
+    }
+
+    const drawLevel = (label: string, value: number | undefined, color: string, dashed = false) => {
+      if (!value || !Number.isFinite(value)) return;
+
+      const y = yPrice(value);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash(dashed ? [7, 7] : []);
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(2, 6, 23, 0.88)";
+      ctx.fillRect(padding + 6, y - 15, 150, 22);
+
+      ctx.fillStyle = color;
+      ctx.font = "bold 11px Arial";
+      ctx.fillText(`${label}: ${value.toFixed(4)}`, padding + 12, y);
+    };
+
+    drawLevel("Support", levels?.support, "#38bdf8", true);
+    drawLevel("Resistance", levels?.resistance, "#f59e0b", true);
+    drawLevel("Entry Low", levels?.entryZone?.[0], "#a78bfa", true);
+    drawLevel("Entry High", levels?.entryZone?.[1], "#a78bfa", true);
+    drawLevel("Stop", levels?.stopLoss, "#ef4444", false);
+    drawLevel("TP1", levels?.takeProfit?.[0], "#22c55e", false);
+    drawLevel("TP2", levels?.takeProfit?.[1], "#16a34a", false);
+
+    // Candles and volume
+    const candleWidth = Math.max(3, (width - padding * 2) / visible.length - 3);
+
+    visible.forEach((c, index) => {
+      const x = xAt(index);
+      const openY = yPrice(c.open);
+      const closeY = yPrice(c.close);
+      const highY = yPrice(c.high);
+      const lowY = yPrice(c.low);
+      const bullish = c.close >= c.open;
+      const color = bullish ? "#22c55e" : "#ef4444";
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, highY);
+      ctx.lineTo(x, lowY);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      const bodyY = Math.min(openY, closeY);
+      const bodyH = Math.max(2, Math.abs(closeY - openY));
+      ctx.fillRect(x - candleWidth / 2, bodyY, candleWidth, bodyH);
+
+      const volH = ((c.volume || 0) / maxVolume) * (volumeHeight - 14);
+      ctx.globalAlpha = 0.28;
+      ctx.fillRect(x - candleWidth / 2, height - volH - 8, candleWidth, volH);
+      ctx.globalAlpha = 1;
+    });
+
+    // Volume divider
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+    ctx.beginPath();
+    ctx.moveTo(padding, height - volumeHeight);
+    ctx.lineTo(width - padding, height - volumeHeight);
+    ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "11px Arial";
+    ctx.fillText("Volume", padding, height - volumeHeight + 15);
+  }, [candles, levels]);
+
+  if (!candles || candles.length < 2) {
+  return (
+      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-cyan-400/30 bg-slate-950 text-sm font-semibold text-cyan-200">
+        No chart data yet.
+      </div>
+    );
+  }
+
+  const visible = candles.slice(-80);
+  const first = visible[0];
+  const last = visible[visible.length - 1];
+  const trend = last.close >= first.close ? "UP" : "DOWN";
+
+  return (
+    <div className="rounded-xl border border-cyan-400/25 bg-slate-950 p-4 shadow-lg shadow-cyan-950/20">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+            Fast Canvas Chart
+          </div>
+          <div className="text-sm font-medium text-slate-300">
+            Candles, volume, entry, stop, take-profit, support, and resistance
+          </div>
+        </div>
+
+        <div
+          className={`rounded-full border px-3 py-1 text-xs font-bold ${
+            trend === "UP"
+              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300"
+              : "border-red-400/40 bg-red-500/10 text-red-300"
+          }`}
+        >
+          Trend: {trend}
+        </div>
+      </div>
+
+      <canvas ref={canvasRef} className="h-[420px] w-full rounded-xl" />
+
+      {levels && (
+        <div className="mt-3 grid gap-2 text-xs font-semibold text-slate-200 md:grid-cols-4">
+          {levels.entryZone?.length === 2 && (
+            <div className="rounded-lg border border-violet-400/25 bg-violet-500/10 px-3 py-2">
+              Entry: <span className="text-violet-300">{levels.entryZone[0]} - {levels.entryZone[1]}</span>
+            </div>
+          )}
+
+          {levels.stopLoss && (
+            <div className="rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2">
+              Stop: <span className="text-red-300">{levels.stopLoss}</span>
+            </div>
+          )}
+
+          {levels.takeProfit?.[0] && (
+            <div className="rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2">
+              TP1: <span className="text-emerald-300">{levels.takeProfit[0]}</span>
+            </div>
+          )}
+
+          {levels.takeProfit?.[1] && (
+            <div className="rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2">
+              TP2: <span className="text-emerald-300">{levels.takeProfit[1]}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="mt-3 grid grid-cols-2 gap-3 text-xs font-semibold text-slate-200 md:grid-cols-4">
+        <div className="rounded-lg bg-slate-900 px-3 py-2">
+          Open: <span className="text-slate-100">{last.open.toFixed(6)}</span>
+        </div>
+        <div className="rounded-lg bg-slate-900 px-3 py-2">
+          High: <span className="text-emerald-300">{last.high.toFixed(6)}</span>
+        </div>
+        <div className="rounded-lg bg-slate-900 px-3 py-2">
+          Low: <span className="text-red-300">{last.low.toFixed(6)}</span>
+        </div>
+        <div className="rounded-lg bg-slate-900 px-3 py-2">
+          Last: <span className="text-cyan-300">{last.close.toFixed(6)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+function safeNumber(value: any, digits = 4) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "N/A";
+  return n.toFixed(digits);
+}
+
+function safeText(value: any, fallback = "N/A") {
+  if (value === null || value === undefined || value === "") return fallback;
+  return String(value);
+}
+
+function safeArrayText(value: any, digits = 4) {
+  if (!Array.isArray(value) || value.length === 0) return "N/A";
+  return value
+    .filter((item) => item !== null && item !== undefined)
+    .map((item) => {
+      const n = Number(item);
+      return Number.isFinite(n) ? n.toFixed(digits) : String(item);
+    })
+    .join(" / ");
+}
+
+
+function normalizeRankRow(row: any) {
+  return {
+    ...row,
+    symbol: row?.symbol || "N/A",
+    signal: row?.signal || "NO DATA",
+    confidence: Number(row?.confidence || 0),
+    risk: row?.risk || "unknown",
+    price: row?.price ?? null,
+    rsi: row?.rsi ?? null,
+    changePercent: row?.changePercent ?? null,
+    entryZone: row?.tradePlan?.entryZone || row?.entryZone || [],
+    stopLoss: row?.tradePlan?.stopLoss || row?.stopLoss || null,
+    takeProfit: row?.tradePlan?.takeProfit || row?.takeProfit || [],
+    profile: row?.profile || null,
+    error: row?.error || null,
+  };
+}
+
+function formatMaybeNumber(value: any, digits = 4) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "N/A";
+  return n.toFixed(digits);
+}
+
+function formatMaybeArray(value: any, digits = 4) {
+  if (!Array.isArray(value) || value.length === 0) return "N/A";
+  return value.map((item) => formatMaybeNumber(item, digits)).join(" / ");
+}
+
+export default function TradeClient() {
+  const searchParams = useSearchParams();
+  const initialSymbol = searchParams.get("symbol") || "BTCUSDT";
+
+  const [symbol, setSymbol] = useState(initialSymbol);
+  const [marketType, setMarketType] = useState<"stock" | "crypto">("crypto");
+  const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d" | "90d" | "1y">("90d");
+  const [loading, setLoading] = useState(false);
+  const [rankingLoading, setRankingLoading] = useState(false);
+  const [result, setResult] = useState<TradeResult | null>(null);
+  const [rankResult, setRankResult] = useState<RankResult | null>(null);
+  const [rankSymbols, setRankSymbols] = useState("BTC, ETH, SOL, DOGE, AAPL, TSLA, NVDA, POET");
+  const [chatQuestion, setChatQuestion] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatAnswer, setChatAnswer] = useState("");
+  const [watchlistStatus, setWatchlistStatus] = useState("");
+  const [alertConfidence, setAlertConfidence] = useState("75");
+  const [alertStatus, setAlertStatus] = useState("");
+  const [signalAlerts, setSignalAlerts] = useState<RankedTrade[]>([]);
+
+  useEffect(() => {
+    const urlSymbol = searchParams.get("symbol");
+    if (urlSymbol) {
+      analyze(urlSymbol);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function saveSignalAlert() {
+    const confidence = Number(alertConfidence || 75);
+
+    try {
+      const res = await fetch("/api/trading/alert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          signal: "BUY WATCH",
+          minConfidence: confidence,
+          isEnabled: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving alerts.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving alerts.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving alerts.");
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Could not save alert.");
+      }
+
+      setAlertStatus(`Signal alert saved to your account: BUY WATCH at ${confidence}%+ confidence.`);
+    } catch (error: any) {
+      setAlertStatus(error?.message || "Could not save alert.");
+    }
+  }
+
+  async function loadSignalAlert() {
+    try {
+      const res = await fetch("/api/trading/alert", {
+        method: "GET",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok || !data.alert) {
+        return { signal: "BUY WATCH", minConfidence: 75, isEnabled: true };
+      }
+
+      return {
+        signal: data.alert.signal || "BUY WATCH",
+        minConfidence: Number(data.alert.minConfidence || 75),
+        isEnabled: data.alert.isEnabled !== false,
+      };
+    } catch {
+      return { signal: "BUY WATCH", minConfidence: 75, isEnabled: true };
+    }
+  }
+
+  async function clearSignalAlert() {
+    try {
+      const res = await fetch("/api/trading/alert", {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Could not clear alert.");
+      }
+
+      setSignalAlerts([]);
+      setAlertStatus("Signal alert cleared from your account.");
+    } catch (error: any) {
+      setAlertStatus(error?.message || "Could not clear alert.");
+    }
+  }
+
+  async function checkSignalAlerts(ranked: RankedTrade[]) {
+    const alert = await loadSignalAlert();
+
+    if (!alert.isEnabled) {
+      setSignalAlerts([]);
+      setAlertStatus("Signal alert is disabled.");
+      return;
+    }
+
+    const matches = ranked.filter(
+      (item) =>
+        item.signal === alert.signal &&
+        Number(item.confidence || 0) >= alert.minConfidence
+    );
+
+    setSignalAlerts(matches);
+
+    if (matches.length > 0) {
+      setAlertStatus(
+        `${matches.length} alert match found: ${matches
+          .map((item) => `${safeText(item.symbol)} ${safeNumber(item.confidence, 0)}%`)
+          .join(", ")}`
+      );
+    } else {
+      setAlertStatus("No BUY WATCH alerts matched this scan.");
+    }
+  }
+
+  async function saveWatchlist() {
+    const clean = rankSymbols
+      .split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+      .join(", ");
+
+    if (!clean) {
+      setWatchlistStatus("Add symbols before saving.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/trading/watchlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Default Watchlist",
+          symbols: clean,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before saving your watchlist.");
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Could not save watchlist.");
+      }
+
+      setRankSymbols(data.watchlist.symbols);
+      setWatchlistStatus("Watchlist saved to your account.");
+    } catch (error: any) {
+      setWatchlistStatus(error?.message || "Could not save watchlist.");
+    }
+  }
+
+  async function loadWatchlist() {
+    try {
+      const res = await fetch("/api/trading/watchlist", {
+        method: "GET",
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        throw new Error("Please log in before loading your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before loading your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before loading your watchlist.");
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Could not load watchlist.");
+      }
+
+      if (!data.watchlist?.symbols) {
+        setWatchlistStatus("No saved watchlist found.");
+        return;
+      }
+
+      setRankSymbols(data.watchlist.symbols);
+      setWatchlistStatus("Watchlist loaded from your account.");
+    } catch (error: any) {
+      setWatchlistStatus(error?.message || "Could not load watchlist.");
+    }
+  }
+
+  async function clearWatchlist() {
+    try {
+      const res = await fetch("/api/trading/watchlist", {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        throw new Error("Please log in before clearing your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before clearing your watchlist.");
+      }
+
+      if (res.status === 401) {
+        throw new Error("Please log in before clearing your watchlist.");
+      }
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Could not clear watchlist.");
+      }
+
+      setWatchlistStatus("Saved watchlist cleared from your account.");
+    } catch (error: any) {
+      setWatchlistStatus(error?.message || "Could not clear watchlist.");
+    }
+  }
+
+  async function scanSavedWatchlist() {
+    setRankingLoading(true);
+    setWatchlistStatus("Loading saved watchlist...");
+
+    try {
+      const savedRes = await fetch("/api/trading/watchlist", {
+        method: "GET",
+      });
+
+      const savedData = await savedRes.json();
+
+      if (!savedRes.ok || !savedData.ok) {
+        throw new Error(savedData.error || "Could not load saved watchlist.");
+      }
+
+      const saved = savedData.watchlist?.symbols;
+
+      if (!saved) {
+        setWatchlistStatus("No saved watchlist found.");
+        setRankingLoading(false);
+        return;
+      }
+
+      setRankSymbols(saved);
+      setWatchlistStatus("Scanning saved watchlist...");
+
+      const res = await fetch("/api/ai/trading/rank2", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symbols: saved
+            .split(",")
+            .map((s: string) => s.trim())
+            .filter(Boolean),
+        }),
+      });
+
+      const data = await res.json();
+      setRankResult(data);
+
+      if (data?.ranked?.length) {
+        await checkSignalAlerts(data.ranked);
+      }
+
+      setWatchlistStatus("Saved watchlist scanned.");
+    } catch (error: any) {
+      setRankResult({ ok: false, error: error?.message || "Watchlist scan failed." });
+      setWatchlistStatus(error?.message || "Watchlist scan failed.");
+    }
+
+    setRankingLoading(false);
+  }
+
+  async function loadRankings() {
+    setRankingLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/trading/rank2", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symbols: rankSymbols
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        }),
+      });
+
+      const data = await res.json();
+      setRankResult(data);
+    } catch (error: any) {
+      setRankResult({ ok: false, error: error?.message || "Ranking failed." });
+    }
+
+    setRankingLoading(false);
+  }
+
+  async function scanBuySignals() {
+    await scanMarketV2(marketType);
+  }
+
+
+  async function analyzeV2(symbolOverride?: string) {
+    const activeSymbol = symbolOverride || symbol;
+
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/ai/trading/analyze-v2", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          symbol: activeSymbol,
+          marketType,
+          timeframe,
+        }),
+      });
+
+      const data = await res.json();
+      setResult(data);
+    } catch (error: any) {
+      setResult({
+        ok: false,
+        error: error?.message || "Trading Engine v2 failed.",
+      });
+    }
+
+    setLoading(false);
+  }
+
+  async function scanMarketV2(type: "stock" | "crypto") {
+    setMarketType(type);
+    setRankingLoading(true);
+    setRankResult(null);
+
+    try {
+      const res = await fetch("/api/ai/trading/scan-v2", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          marketType: type,
+          timeframe,
+        }),
+      });
+
+      const data = await res.json();
+      setRankResult(data);
+
+      if (data?.ranked?.length) {
+        await checkSignalAlerts(data.ranked);
+      }
+    } catch (error: any) {
+      setRankResult({
+        ok: false,
+        error: error?.message || "Market scan v2 failed.",
+      });
+    }
+
+    setRankingLoading(false);
+  }
+
+  async function analyze(symbolOverride?: string) {
+    const activeSymbol = symbolOverride || symbol;
+
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/ai/trading/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symbol: activeSymbol }),
+      });
+
+      const data = await res.json();
+      setResult(data);
+    } catch (error: any) {
+      setResult({ ok: false, error: error?.message || "Trading analysis failed." });
+    }
+
+    setLoading(false);
+  }
+
+  async function askTradingChat(questionOverride?: string) {
+    const activeQuestion = questionOverride || chatQuestion;
+    if (!activeQuestion.trim()) return;
+
+    setChatLoading(true);
+    setChatAnswer("");
+
+    try {
+      const res = await fetch("/api/ai/trading/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: activeQuestion,
+          ranking: rankResult?.ranked || [],
+          analysis: result || null,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Trading chat failed.");
+      }
+
+      setChatAnswer(data.reply || "");
+    } catch (error: any) {
+      setChatAnswer(error?.message || "Trading chat failed.");
+    }
+
+    setChatLoading(false);
+  }
+
+  const signal = result?.signal || "WAITING";
+  const chartLevels = result?.tradePlan || buildFallbackLevels(result);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-muted">
+          King Trading System
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-100">
+          Real Trading AI Engine
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-300">
+          Live crypto and stock analysis with chart, RSI, SMA, signal, confidence, risk, ranking, chatbot verdict, and AI explanation.
+          Educational only - not financial advice.
+        </p>
+      </div>
+
+
+      <div className="rounded-xl border border-cyan-400/25 bg-slate-950 p-4 shadow-lg shadow-cyan-950/20">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+              Trading Engine V2 Scanner
+            </div>
+            <p className="mt-1 text-sm text-slate-300">
+              Choose stock or crypto market, select timeframe, then scan up to 40 symbols directly from market data.
+            </p>
+          </div>
+
+          <div className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-200">
+            Educational only — not financial advice
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-cyan-400/20 bg-slate-900 p-3">
+            <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
+              Market To Scan
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setMarketType("crypto")}
+                className={`rounded-lg px-3 py-2 text-xs font-bold ${
+                  marketType === "crypto"
+                    ? "bg-cyan-500 text-white"
+                    : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                Crypto Market
+              </button>
+
+              <button
+                onClick={() => setMarketType("stock")}
+                className={`rounded-lg px-3 py-2 text-xs font-bold ${
+                  marketType === "stock"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                Stock Market
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-cyan-400/20 bg-slate-900 p-3">
+            <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
+              Timeframe
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {(["24h", "7d", "30d", "90d", "1y"] as const).map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => setTimeframe(tf)}
+                  className={`rounded-lg px-2 py-2 text-xs font-bold ${
+                    timeframe === tf
+                      ? "bg-amber-500 text-white"
+                      : "bg-slate-800 text-slate-300"
+                  }`}
+                >
+                  {tf.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <button
+            onClick={() => analyzeV2()}
+            disabled={loading}
+            className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
+          >
+            {loading ? "Analyzing..." : `Analyze ${marketType.toUpperCase()} V2`}
+          </button>
+
+          <button
+            onClick={() => scanMarketV2("crypto")}
+            disabled={rankingLoading}
+            className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200 disabled:opacity-60"
+          >
+            {rankingLoading ? "Scanning..." : "Scan Crypto Market V2"}
+          </button>
+
+          <button
+            onClick={() => scanMarketV2("stock")}
+            disabled={rankingLoading}
+            className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-200 disabled:opacity-60"
+          >
+            {rankingLoading ? "Scanning..." : "Scan Stock Market V2"}
+          </button>
+        </div>
+
+        <div className="mt-3 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
+          Current selection: <span className="font-bold text-white">{marketType.toUpperCase()}</span>
+          {" "}· Timeframe: <span className="font-bold text-white">{timeframe.toUpperCase()}</span>
+        </div>
+      </div>
+
+
+      <div className="rounded-xl border border-border bg-panel/60 p-5">
+        <div className="flex flex-col gap-3 md:flex-row">
+          <input
+            className="w-full rounded-xl border border-border bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-accent md:max-w-xs"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            placeholder="BTCUSDT"
+          />
+
+          <button
+            onClick={() => analyze()}
+            disabled={loading}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {loading ? "Analyzing..." : "Analyze Market"}
+          </button>
+        </div>
+
+        <p className="mt-3 text-xs text-muted">
+          Examples: BTCUSDT, ETHUSDT, SOLUSDT, AAPL, TSLA, NVDA, POET.
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-panel/60 p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted">
+              Top Ranked Predictions
+            </p>
+            <h2 className="mt-1 text-xl font-semibold">
+              King Trading System Rankings
+            </h2>
+            <p className="mt-1 text-xs text-muted">
+              Type stocks or crypto symbols to rank. Uses Coinbase for crypto and Yahoo chart data for stocks.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 md:max-w-xl">
+            <input
+              className="w-full rounded-xl border border-border bg-black/20 px-3 py-2 text-sm outline-none placeholder:text-muted focus:border-accent"
+              value={rankSymbols}
+              onChange={(e) => setRankSymbols(e.target.value.toUpperCase())}
+              placeholder="BTC, ETH, DOGE, AAPL, TSLA, NVDA, POET"
+            />
+
+            <div className="grid gap-2 md:grid-cols-2">
+              <button
+                onClick={loadRankings}
+                disabled={rankingLoading}
+                className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-60"
+              >
+                {rankingLoading ? "Ranking..." : "Rank These Symbols"}
+              </button>
+
+              <button
+                onClick={scanBuySignals}
+                disabled={rankingLoading}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {rankingLoading ? "Scanning..." : "Scan Buy Signals"}
+              </button>
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-4">
+              <button
+                onClick={saveWatchlist}
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200"
+              >
+                Save Watchlist
+              </button>
+
+              <button
+                onClick={loadWatchlist}
+                className="rounded-xl border border-slate-400/30 bg-slate-500/10 px-3 py-2 text-xs font-semibold text-slate-200"
+              >
+                Load
+              </button>
+
+              <button
+                onClick={scanSavedWatchlist}
+                disabled={rankingLoading}
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 disabled:opacity-60"
+              >
+                Scan Saved
+              </button>
+
+              <button
+                onClick={clearWatchlist}
+                className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200"
+              >
+                Clear
+              </button>
+            </div>
+
+            {watchlistStatus && (
+              <div className="rounded-lg border border-border bg-black/20 px-3 py-2 text-xs text-muted">
+                {watchlistStatus}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-yellow-400/25 bg-yellow-500/10 p-3">
+              <div className="text-xs font-bold uppercase tracking-[0.18em] text-yellow-300">
+                Signal Alerts
+              </div>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto]">
+                <input
+                  className="rounded-xl border border-border bg-black/20 px-3 py-2 text-xs outline-none"
+                  value={alertConfidence}
+                  onChange={(e) => setAlertConfidence(e.target.value)}
+                  placeholder="Minimum confidence, e.g. 75"
+                />
+
+                <button
+                  onClick={saveSignalAlert}
+                  className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-3 py-2 text-xs font-semibold text-yellow-200"
+                >
+                  Save BUY Alert
+                </button>
+
+                <button
+                  onClick={clearSignalAlert}
+                  className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200"
+                >
+                  Clear Alert
+                </button>
+              </div>
+
+              {alertStatus && (
+                <div className="mt-2 rounded-lg border border-border bg-black/20 px-3 py-2 text-xs text-slate-200">
+                  {alertStatus}
+                </div>
+              )}
+
+              {signalAlerts.length > 0 && (
+                <div className="mt-3 grid gap-2">
+                  {signalAlerts.map((item) => (
+                    <div
+                      key={`alert-${safeText(item.symbol)}`}
+                      className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs"
+                    >
+                      <span className="font-bold text-emerald-300">
+                        ALERT: {safeText(item.symbol)}
+                      </span>
+                      <span className="text-slate-200">
+                        {" "}is {safeText(item.signal)} with {safeNumber(item.confidence, 0)}% confidence.
+                      </span>
+                      <div className="mt-1 text-muted">
+                        {item.bestTiming || item.verdict || "Review entry zone and risk before acting."}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="mt-2 text-[11px] text-muted">
+                Alerts appear after ranking or scanning. Educational only — not financial advice.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {rankResult && !rankResult.ok && (
+          <div className="mt-4 rounded-xl border border-red-700 bg-red-950/40 p-4 text-sm text-red-300">
+            {rankResult.error || "Ranking failed."}
+          </div>
+        )}
+
+        {rankResult?.ranked && rankResult.ranked.length > 0 && (
+          <div className="mt-5 space-y-5">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                  Top Buy Watch
+                </div>
+                <div className="mt-2 text-lg font-bold">
+                  {"None"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-cyan-400/25 bg-cyan-500/10 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                  Best Confidence
+                </div>
+                <div className="mt-2 text-lg font-bold">
+                  {"None"} - {"0"}%
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-red-400/25 bg-red-500/10 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-red-300">
+                  Avoid / Weak
+                </div>
+                <div className="mt-2 text-lg font-bold">
+                  {0}
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1200px] border-separate border-spacing-y-3 text-sm">
+                <thead className="text-xs uppercase tracking-[0.15em] text-muted">
+                  <tr>
+                    <th className="px-3 text-left">Rank</th>
+                    <th className="px-3 text-left">Symbol</th>
+                    <th className="px-3 text-left">Signal</th>
+                    <th className="px-3 text-left">Verdict</th>
+                    <th className="px-3 text-left">Best Timing</th>
+                    <th className="px-3 text-left">Confidence</th>
+                    <th className="px-3 text-left">Entry</th>
+                    <th className="px-3 text-left">Stop</th>
+                    <th className="px-3 text-left">Take Profit</th>
+                    <th className="px-3 text-left">RSI</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {([] as any[]).map((item: any) => (
+                    <tr key={safeText(item.symbol)} className="bg-black/20">
+                      <td className="rounded-l-xl px-3 py-4 font-semibold">#{item.rank}</td>
+                      <td className="px-3 py-4">
+                        <button
+                          onClick={() => {
+                            setSymbol(item.symbol);
+                            analyze(item.symbol);
+                          }}
+                          className="font-semibold text-accent hover:underline"
+                        >
+                          {safeText(item.symbol)}
+                        </button>
+                        <div className="text-xs text-muted">{safeNumber(item.changePercent, 2)}% momentum</div>
+                      </td>
+                      <td className="px-3 py-4">
+                        <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">
+                          {safeText(item.signal)}
+                        </span>
+                        <div className="mt-1 text-xs capitalize text-muted">Risk: {safeText(item.risk)}</div>
+                      </td>
+                      <td className="px-3 py-4">
+                        <div className="max-w-[190px] text-xs leading-5">{item.verdict || "--"}</div>
+                      </td>
+                      <td className="px-3 py-4">
+                        <div className="max-w-[270px] text-xs leading-5 text-muted">{item.bestTiming || "--"}</div>
+                      </td>
+                      <td className="px-3 py-4 font-semibold">{safeNumber(item.confidence, 0)}%</td>
+                      <td className="px-3 py-4">{item.tradePlan.entryZone?.[0]} - {item.tradePlan.entryZone?.[1]}</td>
+                      <td className="px-3 py-4 text-red-300">{item.tradePlan.stopLoss}</td>
+                      <td className="px-3 py-4 text-emerald-300">{item.tradePlan.takeProfit?.[0]} / {item.tradePlan.takeProfit?.[1]}</td>
+                      <td className="rounded-r-xl px-3 py-4">{item.indicators.rsi14 ?? "--"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <p className="text-xs text-muted">{rankResult.disclaimer}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-xl border border-border bg-panel/60 p-5">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted">
+          Trading Chatbot
+        </p>
+        <h2 className="mt-1 text-xl font-semibold">
+          Ask King Trading System
+        </h2>
+
+        <div className="mt-4 flex flex-col gap-3 md:flex-row">
+          <input
+            className="w-full rounded-xl border border-border bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-accent"
+            value={chatQuestion}
+            onChange={(e) => setChatQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") askTradingChat();
+            }}
+            placeholder="Example: Compare DOGE vs ETH"
+          />
+
+          <button
+            onClick={() => askTradingChat()}
+            disabled={chatLoading}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {chatLoading ? "Thinking..." : "Ask"}
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[
+            "What is the best ranked setup right now?",
+            "Which symbol should I avoid?",
+            "Compare DOGE vs ETH",
+            "Give me the safest entry plan",
+          ].map((q) => (
+            <button
+              key={q}
+              onClick={() => {
+                setChatQuestion(q);
+                askTradingChat(q);
+              }}
+              className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:border-accent hover:text-text"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+
+        {chatAnswer && (
+          <div className="mt-4 rounded-xl border border-border bg-black/20 p-4">
+            <div className="text-xs uppercase tracking-[0.2em] text-muted">
+              King Trading System Answer
+            </div>
+            <div className="mt-3 whitespace-pre-wrap text-sm leading-7">
+              {chatAnswer}
+            </div>
+          </div>
+        )}
+
+        <p className="mt-3 text-xs text-muted">
+          Educational market analysis only. Not financial advice. Signals are not guarantees.
+        </p>
+      </div>
+
+      {result && !result.ok && (
+        <div className="rounded-xl border border-red-700 bg-red-950/40 p-4 text-sm text-red-300">
+          {result.error || "Trading analysis failed."}
+        </div>
+      )}
+
+      {result && result.ok && (
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-5">
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">Symbol</div>
+              <div className="mt-1 text-xl font-semibold">{result.symbol}</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">Price</div>
+              <div className="mt-1 text-xl font-semibold">{result.price}</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">Signal</div>
+              <div className="mt-1 text-xl font-semibold">{signal}</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">Confidence</div>
+              <div className="mt-1 text-xl font-semibold">{result.confidence}%</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">Risk</div>
+              <div className="mt-1 text-xl font-semibold capitalize">{result.risk}</div>
+            </div>
+          </div>
+
+          <TradingChart candles={result.candles || []} levels={chartLevels} />
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">RSI 14</div>
+              <div className="mt-1 text-lg font-semibold">{result.indicators?.rsi?.toFixed?.(2) || "--"}</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">SMA 20</div>
+              <div className="mt-1 text-lg font-semibold">{result.indicators?.sma20?.toFixed?.(6) || "--"}</div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-panel/60 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted">SMA 50</div>
+              <div className="mt-1 text-lg font-semibold">{result.indicators?.sma50?.toFixed?.(6) || "--"}</div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-panel/60 p-5">
+            <div className="text-xs uppercase tracking-[0.2em] text-muted">Factual Source</div>
+            <div className="mt-2 text-sm">{result.provider}</div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-panel/60 p-5">
+            <div className="text-xs uppercase tracking-[0.2em] text-muted">AI Analysis</div>
+            <div className="mt-3 whitespace-pre-wrap text-sm leading-7">{result.analysis}</div>
+          </div>
+
+          <p className="text-xs text-muted">{result.disclaimer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
