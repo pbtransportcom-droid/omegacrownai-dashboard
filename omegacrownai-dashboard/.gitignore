@@ -21,3 +21,7 @@ node_modules
 *.tar.gz
 *.bak
 *.safe_online_*
+
+# local manual backups
+*.backup_*
+*.safe_online_*
