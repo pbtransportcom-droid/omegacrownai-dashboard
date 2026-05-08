@@ -857,6 +857,34 @@ export default function TradeClient() {
 
   const signal = result?.signal || "WAITING";
   const chartLevels = result?.tradePlan || buildFallbackLevels(result);
+  const safeRanked = Array.isArray(rankResult?.ranked)
+    ? rankResult.ranked.map((row: any, index: number) => ({
+        ...normalizeRankRow(row),
+        rank: row?.rank || index + 1,
+        verdict: row?.verdict || row?.error || "Review setup before acting.",
+        bestTiming: row?.bestTiming || "Wait for confirmation near support, resistance, or entry zone.",
+        tradePlan: {
+          entryZone: row?.tradePlan?.entryZone || row?.entryZone || [],
+          stopLoss: row?.tradePlan?.stopLoss || row?.stopLoss || null,
+          takeProfit: row?.tradePlan?.takeProfit || row?.takeProfit || [],
+          support: row?.tradePlan?.support || row?.support || null,
+          resistance: row?.tradePlan?.resistance || row?.resistance || null,
+        },
+        indicators: {
+          rsi14: row?.indicators?.rsi14 || row?.rsi || row?.indicators?.rsi || null,
+          sma20: row?.indicators?.sma20 || row?.sma20 || null,
+          sma50: row?.indicators?.sma50 || row?.sma50 || null,
+          volumePower: row?.indicators?.volumePower || row?.volumePower || null,
+          longTermPower: row?.indicators?.longTermPower || row?.longTermPower || null,
+        },
+      }))
+    : [];
+
+  const topBuyWatch = safeRanked.find((x: any) => x.signal === "BUY WATCH");
+  const bestConfidence = safeRanked[0];
+  const weakAvoidCount = safeRanked.filter(
+    (x: any) => x.signal === "WEAK / AVOID" || x.signal === "SELL WATCH" || x.signal === "NO DATA"
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -1151,7 +1179,7 @@ export default function TradeClient() {
                   Top Buy Watch
                 </div>
                 <div className="mt-2 text-lg font-bold">
-                  {"None"}
+                  {topBuyWatch?.symbol || "None"}
                 </div>
               </div>
 
@@ -1160,7 +1188,7 @@ export default function TradeClient() {
                   Best Confidence
                 </div>
                 <div className="mt-2 text-lg font-bold">
-                  {"None"} - {"0"}%
+                  {bestConfidence ? `${bestConfidence.symbol} - ${safeNumber(bestConfidence.confidence, 0)}%` : "None - 0%"}
                 </div>
               </div>
 
@@ -1169,7 +1197,7 @@ export default function TradeClient() {
                   Avoid / Weak
                 </div>
                 <div className="mt-2 text-lg font-bold">
-                  {0}
+                  {weakAvoidCount}
                 </div>
               </div>
             </div>
@@ -1192,7 +1220,7 @@ export default function TradeClient() {
                 </thead>
 
                 <tbody>
-                  {([] as any[]).map((item: any) => (
+                  {safeRanked.map((item: any) => (
                     <tr key={safeText(item.symbol)} className="bg-black/20">
                       <td className="rounded-l-xl px-3 py-4 font-semibold">#{item.rank}</td>
                       <td className="px-3 py-4">
@@ -1220,10 +1248,10 @@ export default function TradeClient() {
                         <div className="max-w-[270px] text-xs leading-5 text-muted">{item.bestTiming || "--"}</div>
                       </td>
                       <td className="px-3 py-4 font-semibold">{safeNumber(item.confidence, 0)}%</td>
-                      <td className="px-3 py-4">{item.tradePlan.entryZone?.[0]} - {item.tradePlan.entryZone?.[1]}</td>
-                      <td className="px-3 py-4 text-red-300">{item.tradePlan.stopLoss}</td>
-                      <td className="px-3 py-4 text-emerald-300">{item.tradePlan.takeProfit?.[0]} / {item.tradePlan.takeProfit?.[1]}</td>
-                      <td className="rounded-r-xl px-3 py-4">{item.indicators.rsi14 ?? "--"}</td>
+                      <td className="px-3 py-4">{formatMaybeArray(item.tradePlan?.entryZone)}</td>
+                      <td className="px-3 py-4 text-red-300">{formatMaybeNumber(item.tradePlan?.stopLoss)}</td>
+                      <td className="px-3 py-4 text-emerald-300">{formatMaybeArray(item.tradePlan?.takeProfit)}</td>
+                      <td className="rounded-r-xl px-3 py-4">{formatMaybeNumber(item.indicators?.rsi14, 2)}</td>
                     </tr>
                   ))}
                 </tbody>
