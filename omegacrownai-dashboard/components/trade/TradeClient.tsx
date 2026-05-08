@@ -37,7 +37,30 @@ type TradeResult = {
     sma20?: number;
     sma50?: number;
     rsi?: number;
+    volumePower?: number;
+    longTermPower?: number;
+    buyPower?: number;
+    sellPower?: number;
+    netPower?: number;
+    pressure?: string;
+    powerDays?: number;
   };
+  profile?: {
+    name?: string;
+    type?: string;
+    work?: string;
+    sector?: string;
+  };
+  powerSummary?: {
+    buyPower?: number;
+    sellPower?: number;
+    netPower?: number;
+    pressure?: string;
+    volumePower?: number;
+    explanation?: string;
+  };
+  verdict?: string;
+  bestTiming?: string;
   tradePlan?: TradePlan;
   error?: string;
 };
@@ -401,7 +424,7 @@ export default function TradeClient() {
 
   const [symbol, setSymbol] = useState(initialSymbol);
   const [marketType, setMarketType] = useState<"stock" | "crypto">("crypto");
-  const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d" | "90d" | "1y">("90d");
+  const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d" | "40d" | "90d" | "1y">("40d");
   const [loading, setLoading] = useState(false);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
@@ -673,12 +696,14 @@ export default function TradeClient() {
       setRankSymbols(saved);
       setWatchlistStatus("Scanning saved watchlist...");
 
-      const res = await fetch("/api/ai/trading/rank2", {
+      const res = await fetch("/api/ai/trading/scan-v2", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          marketType,
+          timeframe,
           symbols: saved
             .split(",")
             .map((s: string) => s.trim())
@@ -706,12 +731,14 @@ export default function TradeClient() {
     setRankingLoading(true);
 
     try {
-      const res = await fetch("/api/ai/trading/rank2", {
+      const res = await fetch("/api/ai/trading/scan-v2", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          marketType,
+          timeframe,
           symbols: rankSymbols
             .split(",")
             .map((s) => s.trim())
@@ -952,8 +979,8 @@ export default function TradeClient() {
             <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
               Timeframe
             </div>
-            <div className="grid grid-cols-5 gap-2">
-              {(["24h", "7d", "30d", "90d", "1y"] as const).map((tf) => (
+            <div className="grid grid-cols-6 gap-2">
+              {(["24h", "7d", "30d", "40d", "90d", "1y"] as const).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
@@ -1013,7 +1040,7 @@ export default function TradeClient() {
           />
 
           <button
-            onClick={() => analyze()}
+            onClick={() => analyzeV2()}
             disabled={loading}
             className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
@@ -1227,7 +1254,7 @@ export default function TradeClient() {
                         <button
                           onClick={() => {
                             setSymbol(item.symbol);
-                            analyze(item.symbol);
+                            analyzeV2(item.symbol);
                           }}
                           className="font-semibold text-accent hover:underline"
                         >
@@ -1335,6 +1362,56 @@ export default function TradeClient() {
 
       {result && result.ok && (
         <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-cyan-400/25 bg-slate-950 p-5 shadow-lg shadow-cyan-950/20">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+                Symbol Details
+              </div>
+              <div className="mt-2 text-2xl font-black text-white">
+                {result.symbol}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-slate-200">
+                {result.profile?.name || "Market Symbol"} · {result.profile?.sector || result.marketType}
+              </div>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                {result.profile?.work ||
+                  "This symbol represents a tradable market asset. Review trend, power, volume, support, and risk before acting."}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-amber-400/25 bg-slate-950 p-5 shadow-lg shadow-amber-950/20">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">
+                Power Information
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-emerald-300">Buy Power</div>
+                  <div className="mt-1 text-2xl font-black text-emerald-200">
+                    {result.powerSummary?.buyPower ?? result.indicators?.buyPower ?? 0}%
+                  </div>
+                </div>
+                <div className="rounded-xl border border-red-400/25 bg-red-500/10 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-red-300">Sell Power</div>
+                  <div className="mt-1 text-2xl font-black text-red-200">
+                    {result.powerSummary?.sellPower ?? result.indicators?.sellPower ?? 0}%
+                  </div>
+                </div>
+                <div className="rounded-xl border border-cyan-400/25 bg-cyan-500/10 p-3">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-300">Net Power</div>
+                  <div className="mt-1 text-2xl font-black text-cyan-200">
+                    {result.powerSummary?.netPower ?? result.indicators?.netPower ?? 0}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 rounded-xl border border-slate-700 bg-slate-900 p-3 text-sm font-semibold text-slate-200">
+                Pressure: <span className="text-amber-300">{result.powerSummary?.pressure || result.indicators?.pressure || "BALANCED"}</span>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-400">
+                {result.powerSummary?.explanation ||
+                  "Power measures recent bullish pressure versus bearish pressure using candle body strength and volume."}
+              </p>
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-5">
             <div className="rounded-xl border border-border bg-panel/60 p-4">
               <div className="text-xs uppercase tracking-[0.2em] text-muted">Symbol</div>

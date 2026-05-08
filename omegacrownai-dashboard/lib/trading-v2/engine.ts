@@ -1,5 +1,5 @@
 export type MarketType = "stock" | "crypto";
-export type Timeframe = "24h" | "7d" | "30d" | "90d" | "1y";
+export type Timeframe = "24h" | "7d" | "30d" | "40d" | "90d" | "1y";
 
 export const STOCK_UNIVERSE = [
   "AAPL","MSFT","NVDA","TSLA","META","AMZN","GOOGL","AMD","NFLX","PLTR",
@@ -58,6 +58,7 @@ function yahooParams(timeframe: Timeframe) {
   if (timeframe === "24h") return { range: "1d", interval: "5m" };
   if (timeframe === "7d") return { range: "7d", interval: "1h" };
   if (timeframe === "30d") return { range: "1mo", interval: "1d" };
+  if (timeframe === "40d") return { range: "2mo", interval: "1d" };
   if (timeframe === "90d") return { range: "3mo", interval: "1d" };
   return { range: "1y", interval: "1d" };
 }
@@ -163,6 +164,35 @@ export async function analyzeSymbolV2({
   const lastVolume = volumes[volumes.length - 1] || 0;
   const volumePower = volumeAvg ? (lastVolume / volumeAvg) * 100 : 0;
 
+  const powerCandles = candles.map((c: any) => {
+    const direction = c.close >= c.open ? "buy" : "sell";
+    const body = Math.abs(c.close - c.open);
+    const range = Math.max(0.0000001, c.high - c.low);
+    const bodyStrength = Math.min(100, (body / range) * 100);
+    const volumeStrength = volumeAvg ? Math.min(200, ((c.volume || 0) / volumeAvg) * 100) : 0;
+    const power = Math.round((bodyStrength * 0.55) + (volumeStrength * 0.45));
+    return {
+      time: c.time,
+      direction,
+      power,
+      buyPower: direction === "buy" ? power : 0,
+      sellPower: direction === "sell" ? power : 0,
+      volume: c.volume || 0,
+    };
+  });
+
+  const recentPower = powerCandles.slice(-40);
+  const buyPowerTotal = recentPower.reduce((sum: number, c: any) => sum + Number(c.buyPower || 0), 0);
+  const sellPowerTotal = recentPower.reduce((sum: number, c: any) => sum + Number(c.sellPower || 0), 0);
+  const totalPower = Math.max(1, buyPowerTotal + sellPowerTotal);
+  const buyPower = Math.round((buyPowerTotal / totalPower) * 100);
+  const sellPower = Math.round((sellPowerTotal / totalPower) * 100);
+  const netPower = buyPower - sellPower;
+  const pressure =
+    netPower >= 20 ? "BUYER PRESSURE" :
+    netPower <= -20 ? "SELLER PRESSURE" :
+    "BALANCED";
+
   const support = Math.min(...lows.slice(-30));
   const resistance = Math.max(...highs.slice(-30));
 
@@ -234,7 +264,22 @@ export async function analyzeSymbolV2({
       rsi: round(rsi14, 2),
       volumePower: round(volumePower, 2),
       longTermPower,
+      buyPower,
+      sellPower,
+      netPower,
+      pressure,
+      powerDays: Math.min(40, recentPower.length),
     },
+    powerSummary: {
+      buyPower,
+      sellPower,
+      netPower,
+      pressure,
+      volumePower: round(volumePower, 2),
+      explanation:
+        "Power compares recent bullish volume pressure versus bearish volume pressure. Buyer pressure means bullish candles are carrying stronger volume and body strength. Seller pressure means bearish candles are stronger.",
+    },
+    powerCandles: powerCandles.slice(-80),
     tradePlan: {
       entryZone: [round(entryLow, 6), round(entryHigh, 6)],
       stopLoss: round(stopLoss, 6),
@@ -285,6 +330,11 @@ export async function scanMarketV2({
         sma50: analysis.indicators.sma50,
         longTermPower: analysis.indicators.longTermPower,
         volumePower: analysis.indicators.volumePower,
+        buyPower: analysis.indicators.buyPower,
+        sellPower: analysis.indicators.sellPower,
+        netPower: analysis.indicators.netPower,
+        pressure: analysis.indicators.pressure,
+        powerDays: analysis.indicators.powerDays,
         entryZone: analysis.tradePlan.entryZone,
         stopLoss: analysis.tradePlan.stopLoss,
         takeProfit: analysis.tradePlan.takeProfit,
