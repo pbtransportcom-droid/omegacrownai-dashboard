@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useAgentRoom } from "@/hooks/useAgentRoom";
+import AgentRoomControls from "@/components/runtime/AgentRoomControls";
 
 const AGENTS = [
   { id: "user", label: "User" },
@@ -124,6 +125,8 @@ export default function AgentRoom({
         <Metric label="Messages" value={String(messages.length)} />
         <Metric label="Active Agents" value={String(activeAgents.size)} />
       </section>
+
+      <AgentRoomControls sessionId={activeSessionId} />
 
       <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
         <aside className="rounded-3xl border border-border bg-panel/70 p-4">
