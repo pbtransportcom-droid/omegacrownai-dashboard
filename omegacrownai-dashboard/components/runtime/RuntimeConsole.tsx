@@ -23,6 +23,25 @@ export default function RuntimeConsole({
     );
   }, [messages]);
 
+  const agentOutput = useMemo(() => {
+    const complete = [...messages]
+      .reverse()
+      .find((message) => message.type === "agent_complete");
+
+    if (complete?.content) {
+      return String(complete.content);
+    }
+
+    return messages
+      .filter((message) => message.type === "agent_token")
+      .map((message) => String(message.content || ""))
+      .join("");
+  }, [messages]);
+
+  const filteredMessages = useMemo(() => {
+    return messages.filter((message) => message.type !== "agent_token");
+  }, [messages]);
+
   async function runTest() {
     setTesting(true);
 
@@ -84,12 +103,33 @@ export default function RuntimeConsole({
         <Metric label="Types" value={String(Object.keys(stats).length)} />
       </section>
 
+      <section className="rounded-3xl border border-cyan-500/25 bg-cyan-500/10 p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+              Live Agent Output
+            </p>
+            <h2 className="mt-1 text-xl font-black text-white">
+              Merged Token Stream
+            </h2>
+          </div>
+
+          <div className="rounded-full border border-cyan-400/30 bg-black/20 px-3 py-1 text-xs text-cyan-100">
+            {stats.agent_token || 0} tokens
+          </div>
+        </div>
+
+        <div className="mt-4 min-h-28 rounded-2xl border border-cyan-400/20 bg-slate-950 p-4 text-sm leading-7 text-slate-100">
+          {agentOutput || "No agent output yet. Click Run Test."}
+        </div>
+      </section>
+
       <section className="rounded-3xl border border-border bg-panel/70 p-5">
         <h2 className="text-xl font-black text-white">Runtime Stream</h2>
 
         <div className="mt-4 space-y-3">
-          {messages.length ? (
-            messages
+          {filteredMessages.length ? (
+            filteredMessages
               .slice()
               .reverse()
               .map((message, index) => (
