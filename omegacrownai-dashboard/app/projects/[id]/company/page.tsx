@@ -107,6 +107,37 @@ export default async function ProjectCompanyPage({
                 </div>
               </div>
 
+              <div className="mt-5 rounded-2xl border border-border bg-black/20 p-4">
+                <h3 className="text-sm font-black text-white">Create Company Task</h3>
+
+                <form
+                  action={`/api/company/${company.id}/tasks`}
+                  method="POST"
+                  className="mt-3 grid gap-3 md:grid-cols-4"
+                >
+                  <select
+                    name="type"
+                    defaultValue="company_research"
+                    className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none"
+                  >
+                    <option value="company_research">Research</option>
+                    <option value="company_analysis">Analysis</option>
+                    <option value="company_pipeline">Pipeline</option>
+                    <option value="custom">Custom</option>
+                  </select>
+
+                  <input
+                    name="message"
+                    placeholder="Task message"
+                    className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none md:col-span-2"
+                  />
+
+                  <button className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-500">
+                    Create Task
+                  </button>
+                </form>
+              </div>
+
               <div className="mt-5 grid gap-4 xl:grid-cols-4">
                 <Panel title="KPIs" value={company.kpis} />
                 <Panel title="Memory" value={company.memory} />

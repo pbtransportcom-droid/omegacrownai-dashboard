@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { getCompanyKpiSnapshot, setCompanyKPI } from "./kpi";
 import { getCompanyMemory, writeCompanyMemory } from "./memory";
+import { assignWorker, preferredRoleForTask } from "@/lib/sugent/workforce/assignWorker";
+import { runWorker } from "@/lib/sugent/workforce/runWorker";
 
 export async function resolveCompanyForProject(projectId: string) {
   return prisma.company.findFirst({
@@ -114,6 +116,64 @@ export async function runCompanyOrchestrator({
       reply: `KPI set: ${kpi.metric} = ${kpi.value} (${kpi.period}).`,
       actions: [{ type: "company_kpi_set", kpiId: kpi.id }],
       data: kpi,
+    };
+  }
+
+  if (
+    lower.includes("create task") ||
+    lower.includes("run task") ||
+    lower.includes("company research") ||
+    lower.includes("company analysis") ||
+    lower.includes("company pipeline")
+  ) {
+    const type =
+      lower.includes("research") ? "company_research" :
+      lower.includes("analysis") ? "company_analysis" :
+      lower.includes("pipeline") || lower.includes("cloud") ? "company_pipeline" :
+      "custom";
+
+    const task = await prisma.companyTask.create({
+      data: {
+        companyId: company.id,
+        type,
+        input: {
+          message,
+          source: "company_orchestrator",
+        },
+        status: "pending",
+      },
+    });
+
+    const worker = await assignWorker({
+      companyId: company.id,
+      taskId: task.id,
+      role: preferredRoleForTask(type),
+    });
+
+    const runNow = lower.includes("run task") || lower.includes("company research") || lower.includes("company analysis") || lower.includes("company pipeline");
+
+    const result = worker && runNow
+      ? await runWorker({
+          taskId: task.id,
+          projectId,
+          sessionId,
+          runtimeSessionId,
+        })
+      : null;
+
+    return {
+      ok: true,
+      intent: runNow ? "company_task_run" : "company_task_created",
+      reply: `Company task ${runNow ? "created and run" : "created"}: ${type}.`,
+      actions: [
+        {
+          type: runNow ? "company_task_run" : "company_task_created",
+          taskId: task.id,
+          workerId: worker?.id || null,
+          taskType: type,
+        },
+      ],
+      data: result || task,
     };
   }
 
