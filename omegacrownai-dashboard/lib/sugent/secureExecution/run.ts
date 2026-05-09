@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { AuditLogger } from "@/lib/sugent/core/auditLogger";
+import { recordTimelineEvent } from "@/lib/sugent/runtime/timeline";
 import { sha256 } from "./hash";
 import { defaultExecutionPolicy, validateExecutionRequest } from "./policy";
 import { runJavaScriptSandbox } from "./jsSandbox";
@@ -61,6 +62,24 @@ export async function runSecureExecution({
         language: normalizedLanguage,
         codeHash,
         inputHash,
+      },
+    });
+  }
+
+  if (runtimeSessionId) {
+    await recordTimelineEvent({
+      sessionId: runtimeSessionId,
+      projectId: projectId || null,
+      message: {
+        type: "tool_call",
+        tool: "secure_execution",
+        args: {
+          executionId: record.id,
+          language: normalizedLanguage,
+          codeHash,
+          inputHash,
+          phase: "started",
+        },
       },
     });
   }
@@ -129,6 +148,27 @@ export async function runSecureExecution({
         outputHash,
         output: updated.output,
         error: updated.error,
+      },
+    });
+  }
+
+  if (runtimeSessionId) {
+    await recordTimelineEvent({
+      sessionId: runtimeSessionId,
+      projectId: projectId || null,
+      message: {
+        type: "tool_result",
+        tool: "secure_execution",
+        result: {
+          executionId: updated.id,
+          status: updated.status,
+          codeHash,
+          inputHash,
+          outputHash,
+          output: updated.output,
+          error: updated.error,
+          phase: "completed",
+        },
       },
     });
   }

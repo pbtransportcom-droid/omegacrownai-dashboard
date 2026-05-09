@@ -56,7 +56,11 @@ export default async function ProjectExecutionsPage({
         <div className="mt-4 space-y-3">
           {executions.length ? (
             executions.map((execution) => (
-              <div key={execution.id} className="rounded-2xl border border-border bg-black/20 p-4">
+              <Link
+                key={execution.id}
+                href={`/projects/${id}/executions/${execution.id}`}
+                className="block rounded-2xl border border-border bg-black/20 p-4 hover:bg-white/5"
+              >
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="text-sm font-bold text-white">
@@ -95,7 +99,7 @@ export default async function ProjectExecutionsPage({
                   <CodePanel title="Logs" value={execution.logs || []} />
                   <CodePanel title="Metrics" value={execution.metrics || {}} />
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
