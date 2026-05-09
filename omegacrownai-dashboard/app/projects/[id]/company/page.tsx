@@ -108,6 +108,38 @@ export default async function ProjectCompanyPage({
               </div>
 
               <div className="mt-5 rounded-2xl border border-border bg-black/20 p-4">
+                <h3 className="text-sm font-black text-white">Workforce Queue Controls</h3>
+
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <form action={`/api/company/${company.id}/workforce/run-next`} method="POST">
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="sessionId" value={`workforce-${company.id}`} />
+                    <input type="hidden" name="runtimeSessionId" value={`workforce-${company.id}`} />
+                    <button className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/20">
+                      Run Next Pending Task
+                    </button>
+                  </form>
+
+                  <form action={`/api/company/${company.id}/workforce/run-all`} method="POST">
+                    <input type="hidden" name="projectId" value={id} />
+                    <input type="hidden" name="sessionId" value={`workforce-${company.id}`} />
+                    <input type="hidden" name="runtimeSessionId" value={`workforce-${company.id}`} />
+                    <input type="hidden" name="limit" value="10" />
+                    <button className="rounded-xl bg-emerald-600 px-4 py-3 text-xs font-black text-white hover:bg-emerald-500">
+                      Run All Pending
+                    </button>
+                  </form>
+
+                  <a
+                    href={`/api/company/${company.id}/workforce/status`}
+                    className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/20"
+                  >
+                    Workforce API
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-border bg-black/20 p-4">
                 <h3 className="text-sm font-black text-white">Create Company Task</h3>
 
                 <form
