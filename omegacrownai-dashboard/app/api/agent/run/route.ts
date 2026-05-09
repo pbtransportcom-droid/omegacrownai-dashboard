@@ -6,6 +6,7 @@ import { checkAiUsageLimit } from "@/lib/security/aiUsageLimit";
 import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { streamAgentText } from "@/lib/sugent/runtime/streams";
 import { MemoryWriter } from "@/lib/sugent/memory/write";
+import { shouldUseSecureExecution, runAgentSecureExecutionTool } from "@/lib/sugent/secureExecution/agentTool";
 
 export async function POST(req: Request) {
   try {
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (!message) {
+if (!message) {
       return NextResponse.json(
         { ok: false, error: "Message is required." },
         { status: 400 }
@@ -64,6 +65,75 @@ export async function POST(req: Request) {
 
     const userId = session?.user?.email || body.userId || "anonymous";
     const sessionId = body.sessionId || `sess_${Date.now()}`;
+
+    if (shouldUseSecureExecution(message)) {
+      const projectId =
+        body.projectId ||
+        body.context?.projectId ||
+        body.context?.activeProjectId ||
+        null;
+
+      const executionResult = await runAgentSecureExecutionTool({
+        projectId,
+        sessionId,
+        runtimeSessionId: runtimeSessionId || sessionId,
+        message,
+      });
+
+      const record: any = executionResult.record;
+
+      const reply = executionResult.ok
+        ? `Secure execution completed successfully. Execution ID: ${record?.id}.`
+        : `Secure execution was blocked or failed: ${
+            executionResult.error || record?.error || "Unknown error"
+          }`;
+
+      if (runtimeSessionId) {
+        RuntimeHub.emit(runtimeSessionId, {
+          type: "agent_message",
+          from: "omega_crown_super_agent",
+          to: "user",
+          role: "tool_summary",
+          content: reply,
+        });
+
+        await streamAgentText(runtimeSessionId, reply, 4);
+      }
+
+      await MemoryWriter.write({
+        projectId: projectId || null,
+        sessionId,
+        type: "agent",
+        content: reply,
+        tags: ["secure_execution", executionResult.ok ? "success" : "blocked"],
+        score: executionResult.ok ? 0.8 : 0.6,
+      });
+
+      return NextResponse.json(
+        {
+          ok: executionResult.ok,
+          intent: "secure_execution",
+          reply,
+          actions: [
+            {
+              type: "secure_execution_run",
+              projectId,
+              executionId: record?.id,
+              status: record?.status,
+              codeHash: record?.codeHash,
+              inputHash: record?.inputHash,
+              outputHash: record?.outputHash,
+            },
+          ],
+          execution: record,
+          error: executionResult.error || null,
+        },
+        {
+          status: executionResult.ok ? 200 : 400,
+        }
+      );
+    }
+
 
     const result = await runAgent({
       userId,

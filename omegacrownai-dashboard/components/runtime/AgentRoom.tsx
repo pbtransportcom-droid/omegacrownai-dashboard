@@ -44,7 +44,31 @@ export default function AgentRoom({
       if (message.type === "tool_call" || message.type === "tool_result") {
         set.add("omega_crown_super_agent");
       }
-      if (message.type === "builder_update") {
+      if (
+    (message.type === "tool_call" || message.type === "tool_result") &&
+    message.tool === "secure_execution"
+  ) {
+    const data = message.result || message.args || {};
+
+    return (
+      <div className="rounded-2xl border border-orange-400/25 bg-orange-500/10 p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-orange-300">
+          Secure Execution · {data.status || "started"}
+        </div>
+
+        {data.executionId && (
+          <div className="mt-2 font-mono text-xs text-orange-100">
+            {data.executionId}
+          </div>
+        )}
+
+        <CodeBlock value={data} />
+        <Timestamp value={message.createdAt} />
+      </div>
+    );
+  }
+
+  if (message.type === "builder_update") {
         set.add("builder_automation");
       }
       if (message.type === "cloud_job_update") {
@@ -124,7 +148,7 @@ export default function AgentRoom({
         <Metric label="Connection" value={connected ? "Live" : "Closed"} />
         <Metric label="Session" value={activeSessionId} />
         <Metric label="Messages" value={String(messages.length)} />
-        <Metric label="Active Agents" value={String(activeAgents.size)} />
+        <Metric label="Active Agents" value={String(activeAgents instanceof Set ? activeAgents.size : 0)} />
       </section>
 
       <AgentRoomControls sessionId={activeSessionId} />
@@ -137,7 +161,7 @@ export default function AgentRoom({
 
           <div className="mt-4 space-y-2">
             {AGENTS.map((agent) => {
-              const isActive = activeAgents.has(agent.id);
+              const isActive = activeAgents instanceof Set ? activeAgents.has(agent.id) : false;
 
               return (
                 <div
