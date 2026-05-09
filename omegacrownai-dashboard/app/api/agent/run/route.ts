@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { runAgent } from "@/lib/agent/runAgent";
 import { checkAiUsageLimit } from "@/lib/security/aiUsageLimit";
+import { RuntimeHub } from "@/lib/sugent/runtime/hub";
+import { streamAgentText } from "@/lib/sugent/runtime/streams";
 
 export async function POST(req: Request) {
   try {
@@ -29,6 +31,28 @@ export async function POST(req: Request) {
     }
 
     const message = String(body.message || "").trim();
+    const runtimeSessionId = String(
+      body.runtimeSessionId || body.context?.runtimeSessionId || body.sessionId || ""
+    );
+
+    if (runtimeSessionId) {
+      RuntimeHub.emit(runtimeSessionId, {
+        type: "agent_message",
+        from: "user",
+        to: "omega_crown_super_agent",
+        role: "request",
+        content: message || "Empty request",
+      });
+
+      RuntimeHub.emit(runtimeSessionId, {
+        type: "tool_call",
+        tool: "runAgent",
+        args: {
+          sessionId: body.sessionId,
+          channel: body.context?.channel || "web_app",
+        },
+      });
+    }
 
     if (!message) {
       return NextResponse.json(
@@ -47,11 +71,68 @@ export async function POST(req: Request) {
       context: {
         ...(body.context || {}),
         channel: body.context?.channel || "web_app",
+        runtimeSessionId: runtimeSessionId || undefined,
       },
     });
 
+    if (runtimeSessionId) {
+      RuntimeHub.emit(runtimeSessionId, {
+        type: "tool_result",
+        tool: "runAgent",
+        result: {
+          ok: result.ok,
+          intent: result.intent,
+          actions: result.actions,
+        },
+      });
+
+      const actionList: any[] = Array.isArray((result as any).actions)
+        ? ((result as any).actions as any[])
+        : [];
+
+      const createdAction: any =
+        actionList.find((action: any) =>
+          action &&
+          typeof action === "object" &&
+          [
+            "project_created",
+            "trading_strategy_created",
+            "automation_flow_created",
+          ].includes(action.type)
+        ) || null;
+
+      if (createdAction) {
+        RuntimeHub.emit(runtimeSessionId, {
+          type: "builder_update",
+          draft: {
+            actionType: createdAction.type,
+            projectId: createdAction.projectId,
+            buildId: createdAction.buildId,
+            artifactId: createdAction.artifactId,
+            builderUrl: createdAction.builderUrl || createdAction.buildUrl,
+          },
+        });
+      }
+
+      await streamAgentText(runtimeSessionId, result.reply || "Agent run complete.", 5);
+    }
+
     return NextResponse.json(result);
   } catch (error: any) {
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      const runtimeSessionId = String(
+        body.runtimeSessionId || body.context?.runtimeSessionId || body.sessionId || ""
+      );
+
+      if (runtimeSessionId) {
+        RuntimeHub.emit(runtimeSessionId, {
+          type: "error",
+          message: error?.message || "Agent run failed.",
+        });
+      }
+    } catch {}
+
     return NextResponse.json(
       {
         ok: false,
