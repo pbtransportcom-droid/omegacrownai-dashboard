@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import WebsitePreview from "@/components/projects/WebsitePreview";
+import { getBuilderPath } from "@/lib/sugent/builder/registry";
 
 type ProjectWorkspaceProps = {
   project: {
@@ -437,21 +438,21 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     builds.find((build: any) => build.domain === "website") || builds[0] || null;
 
   const latestWebsiteBuilderUrl = latestWebsiteBuild
-    ? `/build/website/${project.id}?buildId=${latestWebsiteBuild.id}`
+    ? getBuilderPath("website", project.id, latestWebsiteBuild.id)
     : "";
 
   const latestTradingBuild =
     builds.find((build: any) => build.domain === "trading") || null;
 
   const latestTradingBuilderUrl = latestTradingBuild
-    ? `/build/trading/${project.id}?buildId=${latestTradingBuild.id}`
+    ? getBuilderPath("trading", project.id, latestTradingBuild.id)
     : "";
 
   const latestAutomationBuild =
     builds.find((build: any) => build.domain === "automation") || null;
 
   const latestAutomationBuilderUrl = latestAutomationBuild
-    ? `/build/automation/${project.id}?buildId=${latestAutomationBuild.id}`
+    ? getBuilderPath("automation", project.id, latestAutomationBuild.id)
     : "";
 
   return (
