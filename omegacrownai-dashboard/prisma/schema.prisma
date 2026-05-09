@@ -227,3 +227,54 @@ model CloudJob {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model MarketplaceAgent {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  version     String   @default("1.0.0")
+  inputSchema Json
+  outputSchema Json
+  endpoint    String
+  status      String   @default("active")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketplaceTool {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  configSchema Json
+  endpoint    String
+  status      String   @default("active")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketplaceTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  domain      String
+  draftKind   String
+  draft       Json
+  status      String   @default("active")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([domain])
+  @@index([draftKind])
+  @@index([status])
+  @@index([createdAt])
+}
