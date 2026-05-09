@@ -6,6 +6,7 @@ import {
   defaultBrowserPolicy,
   validateBrowserUrl,
   validateBrowserActions,
+  isFieldNameBlocked,
 } from "./policy";
 import { saveBrowserScreenshotArtifact } from "./artifacts";
 import {
@@ -20,6 +21,122 @@ function truncate(value: string | null | undefined, max: number) {
 
   return text.slice(0, max) + `\n\n[truncated ${text.length - max} chars]`;
 }
+
+
+async function extractForms(page: any) {
+  return page.locator("form").evaluateAll((forms: any[]) =>
+    forms.slice(0, 20).map((form: any, formIndex: number) => {
+      const fields = Array.from(
+        form.querySelectorAll("input, textarea, select")
+      ).map((field: any) => ({
+        tag: field.tagName?.toLowerCase(),
+        type: field.getAttribute("type") || "",
+        name: field.getAttribute("name") || "",
+        id: field.getAttribute("id") || "",
+        placeholder: field.getAttribute("placeholder") || "",
+        ariaLabel: field.getAttribute("aria-label") || "",
+        selector:
+          field.getAttribute("name")
+            ? `[name="${field.getAttribute("name")}"]`
+            : field.getAttribute("id")
+              ? `#${field.getAttribute("id")}`
+              : "",
+      }));
+
+      const buttons = Array.from(
+        form.querySelectorAll("button, input[type=submit], input[type=button]")
+      ).map((button: any) => ({
+        tag: button.tagName?.toLowerCase(),
+        type: button.getAttribute("type") || "",
+        text: button.innerText || button.value || "",
+        selector:
+          button.getAttribute("id")
+            ? `#${button.getAttribute("id")}`
+            : button.getAttribute("name")
+              ? `[name="${button.getAttribute("name")}"]`
+              : "",
+      }));
+
+      return {
+        formIndex,
+        action: form.getAttribute("action") || "",
+        method: form.getAttribute("method") || "get",
+        fields,
+        buttons,
+      };
+    })
+  );
+}
+
+async function safeFillForm(page: any, fields: Record<string, string>) {
+  const filled: any[] = [];
+  const blocked: any[] = [];
+
+  for (const [fieldName, value] of Object.entries(fields || {})) {
+    if (isFieldNameBlocked(fieldName)) {
+      blocked.push({
+        field: fieldName,
+        reason: "Field name blocked by browser policy.",
+      });
+      continue;
+    }
+
+    const selectors = [
+      `[name="${fieldName}"]`,
+      `#${fieldName}`,
+      `[placeholder="${fieldName}"]`,
+      `[aria-label="${fieldName}"]`,
+    ];
+
+    let filledOne = false;
+
+    for (const selector of selectors) {
+      const count = await page.locator(selector).count().catch(() => 0);
+
+      if (count > 0) {
+        const fieldType = await page
+          .locator(selector)
+          .first()
+          .getAttribute("type")
+          .catch(() => "");
+
+        if (String(fieldType || "").toLowerCase() === "password") {
+          blocked.push({
+            field: fieldName,
+            selector,
+            reason: "Password fields are blocked by browser policy.",
+          });
+          filledOne = true;
+          break;
+        }
+
+        await page.locator(selector).first().fill(String(value), { timeout: 5000 });
+
+        filled.push({
+          field: fieldName,
+          selector,
+          length: String(value).length,
+        });
+
+        filledOne = true;
+        break;
+      }
+    }
+
+    if (!filledOne) {
+      blocked.push({
+        field: fieldName,
+        reason: "No matching safe field found.",
+      });
+    }
+  }
+
+  return {
+    filled,
+    blocked,
+  };
+}
+
 
 async function runBrowserActions({
   page,
@@ -61,7 +178,7 @@ async function runBrowserActions({
       }
 
       if (action.type === "extract") {
-        const mode = action.mode || "text";
+        const mode = String(action.mode || "text") as "text" | "html" | "title" | "links" | "forms";
         const name = action.name || action.selector || mode;
 
         let output: any = null;
@@ -77,6 +194,8 @@ async function runBrowserActions({
                 href: node.href || "",
               }))
             );
+        } else if (mode === "forms") {
+          output = await extractForms(page);
         } else if (mode === "html") {
           output = await page.locator(action.selector || "body").innerHTML({
             timeout: 5000,
@@ -98,6 +217,45 @@ async function runBrowserActions({
           name,
           selector: action.selector,
           output,
+        });
+
+        continue;
+      }
+
+      if (action.type === "fillForm") {
+        const formResult = await safeFillForm(page, action.fields || {});
+
+        const shouldFail = formResult.blocked.length > 0 && formResult.filled.length === 0;
+
+        results.push({
+          index,
+          type: action.type,
+          ok: !shouldFail,
+          output: formResult,
+          error: shouldFail ? "No safe form fields were filled." : null,
+        });
+
+        if (shouldFail) break;
+
+        if (action.submitSelector) {
+          await page.locator(action.submitSelector).click({ timeout: 5000 });
+        }
+
+        continue;
+      }
+
+      if (action.type === "submit") {
+        if (action.selector) {
+          await page.locator(action.selector).click({ timeout: 5000 });
+        } else {
+          await page.locator("form").first().evaluate((form: any) => form.submit());
+        }
+
+        results.push({
+          index,
+          type: action.type,
+          ok: true,
+          selector: action.selector,
         });
 
         continue;

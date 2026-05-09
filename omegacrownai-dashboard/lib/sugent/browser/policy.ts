@@ -26,8 +26,17 @@ export const defaultBrowserPolicy: BrowserPolicy = {
   blockedSelectors: [
     "input[type=password]",
     "input[name*=password]",
+    "input[name*=passwd]",
     "input[name*=token]",
-    "input[name*=secret]"
+    "input[name*=secret]",
+    "input[name*=api_key]",
+    "input[name*=apikey]",
+    "input[name*=credit]",
+    "input[name*=card]",
+    "input[name*=ssn]",
+    "input[name*=social]",
+    "textarea[name*=secret]",
+    "textarea[name*=token]"
   ],
 };
 
@@ -86,7 +95,7 @@ export function validateBrowserAction(action: any, policy = defaultBrowserPolicy
 
   const type = String(action.type || "");
 
-  if (!["navigate", "extract", "click", "type", "waitFor", "screenshot"].includes(type)) {
+  if (!["navigate", "extract", "click", "type", "fillForm", "submit", "waitFor", "screenshot"].includes(type)) {
     return { ok: false, error: `Browser action not allowed: ${type}`, policy };
   }
 
@@ -138,4 +147,42 @@ export function validateBrowserActions(actions: any[], policy = defaultBrowserPo
   }
 
   return { ok: true, policy };
+}
+
+
+export function isSelectorBlocked(selector: string, policy = defaultBrowserPolicy) {
+  const normalized = String(selector || "").toLowerCase();
+
+  for (const blocked of policy.blockedSelectors) {
+    if (normalized.includes(blocked.toLowerCase())) {
+      return {
+        blocked: true,
+        reason: `Selector blocked by browser policy: ${blocked}`,
+      };
+    }
+  }
+
+  return {
+    blocked: false,
+    reason: null,
+  };
+}
+
+export function isFieldNameBlocked(name: string) {
+  const normalized = String(name || "").toLowerCase();
+
+  return [
+    "password",
+    "passwd",
+    "token",
+    "secret",
+    "api_key",
+    "apikey",
+    "credit",
+    "card",
+    "ssn",
+    "social",
+    "cvv",
+    "pin"
+  ].some((pattern) => normalized.includes(pattern));
 }

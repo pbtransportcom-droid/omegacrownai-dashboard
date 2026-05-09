@@ -6,7 +6,7 @@ export type BrowserAction =
   | {
       type: "extract";
       selector?: string;
-      mode?: "text" | "html" | "title" | "links";
+      mode?: "text" | "html" | "title" | "links" | "forms";
       name?: string;
     }
   | {
@@ -17,6 +17,15 @@ export type BrowserAction =
       type: "type";
       selector: string;
       value: string;
+    }
+  | {
+      type: "fillForm";
+      fields: Record<string, string>;
+      submitSelector?: string;
+    }
+  | {
+      type: "submit";
+      selector?: string;
     }
   | {
       type: "waitFor";
@@ -49,21 +58,9 @@ export function normalizeBrowserActions(input: any): BrowserAction[] {
 
   if (input?.url) {
     return [
-      {
-        type: "navigate",
-        url: String(input.url),
-      },
-      {
-        type: "extract",
-        mode: "title",
-        name: "title",
-      },
-      {
-        type: "extract",
-        selector: "body",
-        mode: "text",
-        name: "bodyText",
-      },
+      { type: "navigate", url: String(input.url) },
+      { type: "extract", mode: "title", name: "title" },
+      { type: "extract", selector: "body", mode: "text", name: "bodyText" },
     ];
   }
 
@@ -76,17 +73,14 @@ function normalizeAction(action: any): BrowserAction | null {
   const type = String(action.type || "").trim();
 
   if (type === "navigate") {
-    return {
-      type,
-      url: String(action.url || ""),
-    };
+    return { type, url: String(action.url || "") };
   }
 
   if (type === "extract") {
     return {
       type,
       selector: action.selector ? String(action.selector) : undefined,
-      mode: ["text", "html", "title", "links"].includes(String(action.mode))
+      mode: ["text", "html", "title", "links", "forms"].includes(String(action.mode))
         ? action.mode
         : "text",
       name: action.name ? String(action.name) : undefined,
@@ -94,10 +88,7 @@ function normalizeAction(action: any): BrowserAction | null {
   }
 
   if (type === "click") {
-    return {
-      type,
-      selector: String(action.selector || ""),
-    };
+    return { type, selector: String(action.selector || "") };
   }
 
   if (type === "type") {
@@ -105,6 +96,21 @@ function normalizeAction(action: any): BrowserAction | null {
       type,
       selector: String(action.selector || ""),
       value: String(action.value || ""),
+    };
+  }
+
+  if (type === "fillForm") {
+    return {
+      type,
+      fields: action.fields && typeof action.fields === "object" ? action.fields : {},
+      submitSelector: action.submitSelector ? String(action.submitSelector) : undefined,
+    };
+  }
+
+  if (type === "submit") {
+    return {
+      type,
+      selector: action.selector ? String(action.selector) : undefined,
     };
   }
 

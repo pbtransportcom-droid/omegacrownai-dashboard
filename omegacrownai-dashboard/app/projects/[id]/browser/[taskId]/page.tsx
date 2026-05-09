@@ -108,6 +108,7 @@ export default async function BrowserTaskDetailPage({
         <Panel title="Result" value={task.result || {}} />
         <Panel title="Action Results" value={(task.result as any)?.actionResults || []} />
         <Panel title="Extracted" value={(task.result as any)?.extracted || {}} />
+        <Panel title="Detected Forms" value={(task.result as any)?.extracted?.forms || []} />
         <Panel title="Metrics" value={task.metrics || {}} />
         <Panel title="Policy" value={task.policy || {}} />
         <Panel title="Logs" value={task.logs || []} />
