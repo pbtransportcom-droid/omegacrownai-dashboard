@@ -449,12 +449,13 @@ export async function analyzeSymbolV2({
     rsi14 && rsi14 < 30 ? "high" :
     Math.abs(momentum) > 20 ? "high" :
     "medium";
+  const isCrypto = marketType === "crypto";
 
-  const stopLoss = last * 0.965;
-  const takeProfit1 = last * 1.045;
-  const takeProfit2 = last * 1.09;
-  const entryLow = last * 0.992;
-  const entryHigh = last * 1.006;
+  const stopLoss = isCrypto ? last * 0.94 : last * 0.965;
+  const takeProfit1 = isCrypto ? last * 1.10 : last * 1.045;
+  const takeProfit2 = isCrypto ? last * 1.18 : last * 1.09;
+  const entryLow = isCrypto ? last * 0.985 : last * 0.992;
+  const entryHigh = isCrypto ? last * 1.01 : last * 1.006;
 
   const longTermPower =
     timeframe === "24h" || timeframe === "7d"
