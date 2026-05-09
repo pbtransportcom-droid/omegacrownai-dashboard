@@ -313,3 +313,26 @@ model TimelineSnapshot {
   @@index([index])
   @@index([createdAt])
 }
+
+
+model MemoryRecord {
+  id        String   @id @default(cuid())
+
+  projectId String?
+  sessionId String?
+
+  type      String
+  content   String
+  embedding Json
+  score     Float    @default(0)
+  tags      String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([sessionId])
+  @@index([type])
+  @@index([score])
+  @@index([createdAt])
+}

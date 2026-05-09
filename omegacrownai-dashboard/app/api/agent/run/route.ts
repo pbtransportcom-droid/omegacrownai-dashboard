@@ -5,6 +5,7 @@ import { runAgent } from "@/lib/agent/runAgent";
 import { checkAiUsageLimit } from "@/lib/security/aiUsageLimit";
 import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { streamAgentText } from "@/lib/sugent/runtime/streams";
+import { MemoryWriter } from "@/lib/sugent/memory/write";
 
 export async function POST(req: Request) {
   try {
@@ -73,6 +74,31 @@ export async function POST(req: Request) {
         channel: body.context?.channel || "web_app",
         runtimeSessionId: runtimeSessionId || undefined,
       },
+    });
+
+    const memoryProjectId =
+      Array.isArray((result as any).actions)
+        ? ((result as any).actions as any[]).find(
+            (action: any) => action && typeof action === "object" && action.projectId
+          )?.projectId
+        : null;
+
+    await MemoryWriter.write({
+      projectId: memoryProjectId || null,
+      sessionId,
+      type: "user",
+      content: message,
+      tags: [String((result as any).intent || "agent"), "request"],
+      score: 0.7,
+    });
+
+    await MemoryWriter.write({
+      projectId: memoryProjectId || null,
+      sessionId,
+      type: "agent",
+      content: String((result as any).reply || ""),
+      tags: [String((result as any).intent || "agent"), "reply"],
+      score: 0.8,
     });
 
     if (runtimeSessionId) {
