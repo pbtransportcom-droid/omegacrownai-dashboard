@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { protectInternalRoute } from "@/lib/security/protectedRoute";
 import { runNextCompanyTask } from "@/lib/sugent/workforce/loop";
 
 export async function POST(
@@ -6,6 +7,13 @@ export async function POST(
   { params }: { params: Promise<{ companyId: string }> }
 ) {
   const { companyId } = await params;
+  const protection = protectInternalRoute(req, {
+    rateLimitPrefix: "workforce-run-next",
+    limit: 20,
+  });
+  if (!protection.ok) return protection.response;
+
+
   const contentType = req.headers.get("content-type") || "";
 
   let body: any = {};

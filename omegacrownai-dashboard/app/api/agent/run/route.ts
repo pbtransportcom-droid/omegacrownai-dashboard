@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { protectPublicRoute } from "@/lib/security/protectedRoute";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import { runAgent } from "@/lib/agent/runAgent";
@@ -11,6 +12,13 @@ import { shouldUseBrowserAutomation, runAgentBrowserTool } from "@/lib/sugent/br
 import { shouldUseCloudExecution, runAgentCloudTool } from "@/lib/sugent/cloud/agentCloudTool";
 
 export async function POST(req: Request) {
+  const publicProtection = protectPublicRoute(req, {
+    rateLimitPrefix: "agent-run",
+    limit: 20,
+  });
+  if (!publicProtection.ok) return publicProtection.response;
+
+
   try {
     const session = await getServerSession(authConfig);
     const body = await req.json();

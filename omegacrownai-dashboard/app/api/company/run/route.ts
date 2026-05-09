@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
+import { protectPublicRoute } from "@/lib/security/protectedRoute";
 import { runCompanyOrchestrator } from "@/lib/sugent/company/orchestrator";
 
 export async function POST(req: Request) {
+  const publicProtection = protectPublicRoute(req, {
+    rateLimitPrefix: "company-run",
+    limit: 40,
+  });
+  if (!publicProtection.ok) return publicProtection.response;
+
+
   try {
     const body = await req.json();
 

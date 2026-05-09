@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { protectPublicRoute } from "@/lib/security/protectedRoute";
 import { prisma } from "@/lib/db";
 import { runSecureExecution } from "@/lib/sugent/secureExecution/run";
 
@@ -25,6 +26,13 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const publicProtection = protectPublicRoute(req, {
+    rateLimitPrefix: "secure-execution-run",
+    limit: 30,
+  });
+  if (!publicProtection.ok) return publicProtection.response;
+
+
   try {
     const body = await req.json();
 

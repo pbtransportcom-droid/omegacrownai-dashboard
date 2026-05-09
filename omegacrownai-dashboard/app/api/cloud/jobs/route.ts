@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { protectPublicRoute } from "@/lib/security/protectedRoute";
 import { getServerSession } from "next-auth";
 import { dispatchCloudJob } from "@/lib/sugent/cloud/dispatcher";
 import { runOneCloudJob } from "@/lib/sugent/cloud/worker";
@@ -23,6 +24,13 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const publicProtection = protectPublicRoute(req, {
+    rateLimitPrefix: "cloud-jobs",
+    limit: 40,
+  });
+  if (!publicProtection.ok) return publicProtection.response;
+
+
   const body = await req.json();
   const session = await getServerSession(authConfig);
   const actor = session?.user?.email || "system";
