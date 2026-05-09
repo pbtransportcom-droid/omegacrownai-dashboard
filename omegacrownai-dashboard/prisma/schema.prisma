@@ -407,3 +407,20 @@ model ExecutionRecord {
   @@index([codeHash])
   @@index([createdAt])
 }
+
+
+model ProjectExecutionPolicy {
+  id        String   @id @default(cuid())
+
+  projectId String   @unique
+
+  enabled   Boolean  @default(true)
+  policy    Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([enabled])
+  @@index([createdAt])
+}

@@ -3,7 +3,8 @@ import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { AuditLogger } from "@/lib/sugent/core/auditLogger";
 import { recordTimelineEvent } from "@/lib/sugent/runtime/timeline";
 import { sha256 } from "./hash";
-import { defaultExecutionPolicy, validateExecutionRequest } from "./policy";
+import { validateExecutionRequest } from "./policy";
+import { getProjectExecutionPolicy } from "./projectPolicy";
 import { runJavaScriptSandbox } from "./jsSandbox";
 
 export async function runSecureExecution({
@@ -28,11 +29,13 @@ export async function runSecureExecution({
   const codeHash = sha256(normalizedCode);
   const inputHash = sha256(safeInput);
 
+  const executionPolicy = await getProjectExecutionPolicy(projectId || null);
+
   const validation = validateExecutionRequest({
     language: normalizedLanguage,
     code: normalizedCode,
     input: safeInput,
-    policy: defaultExecutionPolicy,
+    policy: executionPolicy,
   });
 
   const record = await prisma.executionRecord.create({
