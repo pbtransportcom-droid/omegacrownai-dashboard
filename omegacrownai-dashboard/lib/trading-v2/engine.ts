@@ -54,6 +54,76 @@ function profileFor(symbol: string, marketType: MarketType) {
   };
 }
 
+
+function toBinanceSymbol(symbol: string) {
+  let s = String(symbol || "").trim().toUpperCase();
+
+  s = s.replace("-USD", "USDT");
+  s = s.replace("/USD", "USDT");
+  s = s.replace("-USDT", "USDT");
+  s = s.replace("/USDT", "USDT");
+
+  if (!s.endsWith("USDT")) {
+    s = `${s}USDT`;
+  }
+
+  return s;
+}
+
+function binanceIntervalAndLimit(timeframe: Timeframe) {
+  if (timeframe === "24h") return { interval: "1h", limit: 24 };
+  if (timeframe === "7d") return { interval: "4h", limit: 42 };
+  if (timeframe === "30d") return { interval: "1d", limit: 30 };
+  if (timeframe === "40d") return { interval: "1d", limit: 40 };
+  if (timeframe === "90d") return { interval: "1d", limit: 90 };
+  return { interval: "1d", limit: 365 };
+}
+
+async function fetchBinanceCandles(symbol: string, timeframe: Timeframe) {
+  const binanceSymbol = toBinanceSymbol(symbol);
+  const params = binanceIntervalAndLimit(timeframe);
+
+  const url =
+    `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(binanceSymbol)}` +
+    `&interval=${params.interval}&limit=${params.limit}`;
+
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Binance market data failed for ${binanceSymbol}`);
+  }
+
+  const rows = await res.json();
+
+  const candles = rows
+    .map((r: any[]) => ({
+      time: Math.floor(Number(r[0]) / 1000),
+      open: Number(r[1]),
+      high: Number(r[2]),
+      low: Number(r[3]),
+      close: Number(r[4]),
+      volume: Number(r[5]) || 0,
+    }))
+    .filter((c: any) =>
+      [c.open, c.high, c.low, c.close].every((v) => typeof v === "number" && Number.isFinite(v))
+    );
+
+  if (candles.length < 5) {
+    throw new Error(`Not enough Binance data for ${binanceSymbol}`);
+  }
+
+  return {
+    yahooSymbol: binanceSymbol,
+    candles,
+    provider: "binance-public-market-data",
+  };
+}
+
 function yahooParams(timeframe: Timeframe) {
   if (timeframe === "24h") return { range: "1d", interval: "5m" };
   if (timeframe === "7d") return { range: "7d", interval: "1h" };
@@ -93,7 +163,7 @@ function round(n: number | null | undefined, d = 4) {
   return Number(n.toFixed(d));
 }
 
-async function fetchCandles(symbol: string, timeframe: Timeframe, marketType: MarketType) {
+async function fetchYahooCandles(symbol: string, timeframe: Timeframe, marketType: MarketType) {
   const yahooSymbol = normalizeSymbol(symbol, marketType);
   const params = yahooParams(timeframe);
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=${params.range}&interval=${params.interval}`;
@@ -132,7 +202,19 @@ async function fetchCandles(symbol: string, timeframe: Timeframe, marketType: Ma
     throw new Error(`Not enough market data for ${yahooSymbol}`);
   }
 
-  return { yahooSymbol, candles };
+  return { yahooSymbol, candles, provider: "yahoo-chart-public-data" };
+}
+
+async function fetchCandles(symbol: string, timeframe: Timeframe, marketType: MarketType) {
+  if (marketType === "crypto") {
+    try {
+      return await fetchBinanceCandles(symbol, timeframe);
+    } catch (error) {
+      return await fetchYahooCandles(symbol, timeframe, marketType);
+    }
+  }
+
+  return fetchYahooCandles(symbol, timeframe, marketType);
 }
 
 export async function analyzeSymbolV2({
@@ -144,7 +226,7 @@ export async function analyzeSymbolV2({
   marketType?: MarketType;
   timeframe?: Timeframe;
 }) {
-  const { yahooSymbol, candles } = await fetchCandles(symbol, timeframe, marketType);
+  const { yahooSymbol, candles, provider } = await fetchCandles(symbol, timeframe, marketType);
 
   const closes = candles.map((c: any) => c.close);
   const highs = candles.map((c: any) => c.high);
@@ -249,7 +331,7 @@ export async function analyzeSymbolV2({
 
   return {
     ok: true,
-    provider: "yahoo-chart-public-data",
+    provider: provider || "yahoo-chart-public-data",
     marketType,
     timeframe,
     symbol: yahooSymbol,
