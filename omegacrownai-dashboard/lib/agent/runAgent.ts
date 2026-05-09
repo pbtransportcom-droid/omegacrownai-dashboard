@@ -4,6 +4,7 @@ import { createPlan } from "./planner";
 import { executeToolsForIntent } from "./toolRouter";
 import { buildReply, buildNextSuggestions } from "./suggestions";
 import { runTradingCommand } from "./tradingCommand";
+import { runProjectCommand } from "./projectCommand";
 import {
   logAgentMessage,
   createAgentTask,
@@ -32,6 +33,24 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResponse> 
     });
 
     return tradingCommand as any;
+  }
+
+  const projectCommand = await runProjectCommand({
+    userId,
+    sessionId,
+    message,
+    context,
+  });
+
+  if (projectCommand) {
+    await logAgentMessage({
+      sessionId,
+      userId,
+      role: "agent",
+      content: projectCommand.reply,
+    });
+
+    return projectCommand as any;
   }
 
   const intent: AgentIntent = detectIntent(message, context);
