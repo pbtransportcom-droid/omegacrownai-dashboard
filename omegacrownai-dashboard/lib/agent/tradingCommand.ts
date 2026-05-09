@@ -1,4 +1,6 @@
 import { analyzeSymbolV2, scanMarketV2, MarketType, Timeframe } from "@/lib/trading-v2/engine";
+import { prisma } from "@/lib/db";
+import { buildTradingStrategyDraft } from "./tradingDraft";
 
 type TradingCommandResult = {
   ok: boolean;
@@ -164,7 +166,125 @@ function buildScanReply(scan: any) {
   ].filter(Boolean).join("\n");
 }
 
-export async function runTradingCommand(message: string): Promise<TradingCommandResult | null> {
+async function findOrCreateTradingOwner(userId?: string, sessionId?: string) {
+  const raw = String(userId || "").trim();
+
+  const email =
+    raw.includes("@") && raw !== "anonymous"
+      ? raw.toLowerCase()
+      : `guest-trading-${sessionId || Date.now()}@omegacrownai.local`;
+
+  return prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      email,
+      name: email.includes("omegacrownai.local") ? "Guest Trader" : null,
+      passwordHash: "agent-created-user",
+    },
+  });
+}
+
+function shouldCreateTradingProject(message: string) {
+  const text = message.toLowerCase();
+  return (
+    text.includes("create trading strategy") ||
+    text.includes("build trading strategy") ||
+    text.includes("save trading strategy") ||
+    text.includes("create strategy") ||
+    text.includes("build strategy")
+  );
+}
+
+async function createTradingProjectBuild({
+  userId,
+  sessionId,
+  message,
+  marketType,
+  timeframe,
+  symbol,
+  analysis,
+  scan,
+}: {
+  userId?: string;
+  sessionId?: string;
+  message: string;
+  marketType: MarketType;
+  timeframe: Timeframe;
+  symbol?: string;
+  analysis?: any;
+  scan?: any;
+}) {
+  const owner = await findOrCreateTradingOwner(userId, sessionId);
+  const draft = buildTradingStrategyDraft({
+    message,
+    marketType,
+    timeframe,
+    symbol,
+    analysis,
+    scan,
+  });
+
+  const project = await prisma.project.create({
+    data: {
+      name: draft.name,
+      ownerId: owner.id,
+    },
+  });
+
+  const build = await prisma.projectBuild.create({
+    data: {
+      projectId: project.id,
+      label: "Initial trading strategy",
+      status: "draft",
+      source: "king_trading_system",
+      domain: "trading",
+    },
+  });
+
+  const artifact = await prisma.projectBuildArtifact.create({
+    data: {
+      projectId: project.id,
+      buildId: build.id,
+      kind: "strategy_draft_v1",
+      payload: draft,
+    },
+  });
+
+  const execution = await prisma.agentExecution.create({
+    data: {
+      projectId: project.id,
+      prompt: message,
+      intents: {
+        primary: "trading_strategy",
+        marketType,
+        timeframe,
+      },
+      agents: {
+        creator: "King Trading System",
+        builder: "Sugent Trading Builder",
+      },
+      execution: {
+        type: "trading_strategy",
+        buildId: build.id,
+        artifactId: artifact.id,
+        draftVersion: "strategy_draft_v1",
+      },
+      reply: `Created trading strategy draft for ${draft.symbol || draft.marketType}.`,
+    },
+  });
+
+  return {
+    project,
+    build,
+    artifact,
+    execution,
+    draft,
+  };
+}
+
+
+export async function runTradingCommand(message: string, options?: { userId?: string; sessionId?: string }): Promise<TradingCommandResult | null> {
   const cleanMessage = normalizeQuestion(message);
 
   if (!isTradingCommand(cleanMessage)) {
@@ -242,19 +362,50 @@ export async function runTradingCommand(message: string): Promise<TradingCommand
     timeframe,
   });
 
+  const savedStrategy = shouldCreateTradingProject(cleanMessage)
+    ? await createTradingProjectBuild({
+        userId: options?.userId,
+        sessionId: options?.sessionId,
+        message: cleanMessage,
+        marketType,
+        timeframe,
+        symbol,
+        analysis,
+      })
+    : null;
+
   return {
     ok: true,
-    intent: "trading_analysis",
+    intent: savedStrategy ? "trading_strategy" : "trading_analysis",
     plan: [
       `Detect symbol: ${symbol}`,
       `Detect market type: ${marketType}`,
       `Use timeframe: ${timeframe}`,
       `Analyze trend, power, confidence, risk, entry, stop, and take-profit`,
+      ...(savedStrategy ? ["Create Sugent trading project", "Save strategy_draft_v1 artifact"] : []),
     ],
-    reply: buildSingleAnalysisReply(analysis),
-    actions: [{ type: "trading_analysis", result: analysis }],
+    reply: savedStrategy
+      ? `${buildSingleAnalysisReply(analysis)}\n\nSaved as Sugent trading strategy.\nProject: /projects/${savedStrategy.project.id}\nBuilder: /build/trading/${savedStrategy.project.id}?buildId=${savedStrategy.build.id}`
+      : buildSingleAnalysisReply(analysis),
+    actions: [
+      { type: "trading_analysis", result: analysis },
+      ...(savedStrategy
+        ? [
+            {
+              type: "trading_strategy_created",
+              projectId: savedStrategy.project.id,
+              buildId: savedStrategy.build.id,
+              artifactId: savedStrategy.artifact.id,
+              executionId: savedStrategy.execution.id,
+              openUrl: `/projects/${savedStrategy.project.id}`,
+              builderUrl: `/build/trading/${savedStrategy.project.id}?buildId=${savedStrategy.build.id}`,
+              draft: savedStrategy.draft,
+            },
+          ]
+        : []),
+    ],
     nextSuggestions: [
-      `Explain ${analysis.symbol} power`,
+      savedStrategy ? "Open trading builder" : `Explain ${analysis.symbol} power`,
       `Compare ${analysis.symbol} with BTC`,
       `Give me the safest entry plan`,
     ],

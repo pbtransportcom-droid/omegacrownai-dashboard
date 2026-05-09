@@ -22,7 +22,7 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResponse> 
     content: message,
   });
 
-  const tradingCommand = await runTradingCommand(message);
+  const tradingCommand = await runTradingCommand(message, { userId, sessionId });
 
   if (tradingCommand) {
     await logAgentMessage({
