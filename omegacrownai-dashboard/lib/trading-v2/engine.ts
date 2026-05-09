@@ -17,19 +17,161 @@ export const CRYPTO_UNIVERSE = [
 ];
 
 const PROFILE: Record<string, any> = {
-  BTC: { name: "Bitcoin", type: "crypto", work: "Decentralized digital store of value and payment network.", sector: "Crypto / Layer 1" },
-  ETH: { name: "Ethereum", type: "crypto", work: "Smart contract blockchain used for DeFi, NFTs, and decentralized apps.", sector: "Crypto / Smart Contracts" },
-  SOL: { name: "Solana", type: "crypto", work: "High-speed blockchain for apps, payments, NFTs, and trading.", sector: "Crypto / Layer 1" },
-  DOGE: { name: "Dogecoin", type: "crypto", work: "Meme-based cryptocurrency used for payments and speculation.", sector: "Crypto / Meme Coin" },
-  XRP: { name: "XRP", type: "crypto", work: "Digital asset focused on payments and settlement networks.", sector: "Crypto / Payments" },
-  AAPL: { name: "Apple Inc.", type: "stock", work: "Consumer technology company making iPhone, Mac, services, and wearables.", sector: "Technology" },
-  MSFT: { name: "Microsoft", type: "stock", work: "Cloud, software, AI, Windows, Office, Azure, and enterprise tools.", sector: "Technology / Cloud" },
-  NVDA: { name: "NVIDIA", type: "stock", work: "AI chips, GPUs, data center acceleration, gaming, and robotics platforms.", sector: "Semiconductors / AI" },
-  TSLA: { name: "Tesla", type: "stock", work: "Electric vehicles, battery storage, energy, autonomous driving, and robotics.", sector: "EV / Energy" },
-  META: { name: "Meta Platforms", type: "stock", work: "Social media, advertising, AI, Instagram, Facebook, WhatsApp, and metaverse products.", sector: "Communication Services" },
-  AMD: { name: "Advanced Micro Devices", type: "stock", work: "CPUs, GPUs, AI accelerators, and data center chips.", sector: "Semiconductors" },
-  POET: { name: "POET Technologies", type: "stock", work: "Optical interposer and photonics technology for AI/data center connectivity.", sector: "Semiconductors / Photonics" },
+  BTC: {
+    name: "Bitcoin",
+    type: "crypto",
+    work: "Bitcoin is a decentralized digital asset used as a store of value and peer-to-peer payment network.",
+    sector: "Crypto / Store of Value",
+    summary: "Bitcoin is the largest cryptocurrency by market recognition. Traders often watch BTC as the main direction leader for the crypto market.",
+    riskNote: "High volatility. Moves can be affected by macro news, ETF flows, regulation, and crypto market sentiment.",
+  },
+  ETH: {
+    name: "Ethereum",
+    type: "crypto",
+    work: "Ethereum is a smart contract blockchain used for decentralized apps, DeFi, NFTs, stablecoins, and tokenized assets.",
+    sector: "Crypto / Smart Contracts",
+    summary: "Ethereum is a major Layer 1 blockchain. It is often watched for DeFi activity, gas fees, staking, and institutional adoption.",
+    riskNote: "High volatility. Watch network activity, competition from other Layer 1 chains, and regulatory news.",
+  },
+  SOL: {
+    name: "Solana",
+    type: "crypto",
+    work: "Solana is a high-speed blockchain designed for fast transactions, apps, NFTs, payments, and trading activity.",
+    sector: "Crypto / Layer 1",
+    summary: "Solana is known for speed and low transaction costs. Traders often watch SOL for momentum during strong crypto risk-on periods.",
+    riskNote: "High volatility. Watch network reliability, ecosystem activity, and competition.",
+  },
+  LINK: {
+    name: "Chainlink",
+    type: "crypto",
+    work: "Chainlink provides decentralized oracle networks that connect smart contracts with real-world data, APIs, prices, and cross-chain services.",
+    sector: "Crypto / Oracle Network",
+    summary: "LINK is the token associated with Chainlink. The project is important because many DeFi and blockchain apps need reliable external data such as asset prices and proof-of-reserve feeds.",
+    riskNote: "High volatility. Watch oracle adoption, DeFi demand, token unlocks, and broad crypto market direction.",
+  },
+  XRP: {
+    name: "XRP",
+    type: "crypto",
+    work: "XRP is a digital asset focused on payments, settlement, and cross-border transfer use cases.",
+    sector: "Crypto / Payments",
+    summary: "XRP is often watched for payment-network news, legal/regulatory developments, and exchange liquidity.",
+    riskNote: "High volatility. Legal and regulatory headlines can strongly affect price.",
+  },
+  DOGE: {
+    name: "Dogecoin",
+    type: "crypto",
+    work: "Dogecoin is a meme-origin cryptocurrency used for payments, speculation, and community-driven market cycles.",
+    sector: "Crypto / Meme Coin",
+    summary: "DOGE often moves on sentiment, social attention, and broader crypto momentum.",
+    riskNote: "Very sentiment-driven. Price can move sharply without fundamental news.",
+  },
+  ADA: {
+    name: "Cardano",
+    type: "crypto",
+    work: "Cardano is a proof-of-stake blockchain focused on smart contracts, scalability, and research-driven development.",
+    sector: "Crypto / Layer 1",
+    summary: "ADA is watched for ecosystem growth, staking activity, and Layer 1 competition.",
+    riskNote: "High volatility. Watch development progress and adoption compared with faster-growing ecosystems.",
+  },
+  AVAX: {
+    name: "Avalanche",
+    type: "crypto",
+    work: "Avalanche is a Layer 1 blockchain platform for decentralized apps, subnets, DeFi, and enterprise blockchain use cases.",
+    sector: "Crypto / Layer 1",
+    summary: "AVAX is watched for subnet adoption, DeFi activity, gaming, and institutional blockchain projects.",
+    riskNote: "High volatility. Ecosystem growth and competition are important.",
+  },
+  BNB: {
+    name: "BNB",
+    type: "crypto",
+    work: "BNB is the native asset used across the BNB Chain ecosystem and Binance-related services.",
+    sector: "Crypto / Exchange Ecosystem",
+    summary: "BNB is tied to exchange ecosystem activity, BNB Chain usage, and crypto market liquidity.",
+    riskNote: "High volatility. Watch exchange-related regulatory and market structure risk.",
+  },
+  LTC: {
+    name: "Litecoin",
+    type: "crypto",
+    work: "Litecoin is a peer-to-peer cryptocurrency designed for fast and low-cost payments.",
+    sector: "Crypto / Payments",
+    summary: "LTC is one of the older crypto assets and is often watched as a payment-style coin.",
+    riskNote: "High volatility. It may lag stronger ecosystems during innovation-led market cycles.",
+  },
+  DOT: {
+    name: "Polkadot",
+    type: "crypto",
+    work: "Polkadot is a blockchain network focused on interoperability between specialized blockchains.",
+    sector: "Crypto / Interoperability",
+    summary: "DOT is watched for parachain activity, interoperability adoption, and developer ecosystem strength.",
+    riskNote: "High volatility. Adoption and ecosystem activity are key.",
+  },
+  MATIC: {
+    name: "Polygon",
+    type: "crypto",
+    work: "Polygon provides Ethereum scaling infrastructure and blockchain solutions for apps, DeFi, NFTs, and enterprises.",
+    sector: "Crypto / Ethereum Scaling",
+    summary: "MATIC/POL is watched for Ethereum scaling demand, partnerships, and network usage.",
+    riskNote: "High volatility. Token migration, competition, and Ethereum roadmap changes matter.",
+  },
+
+  AAPL: {
+    name: "Apple Inc.",
+    type: "stock",
+    work: "Apple makes iPhone, Mac, iPad, wearables, services, and consumer technology products.",
+    sector: "Technology / Consumer Electronics",
+    summary: "Apple is a mega-cap technology company. Traders watch iPhone demand, services growth, margins, buybacks, and product launches.",
+    riskNote: "Watch earnings, China demand, regulation, and product cycle risk.",
+  },
+  MSFT: {
+    name: "Microsoft",
+    type: "stock",
+    work: "Microsoft provides cloud computing, Windows, Office, Azure, AI infrastructure, gaming, and enterprise software.",
+    sector: "Technology / Cloud / AI",
+    summary: "Microsoft is watched for Azure growth, AI monetization, enterprise software strength, and margins.",
+    riskNote: "Watch cloud growth, AI spending, regulation, and valuation risk.",
+  },
+  NVDA: {
+    name: "NVIDIA",
+    type: "stock",
+    work: "NVIDIA designs GPUs, AI chips, data center accelerators, networking platforms, and gaming graphics technology.",
+    sector: "Semiconductors / AI",
+    summary: "NVIDIA is a leading AI infrastructure company. Traders watch data center revenue, GPU demand, margins, and AI capex trends.",
+    riskNote: "High valuation sensitivity. Watch export controls, supply constraints, and AI demand cycles.",
+  },
+  TSLA: {
+    name: "Tesla",
+    type: "stock",
+    work: "Tesla builds electric vehicles, battery storage, solar products, autonomous driving technology, and robotics projects.",
+    sector: "EV / Energy / AI",
+    summary: "Tesla is watched for EV deliveries, margins, autonomy progress, energy storage growth, and CEO/news sentiment.",
+    riskNote: "Very volatile. Watch price cuts, competition, regulatory risk, and execution risk.",
+  },
+  META: {
+    name: "Meta Platforms",
+    type: "stock",
+    work: "Meta operates Facebook, Instagram, WhatsApp, Threads, advertising platforms, AI systems, and metaverse products.",
+    sector: "Communication Services / AI",
+    summary: "Meta is watched for ad revenue growth, AI engagement, margins, Reality Labs spending, and user growth.",
+    riskNote: "Watch regulation, ad market cycles, AI spending, and platform competition.",
+  },
+  AMD: {
+    name: "Advanced Micro Devices",
+    type: "stock",
+    work: "AMD designs CPUs, GPUs, AI accelerators, embedded chips, and data center processors.",
+    sector: "Semiconductors",
+    summary: "AMD is watched for AI accelerator demand, data center CPU share, margins, and competition with NVIDIA and Intel.",
+    riskNote: "Semiconductor cycles and AI execution are major risks.",
+  },
+  POET: {
+    name: "POET Technologies",
+    type: "stock",
+    work: "POET develops optical interposer and photonics technology for AI, data center, and high-speed connectivity markets.",
+    sector: "Semiconductors / Photonics",
+    summary: "POET is a smaller photonics-focused company. Traders watch customer adoption, production progress, partnerships, and funding.",
+    riskNote: "Small-cap risk. Higher volatility, execution risk, and liquidity risk.",
+  },
 };
+
 
 function normalizeSymbol(symbol: string, marketType?: MarketType) {
   let s = String(symbol || "").trim().toUpperCase();
@@ -48,9 +190,13 @@ function profileFor(symbol: string, marketType: MarketType) {
     name: base,
     type: marketType,
     work: marketType === "crypto"
-      ? "Cryptocurrency asset. Use market data, volume, and trend before making any decision."
-      : "Publicly traded company or equity symbol. Review business fundamentals, trend, and risk before making any decision.",
+      ? "Cryptocurrency asset. Use market data, volume, trend, liquidity, and project fundamentals before making any decision."
+      : "Publicly traded company or equity symbol. Review business fundamentals, earnings, trend, volume, and risk before making any decision.",
     sector: marketType === "crypto" ? "Crypto Market" : "Stock Market",
+    summary: marketType === "crypto"
+      ? "This crypto symbol is not yet in the detailed Omega Crown profile database, so the scanner is showing a general crypto-market summary."
+      : "This stock ticker is not yet in the detailed Omega Crown profile database, so the scanner is showing a general equity-market summary.",
+    riskNote: "Educational analysis only. Always review current news, liquidity, volatility, and risk before acting.",
   };
 }
 

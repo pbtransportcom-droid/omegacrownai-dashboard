@@ -50,6 +50,8 @@ type TradeResult = {
     type?: string;
     work?: string;
     sector?: string;
+    summary?: string;
+    riskNote?: string;
   };
   powerSummary?: {
     buyPower?: number;
@@ -1377,6 +1379,20 @@ export default function TradeClient() {
                 {result.profile?.work ||
                   "This symbol represents a tradable market asset. Review trend, power, volume, support, and risk before acting."}
               </p>
+
+              {result.profile?.summary && (
+                <div className="mt-3 rounded-xl border border-cyan-400/15 bg-cyan-500/5 p-3 text-sm leading-6 text-slate-300">
+                  <span className="font-bold text-cyan-300">Summary: </span>
+                  {result.profile.summary}
+                </div>
+              )}
+
+              {result.profile?.riskNote && (
+                <div className="mt-3 rounded-xl border border-amber-400/15 bg-amber-500/5 p-3 text-xs leading-5 text-amber-100">
+                  <span className="font-bold text-amber-300">Risk note: </span>
+                  {result.profile.riskNote}
+                </div>
+              )}
             </div>
 
             <div className="rounded-xl border border-amber-400/25 bg-slate-950 p-5 shadow-lg shadow-amber-950/20">
