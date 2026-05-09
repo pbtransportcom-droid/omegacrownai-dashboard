@@ -424,3 +424,34 @@ model ProjectExecutionPolicy {
   @@index([enabled])
   @@index([createdAt])
 }
+
+
+model BrowserTask {
+  id        String   @id @default(cuid())
+
+  projectId String?
+  sessionId String?
+  runtimeSessionId String?
+
+  url       String
+  status    String   @default("queued")
+
+  title     String?
+  text      String?
+  html      String?
+  result    Json?
+  logs      Json
+  error     String?
+  metrics   Json
+  policy    Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([sessionId])
+  @@index([runtimeSessionId])
+  @@index([status])
+  @@index([url])
+  @@index([createdAt])
+}

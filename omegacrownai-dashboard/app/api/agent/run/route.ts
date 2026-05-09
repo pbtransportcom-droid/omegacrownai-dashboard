@@ -7,6 +7,7 @@ import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { streamAgentText } from "@/lib/sugent/runtime/streams";
 import { MemoryWriter } from "@/lib/sugent/memory/write";
 import { shouldUseSecureExecution, runAgentSecureExecutionTool } from "@/lib/sugent/secureExecution/agentTool";
+import { shouldUseBrowserAutomation, runAgentBrowserTool } from "@/lib/sugent/browser/agentBrowserTool";
 
 export async function POST(req: Request) {
   try {
@@ -133,6 +134,26 @@ if (!message) {
         }
       );
     }
+
+    if (shouldUseBrowserAutomation(message)) {
+      const projectId =
+        body.projectId ||
+        body.context?.projectId ||
+        body.context?.activeProjectId ||
+        null;
+
+      const browserResult = await runAgentBrowserTool({
+        projectId,
+        sessionId,
+        runtimeSessionId: runtimeSessionId || sessionId,
+        message,
+      });
+
+      return NextResponse.json(browserResult, {
+        status: browserResult.ok ? 200 : 400,
+      });
+    }
+
 
 
     const result = await runAgent({
