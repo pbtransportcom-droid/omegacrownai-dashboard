@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { dispatchCloudJob } from "@/lib/sugent/cloud/dispatcher";
 import { runOneCloudJob } from "@/lib/sugent/cloud/worker";
 import { prisma } from "@/lib/db";
+import { authConfig } from "@/lib/auth";
+import { ensureProjectOwnerRole, requirePermission } from "@/lib/sugent/permissions/check";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -21,6 +24,22 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
+  const session = await getServerSession(authConfig);
+  const actor = session?.user?.email || "system";
+
+  if (body.projectId) {
+    await ensureProjectOwnerRole({
+      userId: actor,
+      projectId: String(body.projectId),
+    });
+
+    await requirePermission({
+      userId: actor,
+      projectId: String(body.projectId),
+      domain: "cloud",
+      action: "run",
+    });
+  }
 
   if (body.action === "run_one") {
     const result = await runOneCloudJob();

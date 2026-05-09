@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authConfig } from "@/lib/auth";
+import { ensureProjectOwnerRole, requirePermission } from "@/lib/sugent/permissions/check";
 import { getBuilderPath } from "@/lib/sugent/builder/registry";
 import { AuditLogger } from "@/lib/sugent/core/auditLogger";
 import { logSugentEvent } from "@/lib/sugent/events/logEvent";
@@ -9,6 +12,21 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const session = await getServerSession(authConfig);
+  const actor = session?.user?.email || "system";
+
+  await ensureProjectOwnerRole({
+    userId: actor,
+    projectId: id,
+  });
+
+  await requirePermission({
+    userId: actor,
+    projectId: id,
+    domain: "marketplace",
+    action: "install",
+  });
+
   const body = await req.json();
   const templateId = String(body.templateId || "");
 

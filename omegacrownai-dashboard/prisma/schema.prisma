@@ -336,3 +336,20 @@ model MemoryRecord {
   @@index([score])
   @@index([createdAt])
 }
+
+
+model UserRole {
+  id        String   @id @default(cuid())
+
+  userId    String
+  role      String
+  projectId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+  @@index([role])
+}
