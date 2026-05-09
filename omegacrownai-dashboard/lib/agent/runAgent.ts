@@ -3,6 +3,7 @@ import { detectIntent } from "./intent";
 import { createPlan } from "./planner";
 import { executeToolsForIntent } from "./toolRouter";
 import { buildReply, buildNextSuggestions } from "./suggestions";
+import { runTradingCommand } from "./tradingCommand";
 import {
   logAgentMessage,
   createAgentTask,
@@ -19,6 +20,19 @@ export async function runAgent(req: AgentRunRequest): Promise<AgentRunResponse> 
     role: "user",
     content: message,
   });
+
+  const tradingCommand = await runTradingCommand(message);
+
+  if (tradingCommand) {
+    await logAgentMessage({
+      sessionId,
+      userId,
+      role: "agent",
+      content: tradingCommand.reply,
+    });
+
+    return tradingCommand as any;
+  }
 
   const intent: AgentIntent = detectIntent(message, context);
   const plan = createPlan(intent, message, context);
