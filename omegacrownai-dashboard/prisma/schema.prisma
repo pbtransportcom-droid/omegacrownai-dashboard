@@ -26,6 +26,7 @@ model Project {
   chatThreads ChatThread[]
   executions  AgentExecution[]
   builds      ProjectBuild[]
+  auditLogs   AuditLog[]
 }
 
 model ChatThread {
@@ -160,5 +161,26 @@ model SugentEvent {
   @@index([executionId])
   @@index([type])
   @@index([domain])
+  @@index([createdAt])
+}
+
+
+model AuditLog {
+  id        String   @id @default(cuid())
+
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  actorType String
+  actorId   String?
+
+  action    String
+  metadata  Json
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([actorType])
+  @@index([action])
   @@index([createdAt])
 }
