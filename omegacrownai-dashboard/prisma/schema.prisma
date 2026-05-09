@@ -353,3 +353,22 @@ model UserRole {
   @@index([projectId])
   @@index([role])
 }
+
+
+model DistributionPackage {
+  id        String   @id @default(cuid())
+
+  projectId String?
+  version   String   @default("1.0.0")
+  type      String
+  manifest  Json
+  payload   Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+  @@index([version])
+  @@index([createdAt])
+}
