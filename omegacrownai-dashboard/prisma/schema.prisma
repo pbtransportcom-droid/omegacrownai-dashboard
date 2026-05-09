@@ -507,3 +507,115 @@ model CloudSchedule {
   @@index([provider])
   @@index([type])
 }
+
+
+model Company {
+  id        String   @id @default(cuid())
+
+  projectId String
+  name      String
+  mission   String?
+  vision    String?
+
+  idealCustomerProfile Json?
+  primaryOffer         Json?
+  channels             Json?
+
+  status    String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  kpis    CompanyKPI[]
+  memory  CompanyMemory[]
+  tasks   CompanyTask[]
+  workers Worker[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CompanyKPI {
+  id        String   @id @default(cuid())
+
+  companyId String
+  metric    String
+  value     Float
+  period    String   @default("week")
+  note      String?
+
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([metric])
+  @@index([period])
+  @@index([timestamp])
+}
+
+model CompanyMemory {
+  id        String   @id @default(cuid())
+
+  companyId String
+  kind      String   @default("fact")
+  content   String
+  tags      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([kind])
+  @@index([createdAt])
+}
+
+model Worker {
+  id        String   @id @default(cuid())
+
+  companyId String
+  role      String
+  name      String
+  status    String   @default("idle")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tasks   CompanyTask[]
+
+  @@index([companyId])
+  @@index([role])
+  @@index([status])
+}
+
+model CompanyTask {
+  id        String   @id @default(cuid())
+
+  companyId String
+  workerId  String?
+
+  type   String
+  input  Json
+  output Json?
+
+  status       String  @default("pending")
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  worker  Worker? @relation(fields: [workerId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([workerId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
