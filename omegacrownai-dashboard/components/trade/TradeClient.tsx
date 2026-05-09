@@ -61,6 +61,14 @@ type TradeResult = {
     volumePower?: number;
     explanation?: string;
   };
+  powerCandles?: {
+    time: number;
+    direction: string;
+    power: number;
+    buyPower: number;
+    sellPower: number;
+    volume: number;
+  }[];
   verdict?: string;
   bestTiming?: string;
   tradePlan?: TradePlan;
@@ -126,9 +134,18 @@ function buildFallbackLevels(result: TradeResult | null): TradePlan | undefined 
 function TradingChart({
   candles,
   levels,
+  powerCandles = [],
 }: {
   candles: Candle[];
   levels?: TradePlan;
+  powerCandles?: {
+    time: number;
+    direction: string;
+    power: number;
+    buyPower: number;
+    sellPower: number;
+    volume: number;
+  }[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -280,7 +297,40 @@ function TradingChart({
     ctx.fillStyle = "#94a3b8";
     ctx.font = "11px Arial";
     ctx.fillText("Volume", padding, height - volumeHeight + 15);
-  }, [candles, levels]);
+
+    // Power bars
+    const powerVisible = Array.isArray(powerCandles) && powerCandles.length
+      ? powerCandles.slice(-visible.length)
+      : visible.map((c) => {
+          const bullish = c.close >= c.open;
+          const body = Math.abs(c.close - c.open);
+          const range = Math.max(0.0000001, c.high - c.low);
+          const power = Math.round(Math.min(100, (body / range) * 100));
+          return {
+            direction: bullish ? "buy" : "sell",
+            power,
+          };
+        });
+
+    const powerTop = height - 34;
+    const maxPower = Math.max(...powerVisible.map((p: any) => Number(p.power || 0)), 1);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "11px Arial";
+    ctx.fillText("Power", padding, powerTop - 18);
+
+    powerVisible.forEach((p: any, index: number) => {
+      const x = xAt(index);
+      const power = Number(p.power || 0);
+      const barH = Math.max(2, (power / maxPower) * 24);
+      const isBuy = p.direction === "buy" || Number(p.buyPower || 0) > Number(p.sellPower || 0);
+
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle = isBuy ? "#22c55e" : "#ef4444";
+      ctx.fillRect(x - candleWidth / 2, powerTop - barH, candleWidth, barH);
+      ctx.globalAlpha = 1;
+    });
+  }, [candles, levels, powerCandles]);
 
   if (!candles || candles.length < 2) {
   return (
@@ -419,6 +469,35 @@ function formatMaybeArray(value: any, digits = 4) {
   if (!Array.isArray(value) || value.length === 0) return "N/A";
   return value.map((item) => formatMaybeNumber(item, digits)).join(" / ");
 }
+
+function buildAiAnalysisSummary(result: TradeResult | null) {
+  if (!result || !result.ok) return "";
+
+  const symbol = safeText(result.symbol, "This symbol");
+  const profile = result.profile || {};
+  const power = result.powerSummary || {};
+  const plan = result.tradePlan || {};
+  const buyPower = power.buyPower ?? result.indicators?.buyPower ?? 0;
+  const sellPower = power.sellPower ?? result.indicators?.sellPower ?? 0;
+  const netPower = power.netPower ?? result.indicators?.netPower ?? 0;
+  const pressure = power.pressure || result.indicators?.pressure || "BALANCED";
+
+  const lines = [
+    `${symbol} is currently ${safeText(result.signal, "WAITING")} with ${safeNumber(result.confidence, 0)}% confidence.`,
+    `${safeText(profile.name, symbol)} is in ${safeText(profile.sector, result.marketType || "market")}.`,
+    `Power reading: Buy Power ${safeNumber(buyPower, 0)}%, Sell Power ${safeNumber(sellPower, 0)}%, Net Power ${safeNumber(netPower, 0)}. Pressure is ${pressure}.`,
+    `Price is ${safeNumber(result.price, 6)} with ${safeNumber(result.changePercent, 2)}% movement over the selected timeframe.`,
+    `Entry zone: ${formatMaybeArray(plan.entryZone)}. Stop: ${formatMaybeNumber(plan.stopLoss)}. Take profit: ${formatMaybeArray(plan.takeProfit)}.`,
+    `Support: ${formatMaybeNumber(plan.support)}. Resistance: ${formatMaybeNumber(plan.resistance)}.`,
+    result.bestTiming ? `Best timing: ${result.bestTiming}` : "",
+    result.verdict ? `Verdict: ${result.verdict}` : "",
+    profile.riskNote ? `Risk note: ${profile.riskNote}` : "Risk note: Manage position size and wait for confirmation.",
+    "Educational only — not financial advice. Signals are not guarantees.",
+  ];
+
+  return lines.filter(Boolean).join("\n\n");
+}
+
 
 export default function TradeClient() {
   const searchParams = useSearchParams();
@@ -1263,6 +1342,17 @@ export default function TradeClient() {
                           {safeText(item.symbol)}
                         </button>
                         <div className="text-xs text-muted">{safeNumber(item.changePercent, 2)}% momentum</div>
+                        {item.profile?.name && (
+                          <div className="mt-1 max-w-[220px] text-[11px] leading-4 text-slate-400">
+                            <span className="font-semibold text-slate-300">{item.profile.name}</span>
+                            {item.profile.sector ? ` · ${item.profile.sector}` : ""}
+                          </div>
+                        )}
+                        {item.profile?.summary && (
+                          <div className="mt-1 max-w-[260px] text-[11px] leading-4 text-slate-500">
+                            {item.profile.summary}
+                          </div>
+                        )}
                       </td>
                       <td className="px-3 py-4">
                         <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">
