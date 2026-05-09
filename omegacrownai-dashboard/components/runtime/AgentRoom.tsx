@@ -1,5 +1,8 @@
 "use client";
 
+import { OmegaVoiceControls } from "@/components/runtime/OmegaVoiceControls";
+import { OmegaSoundEvents } from "@/components/runtime/OmegaSoundEvents";
+
 import { useMemo, useState } from "react";
 import { useAgentRoom } from "@/hooks/useAgentRoom";
 import AgentRoomControls from "@/components/runtime/AgentRoomControls";
@@ -188,6 +191,10 @@ export default function AgentRoom({
 
   return (
     <div className="space-y-6">
+      <OmegaSoundEvents messages={messages} />
+
+      <OmegaVoiceControls lastText={messages[messages.length - 1]?.content || messages[messages.length - 1]?.result?.reply || ""} compact />
+
       <section className="rounded-3xl border border-border bg-panel/70 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-violet-300">
           Sugent OS Multi-Agent

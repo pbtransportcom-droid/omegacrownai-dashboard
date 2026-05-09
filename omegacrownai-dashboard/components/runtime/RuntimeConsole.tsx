@@ -1,5 +1,8 @@
 "use client";
 
+import { OmegaVoiceControls } from "@/components/runtime/OmegaVoiceControls";
+import { OmegaSoundEvents } from "@/components/runtime/OmegaSoundEvents";
+
 import { useMemo, useState } from "react";
 import { useSugentRuntime } from "@/hooks/useSugentRuntime";
 
@@ -60,6 +63,10 @@ export default function RuntimeConsole({
 
   return (
     <div className="space-y-6">
+      <OmegaSoundEvents messages={messages} />
+
+      <OmegaVoiceControls lastText={messages[messages.length - 1]?.content || messages[messages.length - 1]?.result?.reply || ""} />
+
       <section className="rounded-3xl border border-border bg-panel/70 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
           Sugent Runtime Protocol
