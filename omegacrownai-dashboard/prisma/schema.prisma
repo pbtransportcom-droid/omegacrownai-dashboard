@@ -27,6 +27,7 @@ model Project {
   executions  AgentExecution[]
   builds      ProjectBuild[]
   auditLogs   AuditLog[]
+  safetySettings ProjectSafetySettings?
 }
 
 model ChatThread {
@@ -183,4 +184,22 @@ model AuditLog {
   @@index([actorType])
   @@index([action])
   @@index([createdAt])
+}
+
+
+model ProjectSafetySettings {
+  id        String   @id @default(cuid())
+
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  tradingMaxLeverage Int     @default(5)
+  automationAllowExternal Boolean @default(false)
+  websiteAllowCustomScripts Boolean @default(false)
+  requireReviewBeforePublish Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { AuditLogger } from "@/lib/sugent/core/auditLogger";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 
@@ -277,6 +278,18 @@ export async function PUT(
           payload: draft,
         },
       });
+
+      await prisma.projectBuildArtifact.create({
+        data: {
+          projectId: id,
+          buildId,
+          kind: `${kind}_history`,
+          payload: {
+            savedFromArtifactId: artifact.id,
+            snapshot: draft,
+          },
+        },
+      });
     }
 
     await prisma.projectBuild.updateMany({
@@ -286,6 +299,17 @@ export async function PUT(
       },
       data: {
         status: "draft",
+      },
+    });
+
+    await AuditLogger.log({
+      projectId: id,
+      actorType: "user",
+      action: "DRAFT_CREATED",
+      metadata: {
+        buildId,
+        kind,
+        historySnapshot: true,
       },
     });
 
