@@ -52,7 +52,7 @@ export default async function ProjectBrowserTasksPage({
         <div className="mt-4 space-y-3">
           {tasks.length ? (
             tasks.map((task) => (
-              <div key={task.id} className="rounded-2xl border border-border bg-black/20 p-4">
+              <Link key={task.id} href={`/projects/${id}/browser/${task.id}`} className="block rounded-2xl border border-border bg-black/20 p-4 hover:bg-white/5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="text-sm font-bold text-white">
@@ -83,7 +83,7 @@ export default async function ProjectBrowserTasksPage({
                   <Panel title="Logs" value={task.logs || []} />
                   <Panel title="Text Preview" value={String(task.text || "").slice(0, 4000)} raw />
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">

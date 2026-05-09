@@ -46,6 +46,36 @@ export default function AgentRoom({
       }
       if (
     (message.type === "tool_call" || message.type === "tool_result") &&
+    message.tool === "browser"
+  ) {
+    const data = message.result || message.args || {};
+
+    return (
+      <div className="rounded-2xl border border-sky-400/25 bg-sky-500/10 p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-sky-300">
+          Browser Automation · {data.status || "started"}
+        </div>
+
+        {data.taskId && (
+          <div className="mt-2 font-mono text-xs text-sky-100">
+            {data.taskId}
+          </div>
+        )}
+
+        {data.url && (
+          <div className="mt-2 break-all text-xs text-sky-200">
+            {data.url}
+          </div>
+        )}
+
+        <CodeBlock value={data} />
+        <Timestamp value={message.createdAt} />
+      </div>
+    );
+  }
+
+  if (
+    (message.type === "tool_call" || message.type === "tool_result") &&
     message.tool === "secure_execution"
   ) {
     const data = message.result || message.args || {};
