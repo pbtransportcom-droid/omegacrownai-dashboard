@@ -372,3 +372,38 @@ model DistributionPackage {
   @@index([version])
   @@index([createdAt])
 }
+
+
+model ExecutionRecord {
+  id        String   @id @default(cuid())
+
+  projectId String?
+  sessionId String?
+  runtimeSessionId String?
+
+  language  String
+  status    String   @default("queued")
+
+  code      String
+  codeHash  String
+  inputHash String
+  outputHash String?
+
+  input     Json
+  output    Json?
+  logs      Json
+  error     String?
+  metrics   Json
+  policy    Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([sessionId])
+  @@index([runtimeSessionId])
+  @@index([language])
+  @@index([status])
+  @@index([codeHash])
+  @@index([createdAt])
+}
