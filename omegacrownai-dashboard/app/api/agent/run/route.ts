@@ -8,6 +8,7 @@ import { streamAgentText } from "@/lib/sugent/runtime/streams";
 import { MemoryWriter } from "@/lib/sugent/memory/write";
 import { shouldUseSecureExecution, runAgentSecureExecutionTool } from "@/lib/sugent/secureExecution/agentTool";
 import { shouldUseBrowserAutomation, runAgentBrowserTool } from "@/lib/sugent/browser/agentBrowserTool";
+import { shouldUseCloudExecution, runAgentCloudTool } from "@/lib/sugent/cloud/agentCloudTool";
 
 export async function POST(req: Request) {
   try {
@@ -153,6 +154,26 @@ if (!message) {
         status: browserResult.ok ? 200 : 400,
       });
     }
+
+    if (shouldUseCloudExecution(message)) {
+      const projectId =
+        body.projectId ||
+        body.context?.projectId ||
+        body.context?.activeProjectId ||
+        null;
+
+      const cloudResult = await runAgentCloudTool({
+        projectId,
+        sessionId,
+        runtimeSessionId: runtimeSessionId || sessionId,
+        message,
+      });
+
+      return NextResponse.json(cloudResult, {
+        status: cloudResult.ok ? 200 : 400,
+      });
+    }
+
 
 
 
