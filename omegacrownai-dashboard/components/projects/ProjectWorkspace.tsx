@@ -440,6 +440,13 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     ? `/build/website/${project.id}?buildId=${latestWebsiteBuild.id}`
     : "";
 
+  const latestTradingBuild =
+    builds.find((build: any) => build.domain === "trading") || null;
+
+  const latestTradingBuilderUrl = latestTradingBuild
+    ? `/build/trading/${project.id}?buildId=${latestTradingBuild.id}`
+    : "";
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{project.name}</h1>
@@ -497,6 +504,40 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
             >
               {websiteLoading ? "Creating Draft..." : "Create Website Draft"}
             </button>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+              Sugent Trading Builder
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              {latestTradingBuild ? latestTradingBuild.label : "No trading strategy yet"}
+            </h2>
+            <p className="mt-2 text-sm text-gray-400">
+              {latestTradingBuild
+                ? `${latestTradingBuild.status || "draft"} · ${latestTradingBuild.domain || "trading"} · Build ID: ${latestTradingBuild.id}`
+                : "Create a trading strategy with the Super Agent, then open the trading builder."}
+            </p>
+          </div>
+
+          {latestTradingBuild ? (
+            <a
+              href={latestTradingBuilderUrl}
+              className="inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-500"
+            >
+              Open Trading Builder
+            </a>
+          ) : (
+            <a
+              href="/chat"
+              className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/20"
+            >
+              Ask Super Agent
+            </a>
           )}
         </div>
       </div>
