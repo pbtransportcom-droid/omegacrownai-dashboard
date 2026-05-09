@@ -1,0 +1,36 @@
+import { SugentVersion } from "./version";
+
+export const OSManifest = {
+  name: "Sugent OS",
+  product: "Omega Crown AI",
+  version: SugentVersion,
+  status: "stable",
+  modules: [
+    "BrainCore",
+    "Builders",
+    "WebsiteBuilder",
+    "TradingBuilder",
+    "AutomationBuilder",
+    "Marketplace",
+    "CloudJobs",
+    "RuntimeStreaming",
+    "MultiAgentUI",
+    "MultiAgentControls",
+    "TimelineReplay",
+    "MemoryEngine",
+    "PermissionsRoles",
+    "Distribution",
+  ],
+  capabilities: {
+    builders: true,
+    marketplace: true,
+    cloud: true,
+    runtime: true,
+    multiAgent: true,
+    controls: true,
+    replay: true,
+    memory: true,
+    permissions: true,
+    distribution: true,
+  },
+};
