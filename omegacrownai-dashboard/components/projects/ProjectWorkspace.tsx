@@ -447,6 +447,13 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     ? `/build/trading/${project.id}?buildId=${latestTradingBuild.id}`
     : "";
 
+  const latestAutomationBuild =
+    builds.find((build: any) => build.domain === "automation") || null;
+
+  const latestAutomationBuilderUrl = latestAutomationBuild
+    ? `/build/automation/${project.id}?buildId=${latestAutomationBuild.id}`
+    : "";
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{project.name}</h1>
@@ -535,6 +542,40 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
             <a
               href="/chat"
               className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-bold text-emerald-100 hover:bg-emerald-500/20"
+            >
+              Ask Super Agent
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-violet-500/25 bg-violet-500/10 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-violet-300">
+              Sugent Automation Builder
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              {latestAutomationBuild ? latestAutomationBuild.label : "No automation flow yet"}
+            </h2>
+            <p className="mt-2 text-sm text-gray-400">
+              {latestAutomationBuild
+                ? `${latestAutomationBuild.status || "draft"} · ${latestAutomationBuild.domain || "automation"} · Build ID: ${latestAutomationBuild.id}`
+                : "Create an automation flow with the Super Agent, then open the automation builder."}
+            </p>
+          </div>
+
+          {latestAutomationBuild ? (
+            <a
+              href={latestAutomationBuilderUrl}
+              className="inline-flex rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white hover:bg-violet-500"
+            >
+              Open Automation Builder
+            </a>
+          ) : (
+            <a
+              href="/chat"
+              className="inline-flex rounded-xl border border-violet-400/30 bg-violet-500/10 px-5 py-3 text-sm font-bold text-violet-100 hover:bg-violet-500/20"
             >
               Ask Super Agent
             </a>
