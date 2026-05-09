@@ -44,6 +44,15 @@ export default async function ProjectExecutionPolicyPage({
           Configure project-level sandbox limits, language allowlists, and forbidden patterns.
           When disabled, this project falls back to the global default policy.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/projects/${id}/settings/execution-policy/audit`}
+            className="rounded-xl border border-orange-400/30 bg-orange-500/10 px-5 py-3 text-sm font-black text-orange-100 hover:bg-orange-500/20"
+          >
+            Open Hardening Audit
+          </Link>
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
