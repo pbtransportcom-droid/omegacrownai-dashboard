@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { buildAutomationFlowDraft } from "./automationDraft";
+import { logSugentEvent } from "@/lib/sugent/events/logEvent";
 
 type AutomationCommandResult = {
   ok: boolean;
@@ -113,6 +114,23 @@ export async function runAutomationCommand(
         draftVersion: "automation_flow_v1",
       },
       reply: `Created automation flow draft for ${projectName}.`,
+    },
+  });
+
+  await logSugentEvent({
+    projectId: project.id,
+    buildId: build.id,
+    artifactId: artifact.id,
+    executionId: execution.id,
+    type: "automation_flow_created",
+    domain: "automation",
+    actor: options?.userId,
+    message: `Created automation flow: ${project.name}`,
+    payload: {
+      projectName: project.name,
+      trigger: draft.trigger,
+      nodes: draft.nodes.length,
+      artifactKind: "automation_flow_v1",
     },
   });
 

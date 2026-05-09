@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { buildWebsiteDraft } from "./websiteDraft";
+import { logSugentEvent } from "@/lib/sugent/events/logEvent";
 
 function isWebsiteBuildCommand(message: string) {
   const text = String(message || "").toLowerCase();
@@ -198,6 +199,23 @@ export async function runProjectCommand({
         draftVersion: "website_draft_v1",
       },
       reply: `Created project and generated first website draft for ${projectName}.`,
+    },
+  });
+
+  await logSugentEvent({
+    projectId: project.id,
+    buildId: build.id,
+    artifactId: artifact.id,
+    executionId: execution.id,
+    type: "website_build_created",
+    domain: "website",
+    actor: userId,
+    message: `Created website draft: ${project.name}`,
+    payload: {
+      projectName: project.name,
+      buildLabel: build.label,
+      artifactKind: "website_draft_v1",
+      brief,
     },
   });
 

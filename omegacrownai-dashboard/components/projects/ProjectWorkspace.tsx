@@ -47,6 +47,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
   const [builds, setBuilds] = useState<any[]>([]);
   const [publishedSites, setPublishedSites] = useState<any[]>([]);
   const [buildsLoading, setBuildsLoading] = useState(false);
+  const [sugentEvents, setSugentEvents] = useState<any[]>([]);
 
   const [editMode, setEditMode] = useState(false);
   const [editableWebsite, setEditableWebsite] = useState<any>(null);
@@ -87,6 +88,17 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     } catch {}
 
     setBuildsLoading(false);
+  }
+
+  async function loadSugentEvents() {
+    try {
+      const res = await fetch(`/api/projects/${project.id}/events`);
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        setSugentEvents(data.events || []);
+      }
+    } catch {}
   }
 
   async function publishWebsite(executionId?: string) {
@@ -181,6 +193,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
   useEffect(() => {
     loadMessages();
     loadBuilds();
+    loadSugentEvents();
   }, [project.id]);
 
   useEffect(() => {
@@ -431,6 +444,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     }
 
     await loadBuilds();
+    await loadSugentEvents();
     setWebsiteLoading(false);
   }
 
@@ -580,6 +594,66 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
             >
               Ask Super Agent
             </a>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-white/10 bg-[#0f0f12] p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+              Sugent OS Audit
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-white">
+              Project Activity
+            </h2>
+          </div>
+
+          <button
+            onClick={loadSugentEvents}
+            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-200 hover:bg-white/5"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {sugentEvents.length ? (
+            sugentEvents.slice(0, 8).map((event: any) => (
+              <div
+                key={event.id}
+                className="rounded-xl border border-white/10 bg-black/20 p-3"
+              >
+                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <div className="text-sm font-semibold text-white">
+                    {event.message}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(event.createdAt).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-gray-300">
+                    {event.type}
+                  </span>
+                  {event.domain && (
+                    <span className="rounded-full bg-cyan-500/10 px-2 py-1 text-cyan-200">
+                      {event.domain}
+                    </span>
+                  )}
+                  {event.buildId && (
+                    <span className="rounded-full bg-amber-500/10 px-2 py-1 text-amber-200">
+                      build: {event.buildId}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-gray-400">
+              No Sugent OS activity has been recorded for this project yet.
+            </div>
           )}
         </div>
       </div>

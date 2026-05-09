@@ -136,3 +136,29 @@ model GuestAiUsage {
   @@index([usageKey])
 }
 
+
+
+model SugentEvent {
+  id        String   @id @default(cuid())
+
+  projectId String?
+  buildId   String?
+  artifactId String?
+  executionId String?
+
+  type      String
+  domain    String?
+  actor     String?
+  message   String
+  payload   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([buildId])
+  @@index([artifactId])
+  @@index([executionId])
+  @@index([type])
+  @@index([domain])
+  @@index([createdAt])
+}

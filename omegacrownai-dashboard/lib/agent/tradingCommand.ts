@@ -1,6 +1,7 @@
 import { analyzeSymbolV2, scanMarketV2, MarketType, Timeframe } from "@/lib/trading-v2/engine";
 import { prisma } from "@/lib/db";
 import { buildTradingStrategyDraft } from "./tradingDraft";
+import { logSugentEvent } from "@/lib/sugent/events/logEvent";
 
 type TradingCommandResult = {
   ok: boolean;
@@ -271,6 +272,25 @@ async function createTradingProjectBuild({
         draftVersion: "strategy_draft_v1",
       },
       reply: `Created trading strategy draft for ${draft.symbol || draft.marketType}.`,
+    },
+  });
+
+  await logSugentEvent({
+    projectId: project.id,
+    buildId: build.id,
+    artifactId: artifact.id,
+    executionId: execution.id,
+    type: "trading_strategy_created",
+    domain: "trading",
+    actor: userId,
+    message: `Created trading strategy: ${draft.name}`,
+    payload: {
+      symbol: draft.symbol,
+      marketType,
+      timeframe,
+      signal: draft.summary?.signal,
+      confidence: draft.summary?.confidence,
+      artifactKind: "strategy_draft_v1",
     },
   });
 
