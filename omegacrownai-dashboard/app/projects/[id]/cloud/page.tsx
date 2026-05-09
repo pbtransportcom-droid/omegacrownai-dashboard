@@ -48,6 +48,22 @@ export default async function ProjectCloudPage({
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Inspect provider usage, queued jobs, processed jobs, payloads, outputs, and runtime cloud execution status.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <form action="/api/cloud/jobs" method="POST">
+            <input type="hidden" name="action" value="run_one" />
+            <button className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-black text-white hover:bg-violet-500">
+              Process Next Cloud Job
+            </button>
+          </form>
+
+          <a
+            href="/api/cloud/jobs"
+            className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-5 py-3 text-sm font-black text-violet-100 hover:bg-violet-500/20"
+          >
+            Open Cloud API
+          </a>
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
@@ -77,7 +93,7 @@ export default async function ProjectCloudPage({
         <div className="mt-4 space-y-3">
           {jobs.length ? (
             jobs.map((job) => (
-              <div key={job.id} className="rounded-2xl border border-border bg-black/20 p-4">
+              <Link key={job.id} href={`/projects/${id}/cloud/${job.id}`} className="block rounded-2xl border border-border bg-black/20 p-4 hover:bg-white/5">
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="text-sm font-bold text-white">
@@ -100,7 +116,7 @@ export default async function ProjectCloudPage({
                   <Panel title="Payload" value={job.payload || {}} />
                   <Panel title="Result" value={job.result || {}} />
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
