@@ -28,6 +28,7 @@ model Project {
   builds      ProjectBuild[]
   auditLogs   AuditLog[]
   safetySettings ProjectSafetySettings?
+  cloudJobs   CloudJob[]
 }
 
 model ChatThread {
@@ -202,4 +203,27 @@ model ProjectSafetySettings {
   updatedAt DateTime @updatedAt
 
   @@index([projectId])
+}
+
+
+model CloudJob {
+  id        String   @id @default(cuid())
+
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  buildId   String?
+  type      String
+  status    String   @default("queued")
+  payload   Json
+  result    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([buildId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
 }
