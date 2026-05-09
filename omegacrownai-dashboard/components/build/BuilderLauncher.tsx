@@ -66,6 +66,24 @@ export default function BuilderLauncher() {
         })}
       </section>
 
+      <section className="rounded-3xl border border-cyan-500/25 bg-cyan-500/10 p-6">
+        <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+          Live Runtime
+        </p>
+        <h2 className="mt-2 text-2xl font-black text-white">
+          Sugent Runtime Console
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-white/70">
+          Stream agent messages, tool calls, builder updates, and cloud job updates in real time.
+        </p>
+        <a
+          href="/runtime"
+          className="mt-5 inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500"
+        >
+          Open Runtime Console
+        </a>
+      </section>
+
       <section className="rounded-3xl border border-border bg-black/20 p-6">
         <h2 className="text-xl font-bold text-white">Builder routing</h2>
         <div className="mt-4 grid gap-3 text-sm text-muted md:grid-cols-3">
