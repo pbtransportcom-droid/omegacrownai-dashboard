@@ -46,6 +46,30 @@ export default function AgentRoom({
       }
       if (
     (message.type === "tool_call" || message.type === "tool_result") &&
+    message.tool === "cloud_job"
+  ) {
+    const data = message.result || message.args || {};
+
+    return (
+      <div className="rounded-2xl border border-violet-400/25 bg-violet-500/10 p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-violet-300">
+          Cloud Job · {data.provider || "local"} · {data.status || "queued"}
+        </div>
+
+        {data.jobId && (
+          <div className="mt-2 font-mono text-xs text-violet-100">
+            {data.jobId}
+          </div>
+        )}
+
+        <CodeBlock value={data} />
+        <Timestamp value={message.createdAt} />
+      </div>
+    );
+  }
+
+  if (
+    (message.type === "tool_call" || message.type === "tool_result") &&
     message.tool === "browser"
   ) {
     const data = message.result || message.args || {};

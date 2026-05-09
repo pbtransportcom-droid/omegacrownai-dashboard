@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { RuntimeHub } from "@/lib/sugent/runtime/hub";
 import { ExecutionEngine } from "@/lib/sugent/execution/engine";
 import { CloudQueue } from "./queue";
 import { runnerForType } from "./runners";
@@ -97,6 +98,26 @@ export async function runOneCloudJob() {
         error: error?.message || String(error),
       },
     });
+
+
+    const runtimeSessionId = String((updated.payload as any)?.runtimeSessionId || "");
+    if (runtimeSessionId) {
+      RuntimeHub.emit(runtimeSessionId, {
+        type: "tool_result",
+        tool: "cloud_job",
+        result: {
+          jobId: updated.id,
+          projectId: updated.projectId,
+          buildId: updated.buildId,
+          type: updated.type,
+          status: updated.status,
+          provider: (updated.payload as any)?.provider || "local",
+          payload: updated.payload,
+          result: updated.result,
+          error: null,
+        },
+      });
+    }
 
     return {
       ok: false,
