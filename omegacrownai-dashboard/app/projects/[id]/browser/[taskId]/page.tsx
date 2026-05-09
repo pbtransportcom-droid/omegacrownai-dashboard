@@ -8,12 +8,23 @@ export default async function BrowserTaskDetailPage({
 }) {
   const { id, taskId } = await params;
 
-  const task = await prisma.browserTask.findFirst({
-    where: {
-      id: taskId,
-      projectId: id,
-    },
-  });
+  const [task, artifacts] = await Promise.all([
+    prisma.browserTask.findFirst({
+      where: {
+        id: taskId,
+        projectId: id,
+      },
+    }),
+    prisma.browserArtifact.findMany({
+      where: {
+        taskId,
+        projectId: id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ]);
 
   if (!task) {
     return <main className="text-white">Browser task not found.</main>;
@@ -49,6 +60,47 @@ export default async function BrowserTaskDetailPage({
       {task.error && (
         <section className="rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">
           {task.error}
+        </section>
+      )}
+
+      {artifacts.length > 0 && (
+        <section className="rounded-3xl border border-border bg-panel/70 p-5">
+          <h2 className="text-xl font-black text-white">Artifacts</h2>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {artifacts.map((artifact) => (
+              <div key={artifact.id} className="rounded-2xl border border-border bg-black/20 p-4">
+                <div className="text-sm font-bold text-white">
+                  {artifact.kind} · {artifact.name || artifact.id}
+                </div>
+
+                <div className="mt-1 text-xs text-muted">
+                  {artifact.mimeType || "artifact"} · {artifact.sizeBytes || 0} bytes
+                </div>
+
+                {artifact.url && artifact.mimeType?.startsWith("image/") && (
+                  <a href={artifact.url} target="_blank" rel="noreferrer">
+                    <img
+                      src={artifact.url}
+                      alt={artifact.name || "Browser artifact"}
+                      className="mt-3 max-h-96 w-full rounded-xl border border-border object-contain"
+                    />
+                  </a>
+                )}
+
+                {artifact.url && (
+                  <a
+                    href={artifact.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-xs font-bold text-sky-300 hover:underline"
+                  >
+                    Open artifact
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       )}
 

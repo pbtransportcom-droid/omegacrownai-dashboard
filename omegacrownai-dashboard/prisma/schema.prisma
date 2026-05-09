@@ -455,3 +455,28 @@ model BrowserTask {
   @@index([url])
   @@index([createdAt])
 }
+
+
+model BrowserArtifact {
+  id        String   @id @default(cuid())
+
+  taskId    String
+  projectId String?
+
+  kind      String
+  name      String?
+  path      String
+  url       String?
+  mimeType  String?
+  sizeBytes Int?
+
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([taskId])
+  @@index([projectId])
+  @@index([kind])
+  @@index([createdAt])
+}

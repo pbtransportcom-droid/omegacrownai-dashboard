@@ -7,6 +7,7 @@ import {
   validateBrowserUrl,
   validateBrowserActions,
 } from "./policy";
+import { saveBrowserScreenshotArtifact } from "./artifacts";
 import {
   normalizeBrowserActions,
   type BrowserAction,
@@ -24,10 +25,14 @@ async function runBrowserActions({
   page,
   actions,
   policy,
+  taskId,
+  projectId,
 }: {
   page: any;
   actions: BrowserAction[];
   policy: typeof defaultBrowserPolicy;
+  taskId: string;
+  projectId?: string | null;
 }) {
   const results: BrowserActionResult[] = [];
   const extracted: Record<string, any> = {};
@@ -150,13 +155,38 @@ async function runBrowserActions({
       }
 
       if (action.type === "screenshot") {
+        const buffer = await page.screenshot({
+          fullPage: true,
+          type: "png",
+        });
+
+        const artifact = await saveBrowserScreenshotArtifact({
+          projectId: projectId || null,
+          taskId,
+          name: action.name || "screenshot",
+          buffer,
+          metadata: {
+            url: page.url(),
+            title: await page.title().catch(() => ""),
+            actionIndex: index,
+          },
+        });
+
+        extracted[action.name || "screenshot"] = {
+          artifactId: artifact.id,
+          url: artifact.url,
+          sizeBytes: artifact.sizeBytes,
+        };
+
         results.push({
           index,
           type: action.type,
           ok: true,
           name: action.name || "screenshot",
           output: {
-            note: "Screenshot placeholder recorded. Binary screenshot storage will be added in a later phase.",
+            artifactId: artifact.id,
+            url: artifact.url,
+            sizeBytes: artifact.sizeBytes,
           },
         });
 
@@ -277,6 +307,8 @@ export async function runBrowserTask({
       page,
       actions: normalizedActions,
       policy,
+      taskId: task.id,
+      projectId: projectId || null,
     });
 
     const title = await page.title().catch(() => "");
