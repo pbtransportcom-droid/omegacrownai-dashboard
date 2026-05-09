@@ -1,4 +1,5 @@
 import { runBrowserTask } from "./runBrowserTask";
+import { extractActionsFromMessage } from "./actions";
 
 export function shouldUseBrowserAutomation(message: string) {
   const lower = String(message || "").toLowerCase();
@@ -30,8 +31,9 @@ export async function runAgentBrowserTool({
   message: string;
 }) {
   const url = extractUrl(message);
+  const actions = extractActionsFromMessage(message);
 
-  if (!url) {
+  if (!url && !actions.length) {
     return {
       ok: false,
       intent: "browser_automation",
@@ -45,6 +47,7 @@ export async function runAgentBrowserTool({
     sessionId: sessionId || null,
     runtimeSessionId: runtimeSessionId || null,
     url,
+    actions: actions.length ? actions : null,
     source: "agent_tool",
   });
 

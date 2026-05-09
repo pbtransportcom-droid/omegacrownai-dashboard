@@ -33,7 +33,8 @@ export async function POST(req: Request) {
       projectId: body.projectId || null,
       sessionId: body.sessionId || null,
       runtimeSessionId: body.runtimeSessionId || null,
-      url: String(body.url || ""),
+      url: body.url ? String(body.url) : null,
+      actions: body.actions || null,
       source: body.source || "api",
     });
 

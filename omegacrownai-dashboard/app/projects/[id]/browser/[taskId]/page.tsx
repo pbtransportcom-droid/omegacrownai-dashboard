@@ -54,6 +54,8 @@ export default async function BrowserTaskDetailPage({
 
       <section className="grid gap-4 xl:grid-cols-2">
         <Panel title="Result" value={task.result || {}} />
+        <Panel title="Action Results" value={(task.result as any)?.actionResults || []} />
+        <Panel title="Extracted" value={(task.result as any)?.extracted || {}} />
         <Panel title="Metrics" value={task.metrics || {}} />
         <Panel title="Policy" value={task.policy || {}} />
         <Panel title="Logs" value={task.logs || []} />
