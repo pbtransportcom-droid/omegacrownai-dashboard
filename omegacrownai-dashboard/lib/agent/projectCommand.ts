@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { buildWebsiteDraft } from "./websiteDraft";
 
 function isWebsiteBuildCommand(message: string) {
   const text = String(message || "").toLowerCase();
@@ -151,6 +152,54 @@ export async function runProjectCommand({
   });
 
   const brief = buildWebsiteBrief(message, projectName);
+  const draft = buildWebsiteDraft({
+    message,
+    projectName,
+    brief,
+  });
+
+  const build = await prisma.projectBuild.create({
+    data: {
+      projectId: project.id,
+      label: "Initial website draft",
+      status: "draft",
+      source: "brain_auto",
+      domain: "website",
+    },
+  });
+
+  const artifact = await prisma.projectBuildArtifact.create({
+    data: {
+      projectId: project.id,
+      buildId: build.id,
+      kind: "website_draft_v1",
+      payload: draft,
+    },
+  });
+
+  const execution = await prisma.agentExecution.create({
+    data: {
+      projectId: project.id,
+      prompt: message,
+      intents: {
+        primary: "website_build",
+        confidence: 0.95,
+      },
+      agents: {
+        creator: "Omega Crown Super Agent",
+        builder: "Sugent Website Builder",
+      },
+      execution: {
+        type: "website_build",
+        projectId: project.id,
+        buildId: build.id,
+        artifactId: artifact.id,
+        brief,
+        draftVersion: "website_draft_v1",
+      },
+      reply: `Created project and generated first website draft for ${projectName}.`,
+    },
+  });
 
   return {
     ok: true,
@@ -159,29 +208,39 @@ export async function runProjectCommand({
       "Understand the website request",
       "Create a project workspace",
       "Generate a starter website brief",
-      "Prepare next editing and publishing steps",
+      "Create ProjectBuild",
+      "Create ProjectBuildArtifact website_draft_v1",
+      "Log AgentExecution",
+      "Prepare builder workspace",
     ],
     reply:
-      `I created a new website project: ${project.name}.\n\n` +
-      `Project workspace: /projects/${project.id}\n\n` +
+      `I created your project and generated the first website draft: ${project.name}.\n\n` +
+      `Project workspace: /projects/${project.id}\n` +
+      `Website builder: /build/website/${project.id}?buildId=${build.id}\n\n` +
       `Starter direction:\n` +
       `- Industry: ${brief.industry}\n` +
       `- Goal: ${brief.goal}\n` +
       `- Style: ${brief.style}\n\n` +
-      `Suggested homepage sections:\n` +
-      brief.suggestedSections.map((section) => `- ${section}`).join("\n"),
+      `First draft sections:\n` +
+      draft.pages[0].sections.map((section) => `- ${section.type}: ${section.content?.heading || section.content?.headline || section.id}`).join("\n"),
     actions: [
       {
         type: "project_created",
         projectId: project.id,
         projectName: project.name,
         openUrl: `/projects/${project.id}`,
-        buildUrl: `/build/website/${project.id}`,
+        buildUrl: `/build/website/${project.id}?buildId=${build.id}`,
+        buildId: build.id,
+        artifactId: artifact.id,
+        executionId: execution.id,
+        previewReady: true,
         brief,
+        draft,
       },
     ],
     nextSuggestions: [
       "Open project",
+      "Open website builder",
       "Edit homepage",
       "Add booking section",
       "Upload logo",

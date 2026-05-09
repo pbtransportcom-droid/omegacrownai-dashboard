@@ -25,6 +25,7 @@ model Project {
 
   chatThreads ChatThread[]
   executions  AgentExecution[]
+  builds      ProjectBuild[]
 }
 
 model ChatThread {
@@ -57,6 +58,44 @@ model AgentExecution {
   reply     String
   createdAt DateTime @default(now())
 }
+
+model ProjectBuild {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+
+  label     String
+  status    String   @default("draft")
+  source    String   @default("brain_auto")
+  domain    String   @default("website")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  artifacts ProjectBuildArtifact[]
+
+  @@index([projectId])
+  @@index([domain])
+  @@index([status])
+}
+
+model ProjectBuildArtifact {
+  id        String   @id @default(cuid())
+  projectId String
+  buildId   String
+
+  build     ProjectBuild @relation(fields: [buildId], references: [id])
+
+  kind      String
+  payload   Json
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([buildId])
+  @@index([kind])
+}
+
 
 model TradingWatchlist {
   id         String   @id @default(cuid())
@@ -97,12 +136,3 @@ model GuestAiUsage {
   @@index([usageKey])
 }
 
-model GuestAiUsage {
-  id        String   @id @default(cuid())
-  usageKey String   @unique
-  count     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([usageKey])
-}
