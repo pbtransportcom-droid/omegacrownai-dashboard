@@ -76,12 +76,21 @@ export default function BuilderLauncher() {
         <p className="mt-3 max-w-3xl text-sm leading-7 text-white/70">
           Stream agent messages, tool calls, builder updates, and cloud job updates in real time.
         </p>
-        <a
-          href="/runtime"
-          className="mt-5 inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500"
-        >
-          Open Runtime Console
-        </a>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a
+            href="/runtime"
+            className="inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500"
+          >
+            Open Runtime Console
+          </a>
+
+          <a
+            href="/agents"
+            className="inline-flex rounded-xl border border-violet-400/30 bg-violet-500/10 px-5 py-3 text-sm font-black text-violet-100 hover:bg-violet-500/20"
+          >
+            Open Agent Room
+          </a>
+        </div>
       </section>
 
       <section className="rounded-3xl border border-border bg-black/20 p-6">
