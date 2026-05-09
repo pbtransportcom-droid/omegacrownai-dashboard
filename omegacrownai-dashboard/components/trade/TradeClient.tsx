@@ -527,6 +527,10 @@ export default function TradeClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setChatAnswer("");
+  }, [result?.symbol, result?.signal, result?.confidence]);
+
   async function saveSignalAlert() {
     const confidence = Number(alertConfidence || 75);
 
