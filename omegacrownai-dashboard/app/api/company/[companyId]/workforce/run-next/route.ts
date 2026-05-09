@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ companyId: string }> }
 ) {
   const { companyId } = await params;
-  const protection = protectInternalRoute(req, {
+  const protection = await protectInternalRoute(req, {
     rateLimitPrefix: "workforce-run-next",
     limit: 20,
   });

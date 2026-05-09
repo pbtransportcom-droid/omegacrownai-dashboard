@@ -1,7 +1,7 @@
 import { protectInternalRoute } from "@/lib/security/protectedRoute";
 
 export async function POST(req: Request) {
-  const protection = protectInternalRoute(req, {
+  const protection = await protectInternalRoute(req, {
     rateLimitPrefix: "cloud-run-one",
     limit: 20,
   });

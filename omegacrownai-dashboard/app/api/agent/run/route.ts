@@ -12,7 +12,7 @@ import { shouldUseBrowserAutomation, runAgentBrowserTool } from "@/lib/sugent/br
 import { shouldUseCloudExecution, runAgentCloudTool } from "@/lib/sugent/cloud/agentCloudTool";
 
 export async function POST(req: Request) {
-  const publicProtection = protectPublicRoute(req, {
+  const publicProtection = await protectPublicRoute(req, {
     rateLimitPrefix: "agent-run",
     limit: 20,
   });

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { protectInternalRoute } from "@/lib/security/protectedRoute";
+import { protectAdminRoute } from "@/lib/security/protectedRoute";
 import { isProduction } from "@/lib/security/apiGuard";
 
 export async function GET(req: Request) {
-  const protection = protectInternalRoute(req, {
+  const protection = await protectAdminRoute(req, {
     rateLimitPrefix: "admin-security-status",
     limit: 20,
+    action: "admin_security_status",
   });
   if (!protection.ok) return protection.response;
 
@@ -16,7 +17,9 @@ export async function GET(req: Request) {
       internalKeyConfigured: Boolean(process.env.OMEGA_INTERNAL_API_KEY),
       sourceMapsDisabled: true,
       internalApiGuard: true,
+      authAwareGuard: true,
       rateLimit: true,
+      auditLogging: true,
     },
     timestamp: new Date().toISOString(),
   });

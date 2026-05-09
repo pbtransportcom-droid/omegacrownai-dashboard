@@ -3,7 +3,7 @@ import { protectPublicRoute } from "@/lib/security/protectedRoute";
 import { runCompanyOrchestrator } from "@/lib/sugent/company/orchestrator";
 
 export async function POST(req: Request) {
-  const publicProtection = protectPublicRoute(req, {
+  const publicProtection = await protectPublicRoute(req, {
     rateLimitPrefix: "company-run",
     limit: 40,
   });

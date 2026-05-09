@@ -619,3 +619,31 @@ model CompanyTask {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model SecurityAuditEvent {
+  id        String   @id @default(cuid())
+
+  level     String   @default("info")
+  action    String
+  route     String?
+  method    String?
+  ip        String?
+  actorId   String?
+  actorType String?
+  userAgent String?
+
+  allowed   Boolean  @default(false)
+  reason    String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([level])
+  @@index([action])
+  @@index([route])
+  @@index([ip])
+  @@index([actorId])
+  @@index([allowed])
+  @@index([createdAt])
+}

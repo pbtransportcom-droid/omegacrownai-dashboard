@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const publicProtection = protectPublicRoute(req, {
+  const publicProtection = await protectPublicRoute(req, {
     rateLimitPrefix: "cloud-jobs",
     limit: 40,
   });

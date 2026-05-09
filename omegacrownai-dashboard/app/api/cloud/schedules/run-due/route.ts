@@ -3,7 +3,7 @@ import { protectInternalRoute } from "@/lib/security/protectedRoute";
 import { runDueCloudSchedules } from "@/lib/sugent/cloud/scheduler";
 
 export async function POST(req: Request) {
-  const protection = protectInternalRoute(req, {
+  const protection = await protectInternalRoute(req, {
     rateLimitPrefix: "cloud-schedules-run-due",
     limit: 20,
   });

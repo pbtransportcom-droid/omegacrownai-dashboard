@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const publicProtection = protectPublicRoute(req, {
+  const publicProtection = await protectPublicRoute(req, {
     rateLimitPrefix: "secure-execution-run",
     limit: 30,
   });
