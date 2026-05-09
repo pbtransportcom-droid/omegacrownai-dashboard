@@ -1,4 +1,5 @@
 import type { SRPMessage } from "./types";
+import { recordTimelineEvent } from "./timeline";
 
 type Listener = (message: SRPMessage) => void;
 
@@ -46,11 +47,17 @@ export const RuntimeHub = {
     }
   },
 
-  emit(sessionId: string, message: SRPMessage) {
+  emit(sessionId: string, message: SRPMessage, projectId?: string | null) {
     const set = listeners.get(sessionId);
-    if (!set) return false;
-
     const stamped = withTimestamp(message);
+
+    recordTimelineEvent({
+      sessionId,
+      projectId: projectId || null,
+      message: stamped,
+    }).catch(() => {});
+
+    if (!set) return false;
 
     for (const callback of set) {
       callback(stamped);

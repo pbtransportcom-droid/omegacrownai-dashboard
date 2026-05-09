@@ -278,3 +278,38 @@ model MarketplaceTemplate {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model TimelineEvent {
+  id        String   @id @default(cuid())
+
+  sessionId String
+  projectId String?
+
+  type      String
+  payload   Json
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([projectId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model TimelineSnapshot {
+  id        String   @id @default(cuid())
+
+  sessionId String
+  projectId String?
+
+  index     Int
+  state     Json
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([projectId])
+  @@index([index])
+  @@index([createdAt])
+}

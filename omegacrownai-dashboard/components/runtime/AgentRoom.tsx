@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAgentRoom } from "@/hooks/useAgentRoom";
 import AgentRoomControls from "@/components/runtime/AgentRoomControls";
+import Timeline from "@/components/runtime/Timeline";
 
 const AGENTS = [
   { id: "user", label: "User" },
@@ -127,6 +128,8 @@ export default function AgentRoom({
       </section>
 
       <AgentRoomControls sessionId={activeSessionId} />
+
+      <Timeline sessionId={activeSessionId} />
 
       <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
         <aside className="rounded-3xl border border-border bg-panel/70 p-4">
