@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import WebsitePreview from "@/components/projects/WebsitePreview";
 
 type ProjectWorkspaceProps = {
@@ -432,6 +433,13 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     setWebsiteLoading(false);
   }
 
+  const latestWebsiteBuild =
+    builds.find((build: any) => build.domain === "website") || builds[0] || null;
+
+  const latestWebsiteBuilderUrl = latestWebsiteBuild
+    ? `/build/website/${project.id}?buildId=${latestWebsiteBuild.id}`
+    : "";
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{project.name}</h1>
@@ -455,6 +463,41 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
             <li>• Saved Build Results</li>
             <li>• Trading Analysis Engine</li>
           </ul>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-cyan-500/25 bg-cyan-500/10 p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+              Sugent Website Builder
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-white">
+              {latestWebsiteBuild ? latestWebsiteBuild.label : "No website draft yet"}
+            </h2>
+            <p className="mt-2 text-sm text-gray-400">
+              {latestWebsiteBuild
+                ? `${latestWebsiteBuild.status || "draft"} · ${latestWebsiteBuild.domain || "website"} · Build ID: ${latestWebsiteBuild.id}`
+                : "Create a website draft first, then open the structured builder."}
+            </p>
+          </div>
+
+          {latestWebsiteBuild ? (
+            <a
+              href={latestWebsiteBuilderUrl}
+              className="inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-500"
+            >
+              Open Website Builder
+            </a>
+          ) : (
+            <button
+              onClick={buildWebsite}
+              disabled={websiteLoading}
+              className="inline-flex rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white hover:bg-amber-500 disabled:opacity-60"
+            >
+              {websiteLoading ? "Creating Draft..." : "Create Website Draft"}
+            </button>
+          )}
         </div>
       </div>
 
