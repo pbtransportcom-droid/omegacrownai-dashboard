@@ -1,38 +1,52 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export async function DELETE(
-  req: Request,
+export async function GET(
+  _req: Request,
   { params }: { params: Promise<{ id: string; buildId: string }> }
 ) {
-  const session = await getServerSession(authConfig);
-
-  if (!session?.user?.email) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
   const { id, buildId } = await params;
 
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: { owner: true },
-  });
-
-  if (!project || project.owner.email !== session.user.email) {
-    return NextResponse.json({ ok: false, error: "Project not found" }, { status: 404 });
-  }
-
-  await prisma.publishedSite.deleteMany({
+  const build = await prisma.projectBuild.findFirst({
     where: {
-      executionId: buildId,
+      id: buildId,
       projectId: id,
-      ownerEmail: session.user.email,
     },
   });
 
-  await prisma.agentExecution.deleteMany({
+  if (!build) {
+    return NextResponse.json({ ok: false, error: "Build not found" }, { status: 404 });
+  }
+
+  const artifact = await prisma.projectBuildArtifact.findFirst({
+    where: {
+      projectId: id,
+      buildId,
+    },
+  });
+
+  return NextResponse.json({
+    ok: true,
+    build,
+    artifact,
+    draft: artifact?.payload || null,
+  });
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string; buildId: string }> }
+) {
+  const { id, buildId } = await params;
+
+  await prisma.projectBuildArtifact.deleteMany({
+    where: {
+      projectId: id,
+      buildId,
+    },
+  });
+
+  await prisma.projectBuild.deleteMany({
     where: {
       id: buildId,
       projectId: id,

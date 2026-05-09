@@ -229,3 +229,74 @@ Return this exact JSON shape:
     );
   }
 }
+
+
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    const buildId = String(body.buildId || "");
+    const kind = String(body.kind || "website_draft_v1");
+    const draft = body.draft;
+
+    if (!buildId) {
+      return Response.json({ ok: false, error: "buildId is required" }, { status: 400 });
+    }
+
+    if (!draft || typeof draft !== "object") {
+      return Response.json({ ok: false, error: "Valid draft is required" }, { status: 400 });
+    }
+
+    const artifact = await prisma.projectBuildArtifact.findFirst({
+      where: {
+        projectId: id,
+        buildId,
+        kind,
+      },
+    });
+
+    if (!artifact) {
+      await prisma.projectBuildArtifact.create({
+        data: {
+          projectId: id,
+          buildId,
+          kind,
+          payload: draft,
+        },
+      });
+    } else {
+      await prisma.projectBuildArtifact.update({
+        where: {
+          id: artifact.id,
+        },
+        data: {
+          payload: draft,
+        },
+      });
+    }
+
+    await prisma.projectBuild.updateMany({
+      where: {
+        id: buildId,
+        projectId: id,
+      },
+      data: {
+        status: "draft",
+      },
+    });
+
+    return Response.json({ ok: true });
+  } catch (error: any) {
+    return Response.json(
+      {
+        ok: false,
+        error: error?.message || String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
