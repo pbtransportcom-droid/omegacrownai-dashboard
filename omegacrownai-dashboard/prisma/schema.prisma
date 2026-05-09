@@ -480,3 +480,30 @@ model BrowserArtifact {
   @@index([kind])
   @@index([createdAt])
 }
+
+
+model CloudSchedule {
+  id        String   @id @default(cuid())
+
+  projectId String
+  name      String
+  provider  String   @default("local")
+  type      String   @default("generic")
+  payload   Json
+
+  enabled   Boolean  @default(true)
+  intervalMinutes Int @default(60)
+  nextRunAt DateTime
+  lastRunAt DateTime?
+  lastJobId String?
+  runCount  Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([enabled])
+  @@index([nextRunAt])
+  @@index([provider])
+  @@index([type])
+}
