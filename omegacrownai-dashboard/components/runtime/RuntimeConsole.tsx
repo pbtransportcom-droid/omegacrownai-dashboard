@@ -5,8 +5,10 @@ import { useSugentRuntime } from "@/hooks/useSugentRuntime";
 
 export default function RuntimeConsole({
   initialSessionId,
+  projectId,
 }: {
   initialSessionId: string;
+  projectId?: string;
 }) {
   const [sessionId, setSessionId] = useState(initialSessionId);
   const [activeSessionId, setActiveSessionId] = useState(initialSessionId);
