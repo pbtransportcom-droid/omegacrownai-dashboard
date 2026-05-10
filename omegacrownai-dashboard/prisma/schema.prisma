@@ -1098,3 +1098,60 @@ model SupportResponse {
   @@index([ticketId])
   @@index([status])
 }
+
+
+model ExecutiveSchedule {
+  id        String   @id @default(cuid())
+
+  projectId String
+  companyId String?
+
+  name       String
+  frequency  String   @default("daily")
+  hour       Int      @default(9)
+  timezone   String   @default("America/Chicago")
+  status     String   @default("active")
+
+  lastRunAt  DateTime?
+  nextRunAt  DateTime?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs ExecutiveRunLog[]
+
+  @@index([projectId])
+  @@index([companyId])
+  @@index([status])
+  @@index([nextRunAt])
+}
+
+model ExecutiveRunLog {
+  id        String   @id @default(cuid())
+
+  projectId   String
+  companyId   String?
+  scheduleId  String?
+
+  type      String   @default("daily_report")
+  status    String   @default("success")
+  summary   Json?
+  report    Json?
+  error     String?
+
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schedule ExecutiveSchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([companyId])
+  @@index([scheduleId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
