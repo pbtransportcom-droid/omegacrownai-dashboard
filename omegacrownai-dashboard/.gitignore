@@ -1,30 +1,33 @@
-node_modules
+
+!.env.example
 # Keep environment variables out of version control
-.env
-
-/lib/generated/prisma
-
+# Next build output
+# Security / secrets
+# backups
+# dependencies
 # local env files
+# local manual backups
+# local scanner backups
+*.backup_*
+*.bak
+*.before_trade_scanner_*
+*.crt
+*.csr
+*.key
+*.p12
+*.pem
+*.pfx
+*.safe_online_*
+*.tar.gz
 .env
+.env*.local
+.env.*
 .env.local
 .env.production
-.env*.local
-
-# Next build output
 .next
-out
-
-# dependencies
+/lib/generated/prisma
 node_modules
-
-# backups
-*.tar.gz
-*.bak
-*.safe_online_*
-
-# local manual backups
-*.backup_*
-*.safe_online_*
-
-# local scanner backups
-*.before_trade_scanner_*
+out
+private/
+public/browser-artifacts/
+secrets/
