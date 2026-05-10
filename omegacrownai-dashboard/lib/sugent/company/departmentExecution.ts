@@ -3,6 +3,7 @@ import { setDepartmentKPI, writeDepartmentMemory } from "./departments";
 import { createMarketingCampaign } from "@/lib/sugent/marketing/engine";
 import { runSalesEngine } from "@/lib/sugent/sales/engine";
 import { runFinanceEngine } from "@/lib/sugent/finance/engine";
+import { runOperationsEngine } from "@/lib/sugent/operations/engine";
 
 export function departmentExecutionPlan({
   departmentSlug,
@@ -131,6 +132,52 @@ export async function executeDepartmentTask({
       ok: false,
       error: "Task is not department-routed.",
       task,
+    };
+  }
+
+  if (String(departmentSlug).toLowerCase() === "operations") {
+    const operations = await runOperationsEngine({
+      companyId: task.companyId,
+      departmentId,
+      objective: message || "Create an operations process.",
+    });
+
+    const output = {
+      ok: true,
+      intent: "operations_department_execution",
+      departmentId,
+      departmentSlug,
+      departmentName: input.departmentName,
+      engine: "operations",
+      reply: operations.reply,
+      processId: operations.process.id,
+      checklistId: operations.checklist.id,
+      runId: operations.run?.id || null,
+      summary: operations.summary,
+      sop: operations.sop,
+    };
+
+    const updated = await prisma.companyTask.update({
+      where: { id: task.id },
+      data: {
+        status: "success",
+        output,
+        errorMessage: null,
+      },
+    });
+
+    if (task.workerId) {
+      await prisma.worker.update({
+        where: { id: task.workerId },
+        data: { status: "idle" },
+      });
+    }
+
+    return {
+      ok: true,
+      task: updated,
+      worker: task.worker,
+      result: output,
     };
   }
 

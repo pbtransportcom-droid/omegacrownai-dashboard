@@ -945,3 +945,78 @@ model FinanceForecast {
   @@index([period])
   @@index([createdAt])
 }
+
+
+model OperationsProcess {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name        String
+  description String?
+  status      String   @default("active")
+  priority    String   @default("medium")
+
+  steps       Json?
+  ownerRole   String?
+  metrics     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checklists OperationsChecklist[]
+  runs       OperationsRun[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([priority])
+}
+
+model OperationsChecklist {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  processId    String?
+
+  title       String
+  items       Json?
+  status      String   @default("draft")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  process OperationsProcess? @relation(fields: [processId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([processId])
+  @@index([status])
+}
+
+model OperationsRun {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  processId    String?
+
+  status      String   @default("completed")
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  result      Json?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  process OperationsProcess? @relation(fields: [processId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([processId])
+  @@index([status])
+  @@index([startedAt])
+}
