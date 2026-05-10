@@ -1,5 +1,7 @@
 "use client";
 
+import { OmegaLogo } from "@/components/brand/OmegaLogo";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -159,6 +161,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <div className="mb-6 flex justify-center"><OmegaLogo className="h-20 w-auto object-contain" /></div>
       <section className="mx-auto max-w-6xl">
 
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
