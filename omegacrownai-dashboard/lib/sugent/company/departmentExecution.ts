@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { setDepartmentKPI, writeDepartmentMemory } from "./departments";
 import { createMarketingCampaign } from "@/lib/sugent/marketing/engine";
 import { runSalesEngine } from "@/lib/sugent/sales/engine";
+import { runFinanceEngine } from "@/lib/sugent/finance/engine";
 
 export function departmentExecutionPlan({
   departmentSlug,
@@ -130,6 +131,52 @@ export async function executeDepartmentTask({
       ok: false,
       error: "Task is not department-routed.",
       task,
+    };
+  }
+
+  if (String(departmentSlug).toLowerCase() === "finance") {
+    const finance = await runFinanceEngine({
+      companyId: task.companyId,
+      departmentId,
+      objective: message || "Create a finance forecast.",
+    });
+
+    const output = {
+      ok: true,
+      intent: "finance_department_execution",
+      departmentId,
+      departmentSlug,
+      departmentName: input.departmentName,
+      engine: "finance",
+      reply: finance.reply,
+      accountId: finance.account.id,
+      forecastId: finance.forecast.id,
+      summary: finance.summary,
+      transactions: finance.transactions,
+      forecast: finance.forecast,
+    };
+
+    const updated = await prisma.companyTask.update({
+      where: { id: task.id },
+      data: {
+        status: "success",
+        output,
+        errorMessage: null,
+      },
+    });
+
+    if (task.workerId) {
+      await prisma.worker.update({
+        where: { id: task.workerId },
+        data: { status: "idle" },
+      });
+    }
+
+    return {
+      ok: true,
+      task: updated,
+      worker: task.worker,
+      result: output,
     };
   }
 

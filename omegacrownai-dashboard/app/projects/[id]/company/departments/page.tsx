@@ -74,6 +74,13 @@ export default async function CompanyDepartmentsPage({
           >
             Sales Engine
           </Link>
+
+          <Link
+            href={`/projects/${id}/company/finance`}
+            className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+          >
+            Finance Engine
+          </Link>
         </div>
       </section>
 

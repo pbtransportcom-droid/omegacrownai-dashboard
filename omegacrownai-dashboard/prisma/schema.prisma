@@ -868,3 +868,80 @@ model SalesDeal {
   @@index([stage])
   @@index([status])
 }
+
+
+model FinanceAccount {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name      String
+  type      String   @default("operating")
+  currency  String   @default("USD")
+  balance   Float    @default(0)
+  status    String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions FinanceTransaction[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([type])
+  @@index([status])
+}
+
+model FinanceTransaction {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  accountId    String?
+
+  type        String
+  category    String
+  amount      Float
+  currency    String   @default("USD")
+  description String?
+  metadata    Json?
+
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  account FinanceAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([accountId])
+  @@index([type])
+  @@index([category])
+  @@index([occurredAt])
+}
+
+model FinanceForecast {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name        String
+  period      String   @default("month")
+  revenue     Float    @default(0)
+  expenses    Float    @default(0)
+  cashBalance Float    @default(0)
+  runwayMonths Float   @default(0)
+
+  assumptions Json?
+  result      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([period])
+  @@index([createdAt])
+}
