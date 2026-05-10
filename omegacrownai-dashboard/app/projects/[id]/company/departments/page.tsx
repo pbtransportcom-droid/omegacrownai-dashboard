@@ -59,6 +59,15 @@ export default async function CompanyDepartmentsPage({
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Manage company departments, department KPIs, department memory, and department-routed tasks.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/projects/${id}/company/marketing`}
+            className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-3 text-sm font-black text-amber-100 hover:bg-amber-500/20"
+          >
+            Marketing Engine
+          </Link>
+        </div>
       </section>
 
       {companies.map((company) => (

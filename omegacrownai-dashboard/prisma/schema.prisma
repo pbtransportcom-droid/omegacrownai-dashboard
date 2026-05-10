@@ -711,3 +711,73 @@ model DepartmentMemory {
   @@index([kind])
   @@index([createdAt])
 }
+
+
+model MarketingAudience {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name        String
+  segment     String?
+  description String?
+  painPoints  Json?
+  goals       Json?
+  channels    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([name])
+}
+
+model MarketingCampaign {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name      String
+  objective String
+  offer     String?
+  audience  Json?
+  channels  Json?
+  status    String   @default("draft")
+
+  brief     Json?
+  metrics   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assets MarketingAsset[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketingAsset {
+  id         String   @id @default(cuid())
+
+  campaignId String
+  type       String
+  title      String
+  content    String
+  channel    String?
+  status     String   @default("draft")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([type])
+  @@index([channel])
+  @@index([status])
+}
