@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { setDepartmentKPI, writeDepartmentMemory } from "./departments";
 import { createMarketingCampaign } from "@/lib/sugent/marketing/engine";
+import { runSalesEngine } from "@/lib/sugent/sales/engine";
 
 export function departmentExecutionPlan({
   departmentSlug,
@@ -129,6 +130,56 @@ export async function executeDepartmentTask({
       ok: false,
       error: "Task is not department-routed.",
       task,
+    };
+  }
+
+  if (String(departmentSlug).toLowerCase() === "sales") {
+    const sales = await runSalesEngine({
+      companyId: task.companyId,
+      departmentId,
+      objective: message || "Create a sales pipeline plan.",
+      offer: "OmegaCrown AI Company OS",
+      audience: {
+        segment: "founders, operators, and AI-powered businesses",
+      },
+    });
+
+    const output = {
+      ok: true,
+      intent: "sales_department_execution",
+      departmentId,
+      departmentSlug,
+      departmentName: input.departmentName,
+      engine: "sales",
+      reply: sales.reply,
+      pipelineId: sales.pipeline.id,
+      leadId: sales.lead.id,
+      dealId: sales.deal.id,
+      assets: sales.assets,
+      checklist: sales.checklist,
+    };
+
+    const updated = await prisma.companyTask.update({
+      where: { id: task.id },
+      data: {
+        status: "success",
+        output,
+        errorMessage: null,
+      },
+    });
+
+    if (task.workerId) {
+      await prisma.worker.update({
+        where: { id: task.workerId },
+        data: { status: "idle" },
+      });
+    }
+
+    return {
+      ok: true,
+      task: updated,
+      worker: task.worker,
+      result: output,
     };
   }
 

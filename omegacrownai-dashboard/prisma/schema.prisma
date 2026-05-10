@@ -781,3 +781,90 @@ model MarketingAsset {
   @@index([channel])
   @@index([status])
 }
+
+
+model SalesPipeline {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  name        String
+  description String?
+  stages      Json?
+  status      String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads SalesLead[]
+  deals SalesDeal[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([status])
+}
+
+model SalesLead {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  pipelineId   String?
+
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  source    String?
+  status    String   @default("new")
+  score     Float    @default(0)
+
+  notes     String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pipeline SalesPipeline? @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  deals    SalesDeal[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([score])
+}
+
+model SalesDeal {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  pipelineId   String?
+  leadId       String?
+
+  name      String
+  stage     String   @default("qualified")
+  value     Float    @default(0)
+  currency  String   @default("USD")
+  probability Float  @default(0.25)
+  status    String   @default("open")
+
+  nextStep  String?
+  notes     String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pipeline SalesPipeline? @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  lead     SalesLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([pipelineId])
+  @@index([leadId])
+  @@index([stage])
+  @@index([status])
+}
