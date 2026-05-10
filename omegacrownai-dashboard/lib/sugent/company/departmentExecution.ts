@@ -4,6 +4,7 @@ import { createMarketingCampaign } from "@/lib/sugent/marketing/engine";
 import { runSalesEngine } from "@/lib/sugent/sales/engine";
 import { runFinanceEngine } from "@/lib/sugent/finance/engine";
 import { runOperationsEngine } from "@/lib/sugent/operations/engine";
+import { runSupportEngine } from "@/lib/sugent/support/engine";
 
 export function departmentExecutionPlan({
   departmentSlug,
@@ -132,6 +133,52 @@ export async function executeDepartmentTask({
       ok: false,
       error: "Task is not department-routed.",
       task,
+    };
+  }
+
+  if (String(departmentSlug).toLowerCase() === "support") {
+    const support = await runSupportEngine({
+      companyId: task.companyId,
+      departmentId,
+      objective: message || "Create a support response and knowledge base article.",
+    });
+
+    const output = {
+      ok: true,
+      intent: "support_department_execution",
+      departmentId,
+      departmentSlug,
+      departmentName: input.departmentName,
+      engine: "support",
+      reply: support.reply,
+      ticketId: support.ticket.id,
+      responseId: support.response.id,
+      articleId: support.article.id,
+      triage: support.triage,
+      summary: support.summary,
+    };
+
+    const updated = await prisma.companyTask.update({
+      where: { id: task.id },
+      data: {
+        status: "success",
+        output,
+        errorMessage: null,
+      },
+    });
+
+    if (task.workerId) {
+      await prisma.worker.update({
+        where: { id: task.workerId },
+        data: { status: "idle" },
+      });
+    }
+
+    return {
+      ok: true,
+      task: updated,
+      worker: task.worker,
+      result: output,
     };
   }
 

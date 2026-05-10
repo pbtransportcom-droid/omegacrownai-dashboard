@@ -88,6 +88,13 @@ export default async function CompanyDepartmentsPage({
           >
             Operations Engine
           </Link>
+
+          <Link
+            href={`/projects/${id}/company/support`}
+            className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-5 py-3 text-sm font-black text-rose-100 hover:bg-rose-500/20"
+          >
+            Support Engine
+          </Link>
         </div>
       </section>
 

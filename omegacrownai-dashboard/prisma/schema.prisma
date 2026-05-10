@@ -1020,3 +1020,81 @@ model OperationsRun {
   @@index([status])
   @@index([startedAt])
 }
+
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  customerName  String?
+  customerEmail String?
+  subject       String
+  message       String
+  category      String   @default("general")
+  priority      String   @default("normal")
+  status        String   @default("open")
+
+  sentiment     String?
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responses SupportResponse[]
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([category])
+  @@index([priority])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SupportKnowledgeBase {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+
+  title    String
+  slug     String
+  content  String
+  category String   @default("general")
+  status   String   @default("draft")
+  tags     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, slug])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([category])
+  @@index([status])
+}
+
+model SupportResponse {
+  id        String   @id @default(cuid())
+
+  companyId    String
+  departmentId String?
+  ticketId     String?
+
+  subject  String?
+  content  String
+  tone     String   @default("professional")
+  status   String   @default("draft")
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([ticketId])
+  @@index([status])
+}
