@@ -49,6 +49,24 @@ export default function AgentRoom({
       }
       if (
     (message.type === "tool_call" || message.type === "tool_result") &&
+    message.tool === "executive_loop"
+  ) {
+    const data = message.result || message.args || {};
+
+    return (
+      <div className="rounded-2xl border border-yellow-400/25 bg-yellow-500/10 p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-yellow-300">
+          Executive Loop · {data.action || "decision"}
+        </div>
+
+        <CodeBlock value={data} />
+        <Timestamp value={message.createdAt} />
+      </div>
+    );
+  }
+
+  if (
+    (message.type === "tool_call" || message.type === "tool_result") &&
     message.tool === "company_worker"
   ) {
     const data = message.result || message.args || {};

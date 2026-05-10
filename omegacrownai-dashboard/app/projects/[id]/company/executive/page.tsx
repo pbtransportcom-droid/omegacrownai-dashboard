@@ -56,6 +56,28 @@ export default async function ExecutiveCommandCenterPage({
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
+          <a
+            href={`/api/projects/${id}/executive/report`}
+            className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+          >
+            Daily Executive Report
+          </a>
+
+          <form action={`/api/projects/${id}/executive/action-plan`} method="POST">
+            <button className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20">
+              Create CEO Action Plan
+            </button>
+          </form>
+
+          <form action={`/api/projects/${id}/executive/run`} method="POST">
+            <input type="hidden" name="sessionId" value={`executive-${id}`} />
+            <input type="hidden" name="runtimeSessionId" value={`executive-${id}`} />
+            <input type="hidden" name="limit" value="10" />
+            <button className="rounded-xl bg-yellow-600 px-5 py-3 text-sm font-black text-white hover:bg-yellow-500">
+              Run Executive Loop
+            </button>
+          </form>
+
           <Link href={`/projects/${id}/company/departments`} className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
             Departments
           </Link>
