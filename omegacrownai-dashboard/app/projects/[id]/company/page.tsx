@@ -55,6 +55,13 @@ export default async function ProjectCompanyPage({
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
+            href={`/projects/${id}/company/executive`}
+            className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+          >
+            Executive Command Center
+          </Link>
+
+          <Link
             href={`/projects/${id}/company/departments`}
             className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
           >
