@@ -1,40 +1,125 @@
-<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="960" height="260" viewBox="0 0 960 260" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#102B55"/>
+      <stop offset="45%" stop-color="#071225"/>
+      <stop offset="100%" stop-color="#030611"/>
+    </radialGradient>
+
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFF2A8"/>
-      <stop offset="45%" stop-color="#D7A83F"/>
-      <stop offset="100%" stop-color="#8A5B12"/>
+      <stop offset="0%" stop-color="#FFF4B0"/>
+      <stop offset="35%" stop-color="#F3C765"/>
+      <stop offset="65%" stop-color="#C8912E"/>
+      <stop offset="100%" stop-color="#6F420A"/>
     </linearGradient>
+
+    <linearGradient id="goldBright" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="25%" stop-color="#FFE99A"/>
+      <stop offset="65%" stop-color="#D49A2E"/>
+      <stop offset="100%" stop-color="#8A560C"/>
+    </linearGradient>
+
     <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#64D8FF"/>
-      <stop offset="45%" stop-color="#1D4ED8"/>
-      <stop offset="100%" stop-color="#050B2E"/>
+      <stop offset="0%" stop-color="#7DDCFF"/>
+      <stop offset="45%" stop-color="#008CFF"/>
+      <stop offset="100%" stop-color="#1026A8"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
+
+    <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 0.7 0 0 0.62  0 0 0.25 0 0.05  0 0 0 0.8 0"/>
       <feMerge>
-        <feMergeNode in="blur"/>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0.55 0 0 0.7  0 0 1 0 1  0 0 0 0.95 0"/>
+      <feMerge>
+        <feMergeNode/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
   </defs>
 
-  <rect width="720" height="180" rx="36" fill="#050713"/>
-  <circle cx="92" cy="90" r="58" fill="url(#blue)" opacity="0.35"/>
-  <path d="M92 38C121 38 144 61 144 90C144 119 121 142 92 142C63 142 40 119 40 90C40 61 63 38 92 38Z" stroke="url(#gold)" stroke-width="8"/>
-  <path d="M70 104C78 118 106 118 114 104C123 88 111 66 92 66C73 66 61 88 70 104Z" stroke="#6EE7FF" stroke-width="6" filter="url(#glow)"/>
-  <path d="M62 55L75 74L92 50L109 74L122 55V86H62V55Z" fill="url(#gold)" filter="url(#glow)"/>
-  <circle cx="62" cy="55" r="5" fill="#FFF2A8"/>
-  <circle cx="92" cy="50" r="6" fill="#FFF2A8"/>
-  <circle cx="122" cy="55" r="5" fill="#FFF2A8"/>
+  <rect width="960" height="260" rx="34" fill="url(#bgGlow)"/>
 
-  <text x="180" y="82" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="900" fill="url(#gold)" letter-spacing="2">
-    OMEGACROWN
+  <!-- subtle circuit background -->
+  <g opacity="0.38" stroke="#0EA5FF" stroke-width="1.5">
+    <path d="M92 112H218L248 88H314"/>
+    <path d="M92 144H240L270 168H336"/>
+    <path d="M646 88H712L742 112H868"/>
+    <path d="M624 168H690L720 144H868"/>
+    <circle cx="92" cy="112" r="4"/>
+    <circle cx="92" cy="144" r="4"/>
+    <circle cx="868" cy="112" r="4"/>
+    <circle cx="868" cy="144" r="4"/>
+  </g>
+
+  <!-- emblem -->
+  <g transform="translate(342 18)">
+    <circle cx="138" cy="103" r="95" stroke="#173B68" stroke-width="2" opacity="0.75"/>
+    <circle cx="138" cy="103" r="78" fill="#050916" stroke="url(#gold)" stroke-width="10" filter="url(#goldGlow)"/>
+
+    <!-- omega legs -->
+    <path d="M78 172H44L67 146C48 126 42 92 57 63C73 32 104 17 138 17C172 17 203 32 219 63C234 92 228 126 209 146L232 172H198"
+      stroke="url(#goldBright)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" filter="url(#goldGlow)"/>
+
+    <!-- crown -->
+    <path d="M60 52L84 78L108 36L138 82L168 36L192 78L216 52V99H60V52Z"
+      fill="url(#gold)" stroke="#FFE99A" stroke-width="2" filter="url(#goldGlow)"/>
+    <path d="M60 99H216" stroke="#FFE99A" stroke-width="4"/>
+    <circle cx="60" cy="52" r="6" fill="#FFE99A"/>
+    <circle cx="108" cy="36" r="7" fill="#FFE99A"/>
+    <circle cx="168" cy="36" r="7" fill="#FFE99A"/>
+    <circle cx="216" cy="52" r="6" fill="#FFE99A"/>
+
+    <!-- AI circuit core -->
+    <g stroke="url(#goldBright)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M138 67V153"/>
+      <path d="M118 80V143"/>
+      <path d="M158 80V143"/>
+      <path d="M98 98L118 116"/>
+      <path d="M178 98L158 116"/>
+      <path d="M88 126L118 126"/>
+      <path d="M188 126L158 126"/>
+    </g>
+
+    <g fill="#071225" stroke="url(#goldBright)" stroke-width="4">
+      <circle cx="138" cy="67" r="7"/>
+      <circle cx="118" cy="80" r="7"/>
+      <circle cx="158" cy="80" r="7"/>
+      <circle cx="98" cy="98" r="7"/>
+      <circle cx="178" cy="98" r="7"/>
+      <circle cx="88" cy="126" r="7"/>
+      <circle cx="188" cy="126" r="7"/>
+      <circle cx="138" cy="153" r="7"/>
+    </g>
+
+    <circle cx="138" cy="111" r="11" fill="url(#blue)" filter="url(#blueGlow)"/>
+    <path d="M138 55V166" stroke="#00B2FF" stroke-width="2" opacity="0.8" filter="url(#blueGlow)"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="480" y="214" text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="58"
+    font-weight="700"
+    letter-spacing="2"
+    fill="url(#goldBright)"
+    filter="url(#goldGlow)">
+    OmegaCrown AI
   </text>
-  <text x="182" y="122" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" fill="#7DD3FC" letter-spacing="8">
-    AI
-  </text>
-  <text x="182" y="148" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#A9B4D0" letter-spacing="4">
-    AUTONOMOUS COMPANY OS
+
+  <text x="480" y="242" text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="13"
+    font-weight="700"
+    letter-spacing="9"
+    fill="#E9C76A">
+    INTELLIGENCE · AUTHORITY · INNOVATION
   </text>
 </svg>
