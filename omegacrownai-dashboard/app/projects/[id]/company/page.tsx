@@ -52,6 +52,15 @@ export default async function ProjectCompanyPage({
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Create and manage company strategy, KPIs, memory, workers, and task state.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/projects/${id}/company/departments`}
+            className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+          >
+            Departments
+          </Link>
+        </div>
       </section>
 
       <section className="rounded-3xl border border-border bg-panel/70 p-5">

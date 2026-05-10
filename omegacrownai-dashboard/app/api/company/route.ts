@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { seedDefaultWorkers } from "@/lib/sugent/company/orchestrator";
+import { seedDefaultDepartments } from "@/lib/sugent/company/departments";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
     });
 
     await seedDefaultWorkers(company.id);
+    await seedDefaultDepartments(company.id);
 
     return NextResponse.json({
       ok: true,

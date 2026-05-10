@@ -530,6 +530,7 @@ model Company {
   memory  CompanyMemory[]
   tasks   CompanyTask[]
   workers Worker[]
+  departments CompanyDepartment[]
 
   @@index([projectId])
   @@index([status])
@@ -645,5 +646,68 @@ model SecurityAuditEvent {
   @@index([ip])
   @@index([actorId])
   @@index([allowed])
+  @@index([createdAt])
+}
+
+
+model CompanyDepartment {
+  id        String   @id @default(cuid())
+
+  companyId String
+  name      String
+  slug      String
+  purpose   String?
+  status    String   @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  kpis   DepartmentKPI[]
+  memory DepartmentMemory[]
+
+  @@unique([companyId, slug])
+  @@index([companyId])
+  @@index([slug])
+  @@index([status])
+}
+
+model DepartmentKPI {
+  id           String   @id @default(cuid())
+
+  departmentId String
+  metric       String
+  value        Float
+  period       String   @default("week")
+  note         String?
+
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  department CompanyDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([metric])
+  @@index([period])
+  @@index([timestamp])
+}
+
+model DepartmentMemory {
+  id           String   @id @default(cuid())
+
+  departmentId String
+  kind         String   @default("fact")
+  content      String
+  tags         Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  department CompanyDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([kind])
   @@index([createdAt])
 }
