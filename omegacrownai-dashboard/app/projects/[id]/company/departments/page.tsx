@@ -30,7 +30,7 @@ export default async function CompanyDepartmentsPage({
         },
         tasks: {
           orderBy: { createdAt: "desc" },
-          take: 20,
+          take: 50,
           include: { worker: true },
         },
       },
@@ -120,8 +120,53 @@ export default async function CompanyDepartmentsPage({
             )}
           </div>
 
-          <div className="mt-6">
-            <Panel title="Recent Department Tasks" value={company.tasks.filter((task) => (task.input as any)?.departmentSlug)} />
+          <div className="mt-6 rounded-2xl border border-border bg-black/20 p-4">
+            <h3 className="text-lg font-black text-white">Department Task Queue</h3>
+
+            <div className="mt-4 space-y-3">
+              {company.tasks.filter((task) => (task.input as any)?.departmentSlug).length ? (
+                company.tasks
+                  .filter((task) => (task.input as any)?.departmentSlug)
+                  .map((task) => (
+                    <div key={task.id} className="rounded-xl border border-border bg-slate-950 p-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="text-sm font-bold text-white">
+                            {(task.input as any)?.departmentName || (task.input as any)?.departmentSlug} · {task.type} · {task.status}
+                          </div>
+                          <div className="mt-1 font-mono text-xs text-muted">{task.id}</div>
+                          <div className="mt-2 text-xs leading-5 text-muted">
+                            {(task.input as any)?.message || "No message"}
+                          </div>
+                          {task.worker && (
+                            <div className="mt-2 text-xs text-emerald-200">
+                              Worker: {task.worker.name} / {task.worker.role}
+                            </div>
+                          )}
+                        </div>
+
+                        {task.status !== "success" && (
+                          <form action={`/api/company/tasks/${task.id}/department-run`} method="POST">
+                            <button className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-500/20">
+                              Run Department Task
+                            </button>
+                          </form>
+                        )}
+                      </div>
+
+                      {task.output && (
+                        <pre className="mt-3 max-h-56 overflow-auto rounded-lg border border-border bg-black/40 p-3 text-xs text-slate-200">
+                          {JSON.stringify(task.output, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  ))
+              ) : (
+                <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
+                  No department-routed tasks yet.
+                </div>
+              )}
+            </div>
           </div>
         </section>
       ))}

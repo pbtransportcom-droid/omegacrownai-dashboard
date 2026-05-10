@@ -3,6 +3,7 @@ import { runAgentBrowserTool } from "@/lib/sugent/browser/agentBrowserTool";
 import { runAgentSecureExecutionTool } from "@/lib/sugent/secureExecution/agentTool";
 import { runAgentCloudTool } from "@/lib/sugent/cloud/agentCloudTool";
 import { writeCompanyMemory } from "@/lib/sugent/company/memory";
+import { executeDepartmentTask } from "@/lib/sugent/company/departmentExecution";
 
 function messageFromInput(input: any) {
   return String(input?.message || input?.prompt || input?.goal || "");
@@ -43,6 +44,24 @@ export async function runWorker({
 
   try {
     let result: any;
+
+    if ((task.input as any)?.departmentId || task.type.startsWith("department_")) {
+      result = await executeDepartmentTask({ taskId: task.id });
+
+      await writeCompanyMemory({
+        companyId: task.companyId,
+        kind: result?.ok === false ? "todo" : "fact",
+        content: `Department task ${task.type} completed with status ${result?.task?.status || "unknown"}.`,
+        tags: {
+          source: "department_worker",
+          taskId: task.id,
+          workerId: task.workerId,
+          runtimeSessionId,
+        },
+      });
+
+      return result;
+    }
 
     if (task.type === "research" || task.type === "company_research") {
       result = await runAgentBrowserTool({

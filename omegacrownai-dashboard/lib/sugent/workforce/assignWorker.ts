@@ -36,6 +36,12 @@ export async function assignWorker({
 }
 
 export function preferredRoleForTask(type: string) {
+  if (type.includes("marketing")) return "research";
+  if (type.includes("sales")) return "analysis";
+  if (type.includes("finance")) return "analysis";
+  if (type.includes("support")) return "ops";
+  if (type.includes("operations")) return "ops";
+
   if (type.includes("research")) return "research";
   if (type.includes("analysis")) return "analysis";
   if (type.includes("ops") || type.includes("pipeline") || type.includes("cloud")) return "ops";
