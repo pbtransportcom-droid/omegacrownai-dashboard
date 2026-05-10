@@ -1,0 +1,29 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF2A8"/>
+      <stop offset="45%" stop-color="#D7A83F"/>
+      <stop offset="100%" stop-color="#8A5B12"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64D8FF"/>
+      <stop offset="50%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#050B2E"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#050713"/>
+  <circle cx="128" cy="136" r="84" fill="url(#blue)" opacity="0.35"/>
+  <circle cx="128" cy="136" r="78" stroke="url(#gold)" stroke-width="12"/>
+  <path d="M96 154C108 176 148 176 160 154C174 130 154 96 128 96C102 96 82 130 96 154Z" stroke="#6EE7FF" stroke-width="10" filter="url(#glow)"/>
+  <path d="M82 66L104 98L128 58L152 98L174 66V116H82V66Z" fill="url(#gold)" filter="url(#glow)"/>
+  <circle cx="82" cy="66" r="8" fill="#FFF2A8"/>
+  <circle cx="128" cy="58" r="10" fill="#FFF2A8"/>
+  <circle cx="174" cy="66" r="8" fill="#FFF2A8"/>
+</svg>

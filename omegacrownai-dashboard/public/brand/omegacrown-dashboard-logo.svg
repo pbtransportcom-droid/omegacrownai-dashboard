@@ -1,0 +1,40 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF2A8"/>
+      <stop offset="45%" stop-color="#D7A83F"/>
+      <stop offset="100%" stop-color="#8A5B12"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64D8FF"/>
+      <stop offset="45%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#050B2E"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="720" height="180" rx="36" fill="#050713"/>
+  <circle cx="92" cy="90" r="58" fill="url(#blue)" opacity="0.35"/>
+  <path d="M92 38C121 38 144 61 144 90C144 119 121 142 92 142C63 142 40 119 40 90C40 61 63 38 92 38Z" stroke="url(#gold)" stroke-width="8"/>
+  <path d="M70 104C78 118 106 118 114 104C123 88 111 66 92 66C73 66 61 88 70 104Z" stroke="#6EE7FF" stroke-width="6" filter="url(#glow)"/>
+  <path d="M62 55L75 74L92 50L109 74L122 55V86H62V55Z" fill="url(#gold)" filter="url(#glow)"/>
+  <circle cx="62" cy="55" r="5" fill="#FFF2A8"/>
+  <circle cx="92" cy="50" r="6" fill="#FFF2A8"/>
+  <circle cx="122" cy="55" r="5" fill="#FFF2A8"/>
+
+  <text x="180" y="82" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="900" fill="url(#gold)" letter-spacing="2">
+    OMEGACROWN
+  </text>
+  <text x="182" y="122" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" fill="#7DD3FC" letter-spacing="8">
+    AI
+  </text>
+  <text x="182" y="148" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" fill="#A9B4D0" letter-spacing="4">
+    AUTONOMOUS COMPANY OS
+  </text>
+</svg>
