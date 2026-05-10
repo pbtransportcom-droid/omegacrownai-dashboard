@@ -1,3 +1,4 @@
+import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import CreateProject from "@/components/projects/CreateProject";
 import ProjectList from "@/components/projects/ProjectList";
 

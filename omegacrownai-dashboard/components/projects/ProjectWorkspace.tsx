@@ -1,5 +1,7 @@
 "use client";
 
+import { OmegaLogo } from "@/components/brand/OmegaLogo";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import WebsitePreview from "@/components/projects/WebsitePreview";

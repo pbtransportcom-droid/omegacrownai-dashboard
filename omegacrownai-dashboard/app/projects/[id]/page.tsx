@@ -1,3 +1,4 @@
+import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
