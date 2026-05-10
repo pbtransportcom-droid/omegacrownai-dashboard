@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "security:audit": "bash scripts/security/audit.sh"
+    "security:audit": "bash scripts/security/audit.sh",
+    "executive:cron": "bash scripts/executive/run-cron.sh"
   },
   "dependencies": {
     "@playwright/test": "^1.59.1",
