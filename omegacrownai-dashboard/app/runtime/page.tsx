@@ -80,6 +80,42 @@ export default function RuntimeDashboard() {
 }
 
 function PipelineCard({ project, reload }: { project: any; reload: () => Promise<void> }) {
+  async function approveLatest() {
+    await fetch("/api/runtime/flows/approve-latest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId, projectType: project.type === "PODCAST" ? "podcast" : "video" }),
+    });
+    await reload();
+  }
+
+  async function approveAndRender() {
+    await fetch("/api/runtime/flows/approve-render", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId }),
+    });
+    await reload();
+  }
+
+  async function runRenderWorker() {
+    await fetch("/api/runtime/workers/render/run-one", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    await reload();
+  }
+
+  async function runPublishWorker() {
+    await fetch("/api/runtime/workers/publish/run-one", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    await reload();
+  }
+
   async function renderIfApproved() {
     await fetch("/api/runtime/flows/render-if-approved", {
       method: "POST",
@@ -124,6 +160,20 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
 
       <div className="mt-5 grid gap-2">
         <button
+          onClick={approveLatest}
+          className="rounded-xl bg-blue-600 px-4 py-3 text-xs font-black text-white hover:bg-blue-500"
+        >
+          Approve Latest Version
+        </button>
+
+        <button
+          onClick={approveAndRender}
+          className="rounded-xl bg-fuchsia-600 px-4 py-3 text-xs font-black text-white hover:bg-fuchsia-500"
+        >
+          Approve + Queue Render
+        </button>
+
+        <button
           onClick={renderIfApproved}
           className="rounded-xl bg-purple-600 px-4 py-3 text-xs font-black text-white hover:bg-purple-500"
         >
@@ -131,10 +181,24 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
         </button>
 
         <button
+          onClick={runRenderWorker}
+          className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-3 text-xs font-black text-purple-100 hover:bg-purple-500/20"
+        >
+          Run Render Worker
+        </button>
+
+        <button
           onClick={publishIfRendered}
           className="rounded-xl bg-emerald-600 px-4 py-3 text-xs font-black text-white hover:bg-emerald-500"
         >
           Publish If Rendered
+        </button>
+
+        <button
+          onClick={runPublishWorker}
+          className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-500/20"
+        >
+          Run Publish Worker
         </button>
       </div>
     </div>

@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/db";
 import { runCreativeStudioFlow } from "@/lib/sugent/creative-agents/coordinator";
 import { createRenderJob } from "@/lib/sugent/video/render";
-import { createPublishJobsForLatestRenderedAssets } from "@/lib/sugent/distribution/distributionEngine";
+import {
+  createPublishJobsForLatestRenderedAssets,
+  processNextPublishJob,
+} from "@/lib/sugent/distribution/distributionEngine";
+import { updateProjectVersionStatus } from "@/lib/sugent/versioning/versionEngine";
+import { processNextRenderJob } from "@/lib/sugent/video/render";
 
 export async function getRuntimeProjects(companyId?: string) {
   const whereCompany = companyId ? { companyId } : {};
@@ -243,5 +248,91 @@ export async function publishIfRendered({
     status: "PUBLISH_JOBS_CREATED",
     renderJobId: completedRender.id,
     result,
+  };
+}
+
+
+export async function approveLatestVersion({
+  companyId,
+  projectId,
+  projectType = "video",
+}: {
+  companyId: string;
+  projectId: string;
+  projectType?: "video" | "podcast";
+}) {
+  const version = await prisma.projectVersion.findFirst({
+    where: {
+      companyId,
+      projectId,
+      projectType,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!version) {
+    return {
+      ok: false,
+      status: "BLOCKED",
+      reason: "No version exists to approve.",
+    };
+  }
+
+  const approved = await updateProjectVersionStatus({
+    companyId,
+    versionId: version.id,
+    status: "approved",
+  });
+
+  return {
+    ok: true,
+    status: "APPROVED",
+    version: approved,
+  };
+}
+
+export async function runOneRenderWorker() {
+  const result = await processNextRenderJob();
+
+  return {
+    ok: true,
+    result,
+  };
+}
+
+export async function runOnePublishWorker() {
+  const result = await processNextPublishJob();
+
+  return {
+    ok: true,
+    result,
+  };
+}
+
+export async function approveRenderAndPublish({
+  companyId,
+  projectId,
+}: {
+  companyId: string;
+  projectId: string;
+}) {
+  const approval = await approveLatestVersion({
+    companyId,
+    projectId,
+    projectType: "video",
+  });
+
+  if (!approval.ok) return approval;
+
+  const render = await renderIfApproved({
+    companyId,
+    projectId,
+  });
+
+  return {
+    ok: render.ok,
+    status: render.status,
+    approval,
+    render,
   };
 }
