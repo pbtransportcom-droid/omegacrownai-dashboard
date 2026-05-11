@@ -1626,3 +1626,42 @@ model CreativeAgentStep {
   @@index([status])
   @@index([createdAt])
 }
+
+model Workspace {
+  id String @id @default(cuid())
+
+  companyId String
+  name      String
+  status    String @default("active")
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members WorkspaceMember[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model WorkspaceMember {
+  id String @id @default(cuid())
+
+  workspaceId String
+  userId      String
+  role        String @default("viewer")
+  status      String @default("active")
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([role])
+  @@index([status])
+}
