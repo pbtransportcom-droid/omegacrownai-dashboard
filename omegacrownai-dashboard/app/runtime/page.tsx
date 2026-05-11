@@ -24,6 +24,7 @@ export default function RuntimeDashboard() {
 
   async function runFullPipeline() {
     setLoading(true);
+
     await fetch("/api/runtime/flows/video-from-brief", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,6 +36,7 @@ export default function RuntimeDashboard() {
         autoApprove: false,
       }),
     });
+
     await load();
     setLoading(false);
   }
@@ -43,14 +45,14 @@ export default function RuntimeDashboard() {
     <main className="min-h-screen bg-slate-950 p-6 text-white">
       <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
-          OmegaCrownAI Runtime · Phase 25
+          OmegaCrownAI Runtime · Phase 27
         </p>
 
         <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-4xl font-black">Runtime Pipeline Dashboard</h1>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
-              Mission control for Brief → Project → Version → Review → Render → Publish.
+              Mission control for Brief → Project → QA → Version → Review → Render → Publish.
             </p>
           </div>
 
@@ -80,12 +82,29 @@ export default function RuntimeDashboard() {
 }
 
 function PipelineCard({ project, reload }: { project: any; reload: () => Promise<void> }) {
+  async function runQA() {
+    if (!project.latestVersion?.id) return;
+
+    await fetch("/api/runtime/flows/run-qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ companyId: project.companyId, versionId: project.latestVersion.id }),
+    });
+
+    await reload();
+  }
+
   async function approveLatest() {
     await fetch("/api/runtime/flows/approve-latest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId, projectType: project.type === "PODCAST" ? "podcast" : "video" }),
+      body: JSON.stringify({
+        companyId: project.companyId,
+        projectId: project.projectId,
+        projectType: project.type === "PODCAST" ? "podcast" : "video",
+      }),
     });
+
     await reload();
   }
 
@@ -95,24 +114,7 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId }),
     });
-    await reload();
-  }
 
-  async function runRenderWorker() {
-    await fetch("/api/runtime/workers/render/run-one", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    await reload();
-  }
-
-  async function runPublishWorker() {
-    await fetch("/api/runtime/workers/publish/run-one", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
     await reload();
   }
 
@@ -122,6 +124,17 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId }),
     });
+
+    await reload();
+  }
+
+  async function runRenderWorker() {
+    await fetch("/api/runtime/workers/render/run-one", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
     await reload();
   }
 
@@ -131,6 +144,17 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ companyId: project.companyId, projectId: project.projectId }),
     });
+
+    await reload();
+  }
+
+  async function runPublishWorker() {
+    await fetch("/api/runtime/workers/publish/run-one", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
     await reload();
   }
 
@@ -153,12 +177,31 @@ function PipelineCard({ project, reload }: { project: any; reload: () => Promise
         <PipelineRow label="Timeline / Outline" ok={project.hasTimeline} />
         <PipelineRow label="Normalized Timeline" ok={project.hasNormalizedTimeline} />
         <PipelineValue label="Version" value={project.latestVersion?.status || "none"} />
+        <PipelineValue
+          label="QA Score"
+          value={project.latestQA ? `${project.latestQA.overallScore} / ${project.latestQA.status}` : "none"}
+        />
+        <PipelineValue
+          label="Prompt Accuracy"
+          value={project.latestQA ? String(project.latestQA.promptAccuracyScore) : "none"}
+        />
+        <PipelineValue
+          label="Production Quality"
+          value={project.latestQA ? String(project.latestQA.productionQualityScore) : "none"}
+        />
         <PipelineValue label="Open Reviews" value={String(project.openReviewThreads || 0)} />
         <PipelineValue label="Render" value={project.latestRender?.status || "none"} />
         <PipelineValue label="Publish" value={project.latestPublish?.status || "none"} />
       </div>
 
       <div className="mt-5 grid gap-2">
+        <button
+          onClick={runQA}
+          className="rounded-xl bg-amber-600 px-4 py-3 text-xs font-black text-white hover:bg-amber-500"
+        >
+          Run QA Scorecard
+        </button>
+
         <button
           onClick={approveLatest}
           className="rounded-xl bg-blue-600 px-4 py-3 text-xs font-black text-white hover:bg-blue-500"

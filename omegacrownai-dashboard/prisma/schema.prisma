@@ -1665,3 +1665,37 @@ model WorkspaceMember {
   @@index([role])
   @@index([status])
 }
+
+model QAScorecard {
+  id String @id @default(cuid())
+
+  companyId   String
+  projectId   String
+  projectType String
+  versionId   String?
+
+  promptAccuracyScore     Int @default(0)
+  detailAlignmentScore    Int @default(0)
+  factualConsistencyScore Int @default(0)
+  legendaryStyleScore     Int @default(0)
+  brandAlignmentScore     Int @default(0)
+  productionQualityScore  Int @default(0)
+  overallScore            Int @default(0)
+
+  status    String  @default("needs_review")
+  mode      String  @default("general")
+  notes     String?
+  checklist Json?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([versionId])
+  @@index([status])
+  @@index([overallScore])
+  @@index([createdAt])
+}

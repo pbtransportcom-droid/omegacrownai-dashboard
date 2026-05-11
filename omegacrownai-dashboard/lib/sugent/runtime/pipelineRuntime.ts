@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/db";
 import { runCreativeStudioFlow } from "@/lib/sugent/creative-agents/coordinator";
-import { createRenderJob } from "@/lib/sugent/video/render";
+import { createRenderJob, processNextRenderJob } from "@/lib/sugent/video/render";
 import {
   createPublishJobsForLatestRenderedAssets,
   processNextPublishJob,
 } from "@/lib/sugent/distribution/distributionEngine";
 import { updateProjectVersionStatus } from "@/lib/sugent/versioning/versionEngine";
-import { processNextRenderJob } from "@/lib/sugent/video/render";
+import {
+  assertQAPassForProject,
+  createQAScorecardForVersion,
+  getLatestQAScorecard,
+} from "@/lib/sugent/quality/qaScorecardEngine";
 
 export async function getRuntimeProjects(companyId?: string) {
   const whereCompany = companyId ? { companyId } : {};
@@ -48,7 +52,7 @@ export async function getRuntimeProjects(companyId?: string) {
 
   const videoStates = await Promise.all(
     videos.map(async (project) => {
-      const [latestVersion, reviewThreads, latestPublish] = await Promise.all([
+      const [latestVersion, reviewThreads, latestPublish, latestQA] = await Promise.all([
         prisma.projectVersion.findFirst({
           where: {
             companyId: project.companyId,
@@ -73,6 +77,11 @@ export async function getRuntimeProjects(companyId?: string) {
           },
           orderBy: { createdAt: "desc" },
         }),
+        getLatestQAScorecard({
+          companyId: project.companyId,
+          projectId: project.id,
+          projectType: "video",
+        }),
       ]);
 
       return {
@@ -86,6 +95,7 @@ export async function getRuntimeProjects(companyId?: string) {
         hasTimeline: Boolean(project.timeline),
         hasNormalizedTimeline: Boolean(project.timeline?.tracks?.length),
         latestVersion,
+        latestQA,
         openReviewThreads: reviewThreads.filter((thread) => thread.status === "open").length,
         latestRender: project.renderJobs[0] || null,
         latestPublish,
@@ -95,7 +105,7 @@ export async function getRuntimeProjects(companyId?: string) {
 
   const podcastStates = await Promise.all(
     podcasts.map(async (project) => {
-      const [latestVersion, reviewThreads] = await Promise.all([
+      const [latestVersion, reviewThreads, latestQA] = await Promise.all([
         prisma.projectVersion.findFirst({
           where: {
             companyId: project.companyId,
@@ -111,6 +121,11 @@ export async function getRuntimeProjects(companyId?: string) {
             projectType: "podcast",
           },
         }),
+        getLatestQAScorecard({
+          companyId: project.companyId,
+          projectId: project.id,
+          projectType: "podcast",
+        }),
       ]);
 
       return {
@@ -124,6 +139,7 @@ export async function getRuntimeProjects(companyId?: string) {
         hasTimeline: Boolean(project.outline),
         hasNormalizedTimeline: Boolean(project.outline),
         latestVersion,
+        latestQA,
         openReviewThreads: reviewThreads.filter((thread) => thread.status === "open").length,
         latestRender: null,
         latestPublish: null,
@@ -157,6 +173,60 @@ export async function runRuntimeVideoFromBrief({
   });
 }
 
+export async function approveLatestVersion({
+  companyId,
+  projectId,
+  projectType = "video",
+}: {
+  companyId: string;
+  projectId: string;
+  projectType?: "video" | "podcast";
+}) {
+  const version = await prisma.projectVersion.findFirst({
+    where: {
+      companyId,
+      projectId,
+      projectType,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!version) {
+    return {
+      ok: false,
+      status: "BLOCKED",
+      reason: "No version exists to approve.",
+    };
+  }
+
+  const scorecard = await createQAScorecardForVersion({
+    companyId,
+    versionId: version.id,
+  });
+
+  if (scorecard.overallScore < 70 || scorecard.status === "blocked") {
+    return {
+      ok: false,
+      status: "QA_BLOCKED",
+      reason: `QA score too low for approval: ${scorecard.overallScore}.`,
+      scorecard,
+    };
+  }
+
+  const approved = await updateProjectVersionStatus({
+    companyId,
+    versionId: version.id,
+    status: "approved",
+  });
+
+  return {
+    ok: true,
+    status: "APPROVED",
+    version: approved,
+    scorecard,
+  };
+}
+
 export async function renderIfApproved({
   companyId,
   projectId,
@@ -180,6 +250,17 @@ export async function renderIfApproved({
       status: "BLOCKED",
       reason: "No approved video version exists. Approve a version before rendering.",
     };
+  }
+
+  const qa = await assertQAPassForProject({
+    companyId,
+    projectId,
+    projectType: "video",
+    minimumScore: 70,
+  });
+
+  if (!qa.ok) {
+    return qa;
   }
 
   const existingRunning = await prisma.renderJob.findFirst({
@@ -248,46 +329,6 @@ export async function publishIfRendered({
     status: "PUBLISH_JOBS_CREATED",
     renderJobId: completedRender.id,
     result,
-  };
-}
-
-
-export async function approveLatestVersion({
-  companyId,
-  projectId,
-  projectType = "video",
-}: {
-  companyId: string;
-  projectId: string;
-  projectType?: "video" | "podcast";
-}) {
-  const version = await prisma.projectVersion.findFirst({
-    where: {
-      companyId,
-      projectId,
-      projectType,
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (!version) {
-    return {
-      ok: false,
-      status: "BLOCKED",
-      reason: "No version exists to approve.",
-    };
-  }
-
-  const approved = await updateProjectVersionStatus({
-    companyId,
-    versionId: version.id,
-    status: "approved",
-  });
-
-  return {
-    ok: true,
-    status: "APPROVED",
-    version: approved,
   };
 }
 
