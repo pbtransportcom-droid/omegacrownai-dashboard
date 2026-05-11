@@ -226,6 +226,10 @@ export async function processNextAssetGenerationJob() {
       outputAssetId = await runVoiceGeneration(job, project);
     } else if (job.type === "music") {
       outputAssetId = await runMusicGeneration(job, project);
+    } else if (job.type === "podcast_voice") {
+      outputAssetId = await runVoiceGeneration(job, project);
+    } else if (job.type === "podcast_music") {
+      outputAssetId = await runMusicGeneration(job, project);
     } else {
       throw new Error(`UNKNOWN_ASSET_GENERATION_TYPE_${job.type}`);
     }

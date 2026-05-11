@@ -72,6 +72,13 @@ export default async function MarketingDashboardPage({
           >
             Video Studio
           </Link>
+
+          <Link
+            href={`/projects/${id}/company/podcast`}
+            className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-5 py-3 text-sm font-black text-purple-100 hover:bg-purple-500/20"
+          >
+            Podcast Studio
+          </Link>
         </div>
       </section>
 

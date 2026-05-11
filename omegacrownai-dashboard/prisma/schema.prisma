@@ -1233,6 +1233,7 @@ model VideoAsset {
   inputGenerationJobs  AssetGenerationJob[] @relation("InputAssetGeneration")
   outputGenerationJobs AssetGenerationJob[] @relation("OutputAssetGeneration")
   clips                VideoClip[]
+  podcastSegments      PodcastSegment[]
 
   @@index([projectId])
   @@index([sceneId])
@@ -1368,4 +1369,67 @@ model VideoClip {
   @@index([assetId])
   @@index([sceneId])
   @@index([startTimeSeconds])
+}
+
+model PodcastProject {
+  id String @id @default(cuid())
+
+  companyId       String
+  campaignId      String?
+  title           String
+  description     String?
+  status          String  @default("draft")
+  language        String  @default("en")
+  tone            String?
+  durationSeconds Int?
+
+  outlineId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  outline  PodcastOutline?
+  segments PodcastSegment[]
+
+  @@index([companyId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PodcastOutline {
+  id String @id @default(cuid())
+
+  projectId     String @unique
+  structureJson Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project PodcastProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model PodcastSegment {
+  id String @id @default(cuid())
+
+  projectId   String
+  index       Int
+  type        String  @default("main")
+  title       String
+  scriptText  String?
+  durationSec Int?
+
+  voiceAssetId String?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project    PodcastProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  voiceAsset VideoAsset?    @relation(fields: [voiceAssetId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([index])
+  @@index([type])
+  @@index([voiceAssetId])
 }
