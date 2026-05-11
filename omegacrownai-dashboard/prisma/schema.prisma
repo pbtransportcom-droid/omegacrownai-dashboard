@@ -1842,3 +1842,69 @@ model JobLog {
   @@index([level])
   @@index([createdAt])
 }
+
+model EditorsRoomSession {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  timelineId  String?
+
+  topic    String
+  status   String @default("open")
+  metadata Json?
+
+  rounds EditorsRoomRound[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([timelineId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EditorsRoomRound {
+  id String @id @default(cuid())
+
+  sessionId    String
+  index        Int
+  timelineJson Json?
+  summary      String?
+  editPlanJson Json?
+  consensus    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session  EditorsRoomSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages EditorsRoomMessage[]
+
+  @@index([sessionId])
+  @@index([index])
+  @@index([consensus])
+  @@index([createdAt])
+}
+
+model EditorsRoomMessage {
+  id String @id @default(cuid())
+
+  roundId    String
+  role       String
+  agentType  String?
+  content    String
+  parsedJson Json?
+
+  createdAt DateTime @default(now())
+
+  round EditorsRoomRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+  @@index([role])
+  @@index([agentType])
+  @@index([createdAt])
+}
