@@ -34,6 +34,10 @@ export default async function VideoStudioPage({
               include: { assets: true },
             },
             assets: true,
+            assetGenerationJobs: {
+              orderBy: { createdAt: "desc" },
+              include: { outputAsset: true, scene: true },
+            },
             renderJobs: {
               orderBy: { createdAt: "desc" },
               include: { outputAsset: true },
@@ -171,6 +175,22 @@ export default async function VideoStudioPage({
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-3">
+                    <form action={`/api/company/${company.id}/video/${video.id}/generate-assets`} method="POST">
+                      <input type="hidden" name="includeMusic" value="true" />
+                      <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
+                        Generate Scene Assets
+                      </button>
+                    </form>
+
+                    <form action={`/api/company/${company.id}/video/${video.id}/generate-assets`} method="POST">
+                      <input type="hidden" name="includeVideo" value="true" />
+                      <input type="hidden" name="includeAvatar" value="true" />
+                      <input type="hidden" name="includeMusic" value="true" />
+                      <button className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+                        Generate Full Asset Set
+                      </button>
+                    </form>
+
                     <form action={`/api/company/${company.id}/video/${video.id}/render`} method="POST">
                       <input type="hidden" name="type" value="video" />
                       <button className="rounded-xl bg-fuchsia-600 px-5 py-3 text-sm font-black text-white hover:bg-fuchsia-500">
@@ -194,6 +214,10 @@ export default async function VideoStudioPage({
 
                   <div className="mt-4">
                     <Panel title="Render Jobs" value={(video as any).renderJobs || []} />
+                  </div>
+
+                  <div className="mt-4">
+                    <Panel title="Asset Generation Jobs" value={(video as any).assetGenerationJobs || []} />
                   </div>
                 </div>
               ))
