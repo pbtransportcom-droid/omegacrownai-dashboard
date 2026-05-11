@@ -1155,3 +1155,119 @@ model ExecutiveRunLog {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model VideoProject {
+  id              String   @id @default(cuid())
+
+  companyId       String
+  campaignId      String?
+  title           String
+  description     String?
+  status          String   @default("planned")
+  aspectRatio     String   @default("16:9")
+  durationSeconds Int?
+
+  brandProfileId  String?
+  brandOverlay    Json?
+
+  scriptId         String?
+  timelineId       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  script   VideoScript?
+  timeline VideoTimeline?
+  scenes   VideoScene[]
+  assets   VideoAsset[]
+
+  @@index([companyId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VideoScript {
+  id        String   @id @default(cuid())
+
+  projectId String   @unique
+  fullText  String
+  language  String   @default("en")
+  tone      String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([language])
+}
+
+model VideoScene {
+  id        String   @id @default(cuid())
+
+  projectId String
+  index     Int
+  title     String?
+  scriptSegment String
+  voiceoverText String
+
+  startTimeSeconds Int?
+  endTimeSeconds   Int?
+  transitionIn     String?
+  transitionOut    String?
+  cameraStyle      String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assets  VideoAsset[]
+
+  @@index([projectId])
+  @@index([index])
+}
+
+model VideoAsset {
+  id        String   @id @default(cuid())
+
+  projectId String
+  sceneId   String?
+
+  type        String
+  label       String
+  placeholder Boolean @default(true)
+  storageKey  String?
+  format      String?
+  durationSeconds Int?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scene   VideoScene? @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([sceneId])
+  @@index([type])
+  @@index([placeholder])
+}
+
+model VideoTimeline {
+  id        String   @id @default(cuid())
+
+  projectId String   @unique
+  fps       Int      @default(30)
+  durationSeconds Int?
+  structureJson Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}

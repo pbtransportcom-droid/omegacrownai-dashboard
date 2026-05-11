@@ -64,6 +64,15 @@ export default async function MarketingDashboardPage({
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Generate campaigns, audiences, lead-generation plans, landing copy, email copy, social posts, and ad assets.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/projects/${id}/company/video`}
+            className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-5 py-3 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
+          >
+            Video Studio
+          </Link>
+        </div>
       </section>
 
       {company ? (
