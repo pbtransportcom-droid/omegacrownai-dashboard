@@ -1767,3 +1767,78 @@ model DirectorsRoomMessage {
   @@index([agentType])
   @@index([createdAt])
 }
+
+model Job {
+  id String @id @default(cuid())
+
+  companyId   String?
+  workspaceId String?
+
+  type    String
+  payload Json
+  status  String @default("pending")
+
+  attempt     Int      @default(0)
+  maxAttempts Int      @default(5)
+  scheduledAt DateTime @default(now())
+  lastError   String?
+  errorKind   String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs JobLog[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([type])
+  @@index([status])
+  @@index([errorKind])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+model DeadLetterJob {
+  id String @id
+
+  companyId   String?
+  workspaceId String?
+
+  type        String
+  payload     Json
+  attempt     Int
+  maxAttempts Int
+  lastError   String?
+  errorKind   String?
+
+  failedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([type])
+  @@index([errorKind])
+  @@index([failedAt])
+}
+
+model JobLog {
+  id String @id @default(cuid())
+
+  jobId    String
+  type     String
+  level    String @default("info")
+  message  String
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([type])
+  @@index([level])
+  @@index([createdAt])
+}
