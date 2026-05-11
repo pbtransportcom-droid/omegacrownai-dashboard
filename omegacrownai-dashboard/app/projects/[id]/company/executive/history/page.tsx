@@ -43,6 +43,33 @@ export default async function ExecutiveHistoryPage({
         <Metric label="Loops" value={String(data.summary.executiveLoops)} />
       </section>
 
+      <section className="rounded-3xl border border-yellow-400/20 bg-yellow-500/10 p-5">
+        <h2 className="text-xl font-black text-white">Autopilot Health</h2>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
+          <Metric label="Cron Enabled" value={process.env.OMEGA_EXECUTIVE_CRON_ENABLED === "true" ? "Yes" : "No"} />
+          <Metric label="Environment" value={process.env.NODE_ENV || "unknown"} />
+          <Metric label="Dashboard URL" value={process.env.OMEGA_DASHBOARD_URL || "not set"} />
+          <Metric label="Latest Run" value={data.logs[0]?.status || "none"} />
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a
+            href={`/api/projects/${id}/executive/cron-health`}
+            className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+          >
+            Open Cron Health API
+          </a>
+
+          <a
+            href={`/api/projects/${id}/executive/history`}
+            className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+          >
+            Open History API
+          </a>
+        </div>
+      </section>
+
       <section className="rounded-3xl border border-border bg-panel/70 p-5">
         <h2 className="text-xl font-black text-white">Schedules</h2>
         <pre className="mt-4 max-h-80 overflow-auto rounded-xl border border-border bg-slate-950 p-4 text-xs text-slate-200">
