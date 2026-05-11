@@ -1502,3 +1502,77 @@ model AutoPublishRule {
   @@index([projectType])
   @@index([enabled])
 }
+
+model ProjectVersion {
+  id String @id @default(cuid())
+
+  companyId       String
+  projectId       String
+  projectType     String
+  label           String?
+  parentVersionId String?
+
+  snapshotJson Json
+  status       String  @default("draft")
+  createdById  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parentVersion ProjectVersion?  @relation("ProjectVersionParent", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  children      ProjectVersion[] @relation("ProjectVersionParent")
+  reviewThreads ReviewThread[]
+
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([parentVersionId])
+  @@index([createdAt])
+}
+
+model ReviewThread {
+  id String @id @default(cuid())
+
+  companyId   String
+  projectId   String
+  projectType String
+  versionId   String?
+
+  targetType  String  @default("project")
+  targetId    String?
+  status      String  @default("open")
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  version  ProjectVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  comments ReviewComment[]
+
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([versionId])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ReviewComment {
+  id String @id @default(cuid())
+
+  threadId String
+  authorId String?
+  body     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread ReviewThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([authorId])
+  @@index([createdAt])
+}

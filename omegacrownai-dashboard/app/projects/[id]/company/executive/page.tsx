@@ -103,6 +103,10 @@ export default async function ExecutiveCommandCenterPage({
           <Link href={`/projects/${id}/company/distribution`} className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
             Distribution
           </Link>
+
+          <Link href={`/projects/${id}/company/versioning`} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-sm font-black text-sky-100 hover:bg-sky-500/20">
+            Versioning
+          </Link>
           <Link href={`/projects/${id}/company/sales`} className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-sm font-black text-sky-100 hover:bg-sky-500/20">
             Sales
           </Link>

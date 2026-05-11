@@ -93,6 +93,15 @@ export default async function VideoStudioPage({
           </Link>
         </div>
 
+        <div className="mt-4">
+          <Link
+            href={`/projects/${id}/company/versioning`}
+            className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-5 py-3 text-sm font-black text-sky-100 hover:bg-sky-500/20"
+          >
+            Versioning + Review
+          </Link>
+        </div>
+
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Create sovereign video project structure: scripts, scenes, voiceover text, asset placeholders, brand overlay metadata, and timeline JSON.
         </p>
