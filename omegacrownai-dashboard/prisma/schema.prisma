@@ -1699,3 +1699,71 @@ model QAScorecard {
   @@index([overallScore])
   @@index([createdAt])
 }
+
+model DirectorsRoomSession {
+  id String @id @default(cuid())
+
+  workspaceId String?
+  companyId   String
+  campaignId  String?
+  projectId   String?
+
+  topic        String
+  initialDraft String
+  finalDraft   String?
+  status       String  @default("open")
+  metadata     Json?
+
+  rounds DirectorsRoomRound[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([companyId])
+  @@index([campaignId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DirectorsRoomRound {
+  id String @id @default(cuid())
+
+  sessionId String
+  index     Int
+  draft     String
+  summary   String?
+  nextDraft String?
+  consensus Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session  DirectorsRoomSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages DirectorsRoomMessage[]
+
+  @@index([sessionId])
+  @@index([index])
+  @@index([consensus])
+  @@index([createdAt])
+}
+
+model DirectorsRoomMessage {
+  id String @id @default(cuid())
+
+  roundId    String
+  role       String
+  agentType  String?
+  content    String
+  parsedJson Json?
+
+  createdAt DateTime @default(now())
+
+  round DirectorsRoomRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+  @@index([role])
+  @@index([agentType])
+  @@index([createdAt])
+}

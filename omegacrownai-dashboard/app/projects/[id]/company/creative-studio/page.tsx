@@ -41,6 +41,15 @@ export default async function CreativeStudioPage({
           Creative Studio Agents · {project?.name || "Project"}
         </h1>
 
+        <div className="mt-4">
+          <Link
+            href={`/projects/${id}/company/directors-room`}
+            className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+          >
+            Director's Room
+          </Link>
+        </div>
+
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Run Director, Editor, and Reviewer agents across video and podcast workflows. Every run is logged, versioned, reviewed, and approval-gated.
         </p>
