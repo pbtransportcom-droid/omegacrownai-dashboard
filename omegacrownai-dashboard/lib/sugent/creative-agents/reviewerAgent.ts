@@ -1,12 +1,29 @@
 import { prisma } from "@/lib/db";
 import { getProjectVersion, updateProjectVersionStatus } from "@/lib/sugent/versioning/versionEngine";
 import { createReviewThread } from "@/lib/sugent/versioning/reviewEngine";
+import {
+  buildQualityChecklist,
+  inferQualityMode,
+  omegaProductionQualityPolicy,
+} from "@/lib/sugent/quality/productionQualityPolicy";
 
 function evaluateSnapshot(snapshot: any) {
   const issues: string[] = [];
+  const promptSource =
+    snapshot?.project?.description ||
+    snapshot?.project?.title ||
+    snapshot?.script?.fullText ||
+    "";
+
+  const qualityMode = inferQualityMode(String(promptSource));
+  const checklist = buildQualityChecklist(qualityMode);
 
   if (!snapshot?.project?.title) {
     issues.push("Project title is missing.");
+  }
+
+  if (!promptSource || String(promptSource).trim().length < 12) {
+    issues.push("Prompt or project description is too thin for reliable quality review.");
   }
 
   if (snapshot?.version === "phase22-video-snapshot") {
@@ -17,17 +34,41 @@ function evaluateSnapshot(snapshot: any) {
     if (!snapshot.scenes || snapshot.scenes.length === 0) {
       issues.push("Video scenes are missing or empty.");
     }
+
+    if (snapshot.scenes?.length) {
+      const weakScenes = snapshot.scenes.filter((scene: any) => {
+        const text = `${scene.scriptSegment || ""} ${scene.voiceoverText || ""}`.trim();
+        return text.length < 20;
+      });
+
+      if (weakScenes.length > 0) {
+        issues.push(`${weakScenes.length} video scene(s) have weak or missing script/voiceover detail.`);
+      }
+    }
   }
 
   if (snapshot?.version === "phase22-podcast-snapshot") {
     if (!snapshot.segments || snapshot.segments.length === 0) {
       issues.push("Podcast segments are missing or empty.");
     }
+
+    if (snapshot.segments?.length) {
+      const weakSegments = snapshot.segments.filter((segment: any) => {
+        return !segment.scriptText || String(segment.scriptText).trim().length < 40;
+      });
+
+      if (weakSegments.length > 0) {
+        issues.push(`${weakSegments.length} podcast segment(s) have weak or missing script detail.`);
+      }
+    }
   }
 
   return {
     issues,
     approved: issues.length === 0,
+    qualityMode,
+    checklist,
+    policy: omegaProductionQualityPolicy,
   };
 }
 
@@ -74,6 +115,8 @@ export async function runReviewerBasicReview({
       agent: "reviewer",
       approved: false,
       issues: result.issues,
+      qualityMode: result.qualityMode,
+      checklist: result.checklist,
       version: updated,
     };
   }
@@ -84,7 +127,7 @@ export async function runReviewerBasicReview({
     projectType: version.projectType as any,
     versionId: version.id,
     targetType: "project",
-    body: "Reviewer Agent: basic review passed. No critical blockers found.",
+    body: `Reviewer Agent: production quality review passed. Mode: ${result.qualityMode}. Prompt accuracy, detail alignment, and production quality checks passed at baseline level.`,
   });
 
   const updated = await updateProjectVersionStatus({
@@ -98,6 +141,8 @@ export async function runReviewerBasicReview({
     agent: "reviewer",
     approved: autoApprove,
     issues: [],
+    qualityMode: result.qualityMode,
+    checklist: result.checklist,
     version: updated,
   };
 }

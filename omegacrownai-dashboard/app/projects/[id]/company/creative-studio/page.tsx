@@ -48,6 +48,26 @@ export default async function CreativeStudioPage({
 
       {company && data ? (
         <>
+          <section className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-5">
+            <h2 className="text-xl font-black text-white">Production Quality Standard</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">
+              Every creative agent must prioritize prompt accuracy, detailed prompt interpretation, factual consistency when factual output is requested, legendary/cinematic consistency when stylized output is requested, and premium production quality.
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {[
+                "Prompt Accuracy",
+                "Detail Alignment",
+                "Factual Consistency",
+                "Legendary Style Match",
+                "Production Polish",
+              ].map((item) => (
+                <div key={item} className="rounded-xl border border-amber-400/20 bg-black/20 px-3 py-2 text-xs font-bold text-amber-100">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </section>
           <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
             <Metric label="Runs" value={String(data.summary.runs)} />
             <Metric label="Completed" value={String(data.summary.completed)} />

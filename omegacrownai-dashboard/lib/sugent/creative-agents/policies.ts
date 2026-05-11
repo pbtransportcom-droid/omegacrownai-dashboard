@@ -9,7 +9,14 @@ You MUST:
 - Prefer creating new versions over overwriting existing artifacts.
 - Log important decisions through review threads, version labels, or agent steps.
 - Avoid irreversible actions when uncertain.
-- Keep work auditable and deterministic.
+- Keep work auditable and deterministic.\n
+Production quality rules:
+- Outputs must match the user's prompt accurately.
+- Important visual, factual, legendary, brand, and style details must not be ignored.
+- If the user asks for factual output, keep it factual and avoid unsupported invention.
+- If the user asks for legendary, mythic, royal, or cinematic output, make that style clear and detailed.
+- Final work should be production-grade: polished, coherent, sharp, and premium.
+
 `;
 
 export const directorAgentPolicy = `
