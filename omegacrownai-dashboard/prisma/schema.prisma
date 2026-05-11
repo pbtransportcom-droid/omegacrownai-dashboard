@@ -1234,6 +1234,7 @@ model VideoAsset {
   outputGenerationJobs AssetGenerationJob[] @relation("OutputAssetGeneration")
   clips                VideoClip[]
   podcastSegments      PodcastSegment[]
+  publishJobs          PublishJob[]
 
   @@index([projectId])
   @@index([sceneId])
@@ -1432,4 +1433,72 @@ model PodcastSegment {
   @@index([index])
   @@index([type])
   @@index([voiceAssetId])
+}
+
+model DistributionTarget {
+  id String @id @default(cuid())
+
+  companyId  String
+  type       String
+  label      String
+  status     String @default("active")
+  configJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  publishJobs      PublishJob[]
+  autoPublishRules AutoPublishRule[]
+
+  @@index([companyId])
+  @@index([type])
+  @@index([status])
+}
+
+model PublishJob {
+  id String @id @default(cuid())
+
+  companyId String
+  assetId   String
+  targetId  String
+
+  status       String    @default("queued")
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  externalId   String?
+  errorMessage String?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  asset  VideoAsset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  target DistributionTarget @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([assetId])
+  @@index([targetId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+model AutoPublishRule {
+  id String @id @default(cuid())
+
+  companyId   String
+  targetId    String
+  projectType String  @default("video")
+  enabled     Boolean @default(true)
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  target DistributionTarget @relation(fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([targetId])
+  @@index([projectType])
+  @@index([enabled])
 }

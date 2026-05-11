@@ -84,6 +84,15 @@ export default async function VideoStudioPage({
           Video Studio Foundation · {project?.name || "Project"}
         </h1>
 
+        <div className="mt-4">
+          <Link
+            href={`/projects/${id}/company/distribution`}
+            className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+          >
+            Distribution Studio
+          </Link>
+        </div>
+
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Create sovereign video project structure: scripts, scenes, voiceover text, asset placeholders, brand overlay metadata, and timeline JSON.
         </p>
