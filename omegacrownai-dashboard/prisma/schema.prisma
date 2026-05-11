@@ -1181,6 +1181,7 @@ model VideoProject {
   timeline VideoTimeline?
   scenes   VideoScene[]
   assets   VideoAsset[]
+  renderJobs RenderJob[]
 
   @@index([companyId])
   @@index([campaignId])
@@ -1251,6 +1252,7 @@ model VideoAsset {
 
   project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   scene   VideoScene? @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+  renderOutputs RenderJob[]
 
   @@index([projectId])
   @@index([sceneId])
@@ -1270,4 +1272,34 @@ model VideoTimeline {
   updatedAt DateTime @updatedAt
 
   project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+
+model RenderJob {
+  id            String   @id @default(cuid())
+
+  projectId     String
+  type          String
+  status        String   @default("queued")
+  targetFormat  String
+  resolution    String?
+  fps           Int?
+  bitrateKbps   Int?
+
+  outputAssetId String?
+  errorMessage  String?
+  logs          Json?
+
+  createdAt     DateTime @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+  updatedAt     DateTime @updatedAt
+
+  project     VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  outputAsset VideoAsset?  @relation(fields: [outputAssetId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
 }

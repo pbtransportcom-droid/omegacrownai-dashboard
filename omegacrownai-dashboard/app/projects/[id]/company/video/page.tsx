@@ -34,6 +34,10 @@ export default async function VideoStudioPage({
               include: { assets: true },
             },
             assets: true,
+            renderJobs: {
+              orderBy: { createdAt: "desc" },
+              include: { outputAsset: true },
+            },
           },
         }),
         prisma.marketingCampaign.findMany({
@@ -166,10 +170,30 @@ export default async function VideoStudioPage({
                     <Panel title="Brand Overlay Metadata" value={video.brandOverlay || {}} />
                   </div>
 
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <form action={`/api/company/${company.id}/video/${video.id}/render`} method="POST">
+                      <input type="hidden" name="type" value="video" />
+                      <button className="rounded-xl bg-fuchsia-600 px-5 py-3 text-sm font-black text-white hover:bg-fuchsia-500">
+                        Queue Video Render
+                      </button>
+                    </form>
+
+                    <form action={`/api/company/${company.id}/video/${video.id}/render`} method="POST">
+                      <input type="hidden" name="type" value="audio_only" />
+                      <button className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-5 py-3 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20">
+                        Queue Audio Render
+                      </button>
+                    </form>
+                  </div>
+
                   <div className="mt-4 grid gap-4 xl:grid-cols-3">
                     <Panel title="Scenes + Voiceover" value={video.scenes} />
                     <Panel title="Asset Placeholders" value={video.assets} />
                     <Panel title="Timeline Metadata" value={video.timeline?.structureJson || {}} />
+                  </div>
+
+                  <div className="mt-4">
+                    <Panel title="Render Jobs" value={(video as any).renderJobs || []} />
                   </div>
                 </div>
               ))
