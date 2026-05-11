@@ -13,41 +13,41 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  projects     Project[]
+  projects Project[]
 }
 
 model Project {
-  id          String           @id @default(cuid())
-  name        String
-  owner       User             @relation(fields: [ownerId], references: [id])
-  ownerId     String
-  createdAt   DateTime         @default(now())
+  id        String   @id @default(cuid())
+  name      String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  createdAt DateTime @default(now())
 
-  chatThreads ChatThread[]
-  executions  AgentExecution[]
-  builds      ProjectBuild[]
-  auditLogs   AuditLog[]
+  chatThreads    ChatThread[]
+  executions     AgentExecution[]
+  builds         ProjectBuild[]
+  auditLogs      AuditLog[]
   safetySettings ProjectSafetySettings?
-  cloudJobs   CloudJob[]
+  cloudJobs      CloudJob[]
 }
 
 model ChatThread {
-  id         String        @id @default(cuid())
-  project    Project       @relation(fields: [projectId], references: [id])
-  projectId  String
-  title      String        @default("Project Chat")
-  createdAt  DateTime      @default(now())
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  title     String   @default("Project Chat")
+  createdAt DateTime @default(now())
 
-  messages   ChatMessage[]
+  messages ChatMessage[]
 }
 
 model ChatMessage {
-  id         String      @id @default(cuid())
-  thread     ChatThread  @relation(fields: [threadId], references: [id])
-  threadId   String
-  role       String
-  content    String
-  createdAt  DateTime    @default(now())
+  id        String     @id @default(cuid())
+  thread    ChatThread @relation(fields: [threadId], references: [id])
+  threadId  String
+  role      String
+  content   String
+  createdAt DateTime   @default(now())
 }
 
 model AgentExecution {
@@ -63,14 +63,14 @@ model AgentExecution {
 }
 
 model ProjectBuild {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
 
-  label     String
-  status    String   @default("draft")
-  source    String   @default("brain_auto")
-  domain    String   @default("website")
+  label  String
+  status String @default("draft")
+  source String @default("brain_auto")
+  domain String @default("website")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,14 +83,14 @@ model ProjectBuild {
 }
 
 model ProjectBuildArtifact {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   projectId String
   buildId   String
 
-  build     ProjectBuild @relation(fields: [buildId], references: [id])
+  build ProjectBuild @relation(fields: [buildId], references: [id])
 
-  kind      String
-  payload   Json
+  kind    String
+  payload Json
 
   createdAt DateTime @default(now())
 
@@ -99,11 +99,10 @@ model ProjectBuildArtifact {
   @@index([kind])
 }
 
-
 model TradingWatchlist {
   id         String   @id @default(cuid())
-  ownerEmail String  @unique
-  name       String  @default("Default Watchlist")
+  ownerEmail String   @unique
+  name       String   @default("Default Watchlist")
   symbols    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -131,7 +130,7 @@ model PublishedSite {
 
 model GuestAiUsage {
   id        String   @id @default(cuid())
-  usageKey String   @unique
+  usageKey  String   @unique
   count     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -139,21 +138,19 @@ model GuestAiUsage {
   @@index([usageKey])
 }
 
-
-
 model SugentEvent {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String?
-  buildId   String?
-  artifactId String?
+  projectId   String?
+  buildId     String?
+  artifactId  String?
   executionId String?
 
-  type      String
-  domain    String?
-  actor     String?
-  message   String
-  payload   Json?
+  type    String
+  domain  String?
+  actor   String?
+  message String
+  payload Json?
 
   createdAt DateTime @default(now())
 
@@ -166,18 +163,17 @@ model SugentEvent {
   @@index([createdAt])
 }
 
-
 model AuditLog {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
 
   actorType String
   actorId   String?
 
-  action    String
-  metadata  Json
+  action   String
+  metadata Json
 
   createdAt DateTime @default(now())
 
@@ -187,16 +183,15 @@ model AuditLog {
   @@index([createdAt])
 }
 
-
 model ProjectSafetySettings {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String   @unique
-  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id])
 
-  tradingMaxLeverage Int     @default(5)
-  automationAllowExternal Boolean @default(false)
-  websiteAllowCustomScripts Boolean @default(false)
+  tradingMaxLeverage         Int     @default(5)
+  automationAllowExternal    Boolean @default(false)
+  websiteAllowCustomScripts  Boolean @default(false)
   requireReviewBeforePublish Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -205,18 +200,17 @@ model ProjectSafetySettings {
   @@index([projectId])
 }
 
-
 model CloudJob {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
 
-  buildId   String?
-  type      String
-  status    String   @default("queued")
-  payload   Json
-  result    Json?
+  buildId String?
+  type    String
+  status  String  @default("queued")
+  payload Json
+  result  Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,50 +222,49 @@ model CloudJob {
   @@index([createdAt])
 }
 
-
 model MarketplaceAgent {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  version     String   @default("1.0.0")
-  inputSchema Json
+  id           String @id @default(cuid())
+  name         String
+  description  String
+  version      String @default("1.0.0")
+  inputSchema  Json
   outputSchema Json
-  endpoint    String
-  status      String   @default("active")
+  endpoint     String
+  status       String @default("active")
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
 }
 
 model MarketplaceTool {
-  id          String   @id @default(cuid())
-  name        String
-  description String
+  id           String @id @default(cuid())
+  name         String
+  description  String
   configSchema Json
-  endpoint    String
-  status      String   @default("active")
+  endpoint     String
+  status       String @default("active")
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
 }
 
 model MarketplaceTemplate {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   name        String
   description String
   domain      String
   draftKind   String
   draft       Json
-  status      String   @default("active")
+  status      String @default("active")
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([domain])
   @@index([draftKind])
@@ -279,15 +272,14 @@ model MarketplaceTemplate {
   @@index([createdAt])
 }
 
-
 model TimelineEvent {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   sessionId String
   projectId String?
 
-  type      String
-  payload   Json
+  type    String
+  payload Json
 
   createdAt DateTime @default(now())
 
@@ -298,13 +290,13 @@ model TimelineEvent {
 }
 
 model TimelineSnapshot {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   sessionId String
   projectId String?
 
-  index     Int
-  state     Json
+  index Int
+  state Json
 
   createdAt DateTime @default(now())
 
@@ -314,9 +306,8 @@ model TimelineSnapshot {
   @@index([createdAt])
 }
 
-
 model MemoryRecord {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String?
   sessionId String?
@@ -337,9 +328,8 @@ model MemoryRecord {
   @@index([createdAt])
 }
 
-
 model UserRole {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   userId    String
   role      String
@@ -354,12 +344,11 @@ model UserRole {
   @@index([role])
 }
 
-
 model DistributionPackage {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String?
-  version   String   @default("1.0.0")
+  version   String  @default("1.0.0")
   type      String
   manifest  Json
   payload   Json
@@ -373,28 +362,27 @@ model DistributionPackage {
   @@index([createdAt])
 }
 
-
 model ExecutionRecord {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String?
-  sessionId String?
+  projectId        String?
+  sessionId        String?
   runtimeSessionId String?
 
-  language  String
-  status    String   @default("queued")
+  language String
+  status   String @default("queued")
 
-  code      String
-  codeHash  String
-  inputHash String
+  code       String
+  codeHash   String
+  inputHash  String
   outputHash String?
 
-  input     Json
-  output    Json?
-  logs      Json
-  error     String?
-  metrics   Json
-  policy    Json
+  input   Json
+  output  Json?
+  logs    Json
+  error   String?
+  metrics Json
+  policy  Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -408,14 +396,13 @@ model ExecutionRecord {
   @@index([createdAt])
 }
 
-
 model ProjectExecutionPolicy {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String   @unique
+  projectId String @unique
 
-  enabled   Boolean  @default(true)
-  policy    Json
+  enabled Boolean @default(true)
+  policy  Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -425,25 +412,24 @@ model ProjectExecutionPolicy {
   @@index([createdAt])
 }
 
-
 model BrowserTask {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String?
-  sessionId String?
+  projectId        String?
+  sessionId        String?
   runtimeSessionId String?
 
-  url       String
-  status    String   @default("queued")
+  url    String
+  status String @default("queued")
 
-  title     String?
-  text      String?
-  html      String?
-  result    Json?
-  logs      Json
-  error     String?
-  metrics   Json
-  policy    Json
+  title   String?
+  text    String?
+  html    String?
+  result  Json?
+  logs    Json
+  error   String?
+  metrics Json
+  policy  Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -456,9 +442,8 @@ model BrowserTask {
   @@index([createdAt])
 }
 
-
 model BrowserArtifact {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   taskId    String
   projectId String?
@@ -470,7 +455,7 @@ model BrowserArtifact {
   mimeType  String?
   sizeBytes Int?
 
-  metadata  Json?
+  metadata Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -481,22 +466,21 @@ model BrowserArtifact {
   @@index([createdAt])
 }
 
-
 model CloudSchedule {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
   name      String
-  provider  String   @default("local")
-  type      String   @default("generic")
+  provider  String @default("local")
+  type      String @default("generic")
   payload   Json
 
-  enabled   Boolean  @default(true)
-  intervalMinutes Int @default(60)
-  nextRunAt DateTime
-  lastRunAt DateTime?
-  lastJobId String?
-  runCount  Int      @default(0)
+  enabled         Boolean   @default(true)
+  intervalMinutes Int       @default(60)
+  nextRunAt       DateTime
+  lastRunAt       DateTime?
+  lastJobId       String?
+  runCount        Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -508,9 +492,8 @@ model CloudSchedule {
   @@index([type])
 }
 
-
 model Company {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
   name      String
@@ -521,15 +504,15 @@ model Company {
   primaryOffer         Json?
   channels             Json?
 
-  status    String   @default("active")
+  status String @default("active")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  kpis    CompanyKPI[]
-  memory  CompanyMemory[]
-  tasks   CompanyTask[]
-  workers Worker[]
+  kpis        CompanyKPI[]
+  memory      CompanyMemory[]
+  tasks       CompanyTask[]
+  workers     Worker[]
   departments CompanyDepartment[]
 
   @@index([projectId])
@@ -538,12 +521,12 @@ model Company {
 }
 
 model CompanyKPI {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId String
   metric    String
   value     Float
-  period    String   @default("week")
+  period    String  @default("week")
   note      String?
 
   timestamp DateTime @default(now())
@@ -559,10 +542,10 @@ model CompanyKPI {
 }
 
 model CompanyMemory {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId String
-  kind      String   @default("fact")
+  kind      String @default("fact")
   content   String
   tags      Json?
 
@@ -577,17 +560,17 @@ model CompanyMemory {
 }
 
 model Worker {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId String
   role      String
   name      String
-  status    String   @default("idle")
+  status    String @default("idle")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   tasks   CompanyTask[]
 
   @@index([companyId])
@@ -596,7 +579,7 @@ model Worker {
 }
 
 model CompanyTask {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId String
   workerId  String?
@@ -621,11 +604,10 @@ model CompanyTask {
   @@index([createdAt])
 }
 
-
 model SecurityAuditEvent {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  level     String   @default("info")
+  level     String  @default("info")
   action    String
   route     String?
   method    String?
@@ -634,9 +616,9 @@ model SecurityAuditEvent {
   actorType String?
   userAgent String?
 
-  allowed   Boolean  @default(false)
-  reason    String?
-  metadata  Json?
+  allowed  Boolean @default(false)
+  reason   String?
+  metadata Json?
 
   createdAt DateTime @default(now())
 
@@ -649,15 +631,14 @@ model SecurityAuditEvent {
   @@index([createdAt])
 }
 
-
 model CompanyDepartment {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId String
   name      String
   slug      String
   purpose   String?
-  status    String   @default("active")
+  status    String  @default("active")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -674,12 +655,12 @@ model CompanyDepartment {
 }
 
 model DepartmentKPI {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
   departmentId String
   metric       String
   value        Float
-  period       String   @default("week")
+  period       String  @default("week")
   note         String?
 
   timestamp DateTime @default(now())
@@ -695,10 +676,10 @@ model DepartmentKPI {
 }
 
 model DepartmentMemory {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
   departmentId String
-  kind         String   @default("fact")
+  kind         String @default("fact")
   content      String
   tags         Json?
 
@@ -712,9 +693,8 @@ model DepartmentMemory {
   @@index([createdAt])
 }
 
-
 model MarketingAudience {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -735,7 +715,7 @@ model MarketingAudience {
 }
 
 model MarketingCampaign {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -745,10 +725,10 @@ model MarketingCampaign {
   offer     String?
   audience  Json?
   channels  Json?
-  status    String   @default("draft")
+  status    String  @default("draft")
 
-  brief     Json?
-  metrics   Json?
+  brief   Json?
+  metrics Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -762,14 +742,14 @@ model MarketingCampaign {
 }
 
 model MarketingAsset {
-  id         String   @id @default(cuid())
+  id String @id @default(cuid())
 
   campaignId String
   type       String
   title      String
   content    String
   channel    String?
-  status     String   @default("draft")
+  status     String  @default("draft")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -782,9 +762,8 @@ model MarketingAsset {
   @@index([status])
 }
 
-
 model SalesPipeline {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -792,7 +771,7 @@ model SalesPipeline {
   name        String
   description String?
   stages      Json?
-  status      String   @default("active")
+  status      String  @default("active")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -806,22 +785,22 @@ model SalesPipeline {
 }
 
 model SalesLead {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
   pipelineId   String?
 
-  name      String
-  company   String?
-  email     String?
-  phone     String?
-  source    String?
-  status    String   @default("new")
-  score     Float    @default(0)
+  name    String
+  company String?
+  email   String?
+  phone   String?
+  source  String?
+  status  String  @default("new")
+  score   Float   @default(0)
 
-  notes     String?
-  metadata  Json?
+  notes    String?
+  metadata Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -837,29 +816,29 @@ model SalesLead {
 }
 
 model SalesDeal {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
   pipelineId   String?
   leadId       String?
 
-  name      String
-  stage     String   @default("qualified")
-  value     Float    @default(0)
-  currency  String   @default("USD")
+  name        String
+  stage       String @default("qualified")
+  value       Float  @default(0)
+  currency    String @default("USD")
   probability Float  @default(0.25)
-  status    String   @default("open")
+  status      String @default("open")
 
-  nextStep  String?
-  notes     String?
-  metadata  Json?
+  nextStep String?
+  notes    String?
+  metadata Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   pipeline SalesPipeline? @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
-  lead     SalesLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  lead     SalesLead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
   @@index([companyId])
   @@index([departmentId])
@@ -869,18 +848,17 @@ model SalesDeal {
   @@index([status])
 }
 
-
 model FinanceAccount {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
 
-  name      String
-  type      String   @default("operating")
-  currency  String   @default("USD")
-  balance   Float    @default(0)
-  status    String   @default("active")
+  name     String
+  type     String @default("operating")
+  currency String @default("USD")
+  balance  Float  @default(0)
+  status   String @default("active")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -894,7 +872,7 @@ model FinanceAccount {
 }
 
 model FinanceTransaction {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -903,7 +881,7 @@ model FinanceTransaction {
   type        String
   category    String
   amount      Float
-  currency    String   @default("USD")
+  currency    String  @default("USD")
   description String?
   metadata    Json?
 
@@ -922,17 +900,17 @@ model FinanceTransaction {
 }
 
 model FinanceForecast {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
 
-  name        String
-  period      String   @default("month")
-  revenue     Float    @default(0)
-  expenses    Float    @default(0)
-  cashBalance Float    @default(0)
-  runwayMonths Float   @default(0)
+  name         String
+  period       String @default("month")
+  revenue      Float  @default(0)
+  expenses     Float  @default(0)
+  cashBalance  Float  @default(0)
+  runwayMonths Float  @default(0)
 
   assumptions Json?
   result      Json?
@@ -946,21 +924,20 @@ model FinanceForecast {
   @@index([createdAt])
 }
 
-
 model OperationsProcess {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
 
   name        String
   description String?
-  status      String   @default("active")
-  priority    String   @default("medium")
+  status      String  @default("active")
+  priority    String  @default("medium")
 
-  steps       Json?
-  ownerRole   String?
-  metrics     Json?
+  steps     Json?
+  ownerRole String?
+  metrics   Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -975,15 +952,15 @@ model OperationsProcess {
 }
 
 model OperationsChecklist {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
   processId    String?
 
-  title       String
-  items       Json?
-  status      String   @default("draft")
+  title  String
+  items  Json?
+  status String @default("draft")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -997,14 +974,14 @@ model OperationsChecklist {
 }
 
 model OperationsRun {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
   processId    String?
 
-  status      String   @default("completed")
-  startedAt   DateTime @default(now())
+  status      String    @default("completed")
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
   result      Json?
   notes       String?
@@ -1021,9 +998,8 @@ model OperationsRun {
   @@index([startedAt])
 }
 
-
 model SupportTicket {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -1032,12 +1008,12 @@ model SupportTicket {
   customerEmail String?
   subject       String
   message       String
-  category      String   @default("general")
-  priority      String   @default("normal")
-  status        String   @default("open")
+  category      String  @default("general")
+  priority      String  @default("normal")
+  status        String  @default("open")
 
-  sentiment     String?
-  metadata      Json?
+  sentiment String?
+  metadata  Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1053,7 +1029,7 @@ model SupportTicket {
 }
 
 model SupportKnowledgeBase {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -1061,8 +1037,8 @@ model SupportKnowledgeBase {
   title    String
   slug     String
   content  String
-  category String   @default("general")
-  status   String   @default("draft")
+  category String @default("general")
+  status   String @default("draft")
   tags     Json?
 
   createdAt DateTime @default(now())
@@ -1076,7 +1052,7 @@ model SupportKnowledgeBase {
 }
 
 model SupportResponse {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId    String
   departmentId String?
@@ -1084,8 +1060,8 @@ model SupportResponse {
 
   subject  String?
   content  String
-  tone     String   @default("professional")
-  status   String   @default("draft")
+  tone     String  @default("professional")
+  status   String  @default("draft")
   metadata Json?
 
   createdAt DateTime @default(now())
@@ -1099,22 +1075,21 @@ model SupportResponse {
   @@index([status])
 }
 
-
 model ExecutiveSchedule {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
   companyId String?
 
-  name       String
-  frequency  String   @default("daily")
-  hour       Int      @default(9)
-  timezone   String   @default("America/Chicago")
-  status     String   @default("active")
+  name      String
+  frequency String @default("daily")
+  hour      Int    @default(9)
+  timezone  String @default("America/Chicago")
+  status    String @default("active")
 
-  lastRunAt  DateTime?
-  nextRunAt  DateTime?
-  metadata   Json?
+  lastRunAt DateTime?
+  nextRunAt DateTime?
+  metadata  Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1128,19 +1103,19 @@ model ExecutiveSchedule {
 }
 
 model ExecutiveRunLog {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId   String
-  companyId   String?
-  scheduleId  String?
+  projectId  String
+  companyId  String?
+  scheduleId String?
 
-  type      String   @default("daily_report")
-  status    String   @default("success")
-  summary   Json?
-  report    Json?
-  error     String?
+  type    String  @default("daily_report")
+  status  String  @default("success")
+  summary Json?
+  report  Json?
+  error   String?
 
-  startedAt   DateTime @default(now())
+  startedAt   DateTime  @default(now())
   completedAt DateTime?
 
   createdAt DateTime @default(now())
@@ -1156,32 +1131,31 @@ model ExecutiveRunLog {
   @@index([createdAt])
 }
 
-
 model VideoProject {
-  id              String   @id @default(cuid())
+  id String @id @default(cuid())
 
   companyId       String
   campaignId      String?
   title           String
   description     String?
-  status          String   @default("planned")
-  aspectRatio     String   @default("16:9")
+  status          String  @default("planned")
+  aspectRatio     String  @default("16:9")
   durationSeconds Int?
 
-  brandProfileId  String?
-  brandOverlay    Json?
+  brandProfileId String?
+  brandOverlay   Json?
 
-  scriptId         String?
-  timelineId       String?
+  scriptId   String?
+  timelineId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  script   VideoScript?
-  timeline VideoTimeline?
-  scenes   VideoScene[]
-  assets   VideoAsset[]
-  renderJobs RenderJob[]
+  script              VideoScript?
+  timeline            VideoTimeline?
+  scenes              VideoScene[]
+  assets              VideoAsset[]
+  renderJobs          RenderJob[]
   assetGenerationJobs AssetGenerationJob[]
 
   @@index([companyId])
@@ -1191,11 +1165,11 @@ model VideoProject {
 }
 
 model VideoScript {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String   @unique
+  projectId String  @unique
   fullText  String
-  language  String   @default("en")
+  language  String  @default("en")
   tone      String?
   metadata  Json?
 
@@ -1208,11 +1182,11 @@ model VideoScript {
 }
 
 model VideoScene {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String
-  index     Int
-  title     String?
+  projectId     String
+  index         Int
+  title         String?
   scriptSegment String
   voiceoverText String
 
@@ -1227,36 +1201,38 @@ model VideoScene {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assets  VideoAsset[]
+  project             VideoProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assets              VideoAsset[]
   assetGenerationJobs AssetGenerationJob[]
+  clips               VideoClip[]
 
   @@index([projectId])
   @@index([index])
 }
 
 model VideoAsset {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
   projectId String
   sceneId   String?
 
-  type        String
-  label       String
-  placeholder Boolean @default(true)
-  storageKey  String?
-  format      String?
+  type            String
+  label           String
+  placeholder     Boolean @default(true)
+  storageKey      String?
+  format          String?
   durationSeconds Int?
-  metadata    Json?
+  metadata        Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  scene   VideoScene? @relation(fields: [sceneId], references: [id], onDelete: SetNull)
-  renderOutputs RenderJob[]
-  inputGenerationJobs AssetGenerationJob[] @relation("InputAssetGeneration")
+  project              VideoProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scene                VideoScene?          @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+  renderOutputs        RenderJob[]
+  inputGenerationJobs  AssetGenerationJob[] @relation("InputAssetGeneration")
   outputGenerationJobs AssetGenerationJob[] @relation("OutputAssetGeneration")
+  clips                VideoClip[]
 
   @@index([projectId])
   @@index([sceneId])
@@ -1265,39 +1241,39 @@ model VideoAsset {
 }
 
 model VideoTimeline {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId String   @unique
-  fps       Int      @default(30)
+  projectId       String @unique
+  fps             Int    @default(30)
   durationSeconds Int?
-  structureJson Json
+  structureJson   Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tracks  VideoTrack[]
 }
 
-
 model RenderJob {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId     String
-  type          String
-  status        String   @default("queued")
-  targetFormat  String
-  resolution    String?
-  fps           Int?
-  bitrateKbps   Int?
+  projectId    String
+  type         String
+  status       String  @default("queued")
+  targetFormat String
+  resolution   String?
+  fps          Int?
+  bitrateKbps  Int?
 
   outputAssetId String?
   errorMessage  String?
   logs          Json?
 
-  createdAt     DateTime @default(now())
-  startedAt     DateTime?
-  completedAt   DateTime?
-  updatedAt     DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
 
   project     VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   outputAsset VideoAsset?  @relation(fields: [outputAssetId], references: [id], onDelete: SetNull)
@@ -1308,35 +1284,34 @@ model RenderJob {
   @@index([createdAt])
 }
 
-
 model AssetGenerationJob {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  projectId     String
-  sceneId       String?
-  assetId       String?
+  projectId String
+  sceneId   String?
+  assetId   String?
 
-  type          String
-  status        String   @default("queued")
+  type   String
+  status String @default("queued")
 
   prompt        String?
   modelId       String?
   seed          Int?
   outputAssetId String?
 
-  errorMessage  String?
-  logs          Json?
+  errorMessage String?
+  logs         Json?
 
-  createdAt     DateTime @default(now())
-  startedAt     DateTime?
-  completedAt   DateTime?
-  updatedAt     DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
 
-  project     VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  scene       VideoScene?   @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+  project VideoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scene   VideoScene?  @relation(fields: [sceneId], references: [id], onDelete: SetNull)
 
-  inputAsset  VideoAsset?   @relation("InputAssetGeneration", fields: [assetId], references: [id], onDelete: SetNull)
-  outputAsset VideoAsset?   @relation("OutputAssetGeneration", fields: [outputAssetId], references: [id], onDelete: SetNull)
+  inputAsset  VideoAsset? @relation("InputAssetGeneration", fields: [assetId], references: [id], onDelete: SetNull)
+  outputAsset VideoAsset? @relation("OutputAssetGeneration", fields: [outputAssetId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([sceneId])
@@ -1345,4 +1320,52 @@ model AssetGenerationJob {
   @@index([type])
   @@index([status])
   @@index([createdAt])
+}
+
+model VideoTrack {
+  id String @id @default(cuid())
+
+  timelineId String
+  type       String
+  index      Int
+  label      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  timeline VideoTimeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+  clips    VideoClip[]
+
+  @@index([timelineId])
+  @@index([type])
+  @@index([index])
+}
+
+model VideoClip {
+  id String @id @default(cuid())
+
+  trackId String
+  assetId String?
+  sceneId String?
+
+  startTimeSeconds Int
+  durationSeconds  Int
+  inPointSeconds   Int @default(0)
+  outPointSeconds  Int
+
+  transitionIn  String?
+  transitionOut String?
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  track VideoTrack  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  asset VideoAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  scene VideoScene? @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+
+  @@index([trackId])
+  @@index([assetId])
+  @@index([sceneId])
+  @@index([startTimeSeconds])
 }

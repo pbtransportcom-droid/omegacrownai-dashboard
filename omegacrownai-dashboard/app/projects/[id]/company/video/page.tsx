@@ -28,7 +28,19 @@ export default async function VideoStudioPage({
           take: 50,
           include: {
             script: true,
-            timeline: true,
+            timeline: {
+              include: {
+                tracks: {
+                  orderBy: { index: "asc" },
+                  include: {
+                    clips: {
+                      orderBy: { startTimeSeconds: "asc" },
+                      include: { asset: true, scene: true },
+                    },
+                  },
+                },
+              },
+            },
             scenes: {
               orderBy: { index: "asc" },
               include: { assets: true },
@@ -218,6 +230,58 @@ export default async function VideoStudioPage({
 
                   <div className="mt-4">
                     <Panel title="Asset Generation Jobs" value={(video as any).assetGenerationJobs || []} />
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <h3 className="text-lg font-black text-white">Timeline Editor</h3>
+                        <p className="mt-1 text-xs text-muted">
+                          Normalized tracks and clips for editing. Phase 17 render reads the regenerated timeline JSON.
+                        </p>
+                      </div>
+
+                      <form action={`/api/company/${company.id}/video/${video.id}/timeline/init`} method="POST">
+                        <button className="rounded-xl bg-fuchsia-600 px-4 py-3 text-xs font-black text-white hover:bg-fuchsia-500">
+                          Initialize Timeline
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {((video.timeline as any)?.tracks || []).length ? (
+                        ((video.timeline as any).tracks || []).map((track: any) => (
+                          <div key={track.id} className="rounded-xl border border-border bg-slate-950 p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs font-black uppercase tracking-[0.16em] text-fuchsia-300">
+                                {track.label || track.type} · {track.type}
+                              </div>
+                              <div className="font-mono text-xs text-muted">{track.id}</div>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {(track.clips || []).map((clip: any) => (
+                                <div key={clip.id} className="rounded-lg border border-border bg-black/30 px-3 py-2">
+                                  <div className="text-xs font-bold text-white">
+                                    {clip.scene?.title || clip.asset?.label || "Clip"}
+                                  </div>
+                                  <div className="mt-1 text-[11px] text-muted">
+                                    start {clip.startTimeSeconds}s · duration {clip.durationSeconds}s
+                                  </div>
+                                  <div className="mt-1 text-[11px] text-muted">
+                                    {clip.transitionIn || "cut"} → {clip.transitionOut || "cut"}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
+                          No normalized timeline tracks yet. Click Initialize Timeline.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
