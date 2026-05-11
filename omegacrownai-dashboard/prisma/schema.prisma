@@ -1576,3 +1576,53 @@ model ReviewComment {
   @@index([authorId])
   @@index([createdAt])
 }
+
+model CreativeAgentRun {
+  id String @id @default(cuid())
+
+  companyId   String
+  projectId   String?
+  projectType String?
+  agentRole   String
+  status      String  @default("queued")
+
+  inputJson    Json?
+  outputJson   Json?
+  errorMessage String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  steps CreativeAgentStep[]
+
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([agentRole])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CreativeAgentStep {
+  id String @id @default(cuid())
+
+  runId      String
+  agentRole  String
+  action     String
+  status     String @default("completed")
+  inputJson  Json?
+  outputJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  run CreativeAgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([agentRole])
+  @@index([action])
+  @@index([status])
+  @@index([createdAt])
+}
