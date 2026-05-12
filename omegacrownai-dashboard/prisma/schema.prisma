@@ -3346,6 +3346,8 @@ model CustomerOrganization {
   customerApiKeys             CustomerApiKey[]
   customerTeamInvitations     CustomerTeamInvitation[]
   customerPermissionOverrides CustomerPermissionOverride[]
+  customerExternalAccounts    CustomerExternalAccount[]
+  customerPublishingJobs      CustomerPublishingJob[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3619,4 +3621,118 @@ model CustomerPermissionOverride {
   @@index([resourceId])
   @@index([action])
   @@index([effect])
+}
+
+model CustomerExternalAccount {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+
+  provider String // youtube, tiktok, instagram, linkedin, x, webhook, s3, gcs
+  category String @default("publishing") // publishing, webhook, cloud_export
+  status   String @default("disconnected") // disconnected, connected, error, revoked
+  mode     String @default("test") // test, live
+
+  displayName       String?
+  externalAccountId String?
+
+  accessTokenHash  String?
+  refreshTokenHash String?
+  tokenJson        Json?
+  scopes           Json?
+  metadata         Json?
+
+  connectedByUserId String?
+  connectedAt       DateTime?
+  expiresAt         DateTime?
+  revokedAt         DateTime?
+
+  lastError String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([category])
+  @@index([status])
+  @@index([mode])
+}
+
+model CustomerPublishingJob {
+  id String @id @default(cuid())
+
+  organizationId    String
+  companyId         String?
+  externalAccountId String?
+
+  exportId    String?
+  projectId   String?
+  projectType String?
+
+  provider    String
+  targetType  String @default("social") // social, webhook, cloud_export
+  status      String @default("queued") // queued, running, published, failed, cancelled
+  attempt     Int    @default(0)
+  maxAttempts Int    @default(3)
+
+  title          String?
+  description    String?
+  caption        String?
+  mediaUrl       String?
+  destinationUrl String?
+
+  requestJson    Json?
+  responseJson   Json?
+  externalPostId String?
+  externalUrl    String?
+  error          String?
+
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  publishedAt DateTime?
+  failedAt    DateTime?
+
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([externalAccountId])
+  @@index([exportId])
+  @@index([projectId])
+  @@index([provider])
+  @@index([targetType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CustomerPublishingEvent {
+  id String @id @default(cuid())
+
+  organizationId  String
+  publishingJobId String?
+
+  provider String
+  type     String
+  status   String  @default("recorded")
+  message  String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([publishingJobId])
+  @@index([provider])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
 }
