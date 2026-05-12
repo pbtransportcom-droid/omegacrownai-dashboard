@@ -7,6 +7,7 @@ import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { evaluateRuntimePolicy } from "@/lib/sugent/runtime-policy/runtimePolicyEngine";
 import { createCreatorRenderJob, updateCreatorRenderJob } from "@/lib/sugent/creator-render/renderJobEngine";
 import { getOrCreateCompanyBrandKit, normalizeBrandKit, type BrandKitInput } from "@/lib/sugent/brand-kit/brandKitEngine";
+import { checkCreatorUsageLimit, recordCreatorUsage, recordCreatorUsageBlocked } from "@/lib/sugent/billing/creatorBillingEngine";
 
 const execFileAsync = promisify(execFile);
 
@@ -408,6 +409,63 @@ export async function executeCreatorExport({
     },
   });
 
+  const usageType = projectType === "podcast" ? "podcast_export" : "video_export";
+  const usageCheck = await checkCreatorUsageLimit({
+    companyId,
+    workspaceId: workspaceId || null,
+    usageType,
+    amount: 1,
+  });
+
+  if (!usageCheck.ok) {
+    const blocked = await prisma.creatorExportAsset.create({
+      data: {
+        companyId,
+        workspaceId: workspaceId || null,
+        projectId,
+        projectType,
+        assetType: projectType === "podcast" ? "audio" : "video",
+        format: format || (projectType === "podcast" ? "mp3" : "mp4"),
+        status: "blocked",
+        error: usageCheck.reason,
+        createdBy: actorId || "system-owner",
+        startedAt: new Date(),
+        completedAt: new Date(),
+        metadata: {
+          source: "creator_billing_usage_limit",
+          usageType,
+          used: usageCheck.counter.used,
+          limit: usageCheck.counter.limit,
+          planTier: usageCheck.plan.tier,
+        },
+      },
+    });
+
+    await recordCreatorUsageBlocked({
+      companyId,
+      workspaceId: workspaceId || null,
+      usageType,
+      entityType: "CreatorExportAsset",
+      entityId: blocked.id,
+      reason: usageCheck.reason,
+      metadata: {
+        projectId,
+        projectType,
+        actorId: actorId || "system-owner",
+        actorType,
+        planTier: usageCheck.plan.tier,
+      },
+    });
+
+    return {
+      ok: false,
+      status: "LIMIT_EXCEEDED",
+      reason: usageCheck.reason,
+      export: blocked,
+      usage: usageCheck,
+    };
+  }
+
   if (!policy.ok) {
     const blocked = await prisma.creatorExportAsset.create({
       data: {
@@ -616,6 +674,12 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
+        usage: {
+          usageType,
+          planTier: usageCheck.plan.tier,
+          usedBefore: usageCheck.counter.used,
+          limit: usageCheck.counter.limit,
+        },
         audioStyle: normalizedAudioStyle,
         brandKit: normalizedBrandKit,
         outputType: projectType === "video" ? "mp4_video_with_audio" : projectType === "podcast" ? "mp3_podcast_audio" : "manifest_placeholder",
@@ -686,11 +750,40 @@ export async function executeCreatorExport({
     },
   });
 
+  await recordCreatorUsage({
+    companyId,
+    workspaceId: workspaceId || null,
+    usageType: "render",
+    amount: 1,
+    entityType: "CreatorExportAsset",
+    entityId: completed.id,
+    metadata: {
+      projectId,
+      projectType,
+      renderJobId: renderJob.id,
+    },
+  });
+
+  await recordCreatorUsage({
+    companyId,
+    workspaceId: workspaceId || null,
+    usageType,
+    amount: 1,
+    entityType: "CreatorExportAsset",
+    entityId: completed.id,
+    metadata: {
+      projectId,
+      projectType,
+      publicUrl: completed.publicUrl,
+    },
+  });
+
   return {
     ok: true,
     status: "COMPLETED",
     export: completed,
     policy,
+    usage: usageCheck,
   };
 }
 

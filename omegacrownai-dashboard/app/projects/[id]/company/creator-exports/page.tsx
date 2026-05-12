@@ -4,6 +4,7 @@ import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { getCreatorExportDashboard } from "@/lib/sugent/creator-export/creatorExportEngine";
 import { getCreatorRenderJobDashboard } from "@/lib/sugent/creator-render/renderJobEngine";
 import { getCreatorDistributionDashboard } from "@/lib/sugent/distribution/creatorDistributionEngine";
+import { getCreatorBillingDashboard } from "@/lib/sugent/billing/creatorBillingEngine";
 
 export default async function CreatorExportsPage({
   params,
@@ -25,6 +26,7 @@ export default async function CreatorExportsPage({
   const data = company ? await getCreatorExportDashboard(company.id) : null;
   const renderJobs = company ? await getCreatorRenderJobDashboard(company.id) : null;
   const distribution = company ? await getCreatorDistributionDashboard(company.id) : null;
+  const billing = company ? await getCreatorBillingDashboard(company.id) : null;
 
   const [videoProjects, podcastProjects] = company
     ? await Promise.all([
@@ -65,7 +67,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, download links, render evidence, public share links, and export-ready distribution records.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, usage limits, download links, render evidence, public share links, and export-ready distribution records.
         </p>
       </section>
 
@@ -79,6 +81,43 @@ export default async function CreatorExportsPage({
             <Metric label="Video" value={String(data.summary.video)} />
             <Metric label="Podcast" value={String(data.summary.podcast)} />
           </section>
+
+          {billing && (
+            <section className="rounded-3xl border border-yellow-400/30 bg-yellow-500/10 p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-yellow-300">Creator Plan</p>
+                  <h2 className="mt-2 text-2xl font-black text-white">{billing.plan.name}</h2>
+                  <p className="mt-2 text-sm text-yellow-100">Period {billing.periodKey} · Tier {billing.plan.tier}</p>
+                </div>
+
+                <form action={`/api/company/${company.id}/creator-billing/plan`} method="POST" className="flex flex-wrap gap-2">
+                  <select name="tier" defaultValue={billing.plan.tier} className="rounded-xl border border-border bg-slate-950 px-3 py-2 text-xs text-white outline-none">
+                    <option value="starter">Starter</option>
+                    <option value="pro">Pro</option>
+                    <option value="studio">Studio</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                  <button className="rounded-xl bg-yellow-500 px-3 py-2 text-xs font-black text-black hover:bg-yellow-400">
+                    Update Plan
+                  </button>
+                </form>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                {billing.summary.usage.map((usage: any) => (
+                  <div key={usage.usageType} className="rounded-2xl border border-yellow-400/20 bg-black/20 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-yellow-200">{usage.usageType}</div>
+                    <div className="mt-2 text-xl font-black text-white">{usage.used}/{usage.limit}</div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-900">
+                      <div className="h-full rounded-full bg-yellow-400" style={{ width: `${Math.max(0, Math.min(100, usage.percent))}%` }} />
+                    </div>
+                    <div className="mt-2 text-xs text-yellow-100">{usage.remaining} remaining</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {renderJobs && (
             <section className="grid gap-4 md:grid-cols-5">
@@ -554,6 +593,7 @@ function ExportCard({ item, companyId }: { item: any; companyId: string }) {
         <HashRow label="Visual Assets" value={item.metadata?.visualAssets?.enabled ? `${item.metadata.visualAssets.assets?.length || item.metadata.visualAssets.count || 0} generated` : "none"} />
         <HashRow label="Template" value={item.metadata?.brandKit?.templateStyle || "none"} />
         <HashRow label="Brand Primary" value={item.metadata?.brandKit?.primaryColor || "none"} />
+        <HashRow label="Usage" value={item.metadata?.usage ? `${item.metadata.usage.usageType} · ${item.metadata.usage.usedBefore}/${item.metadata.usage.limit}` : "none"} />
       </div>
     </div>
   );

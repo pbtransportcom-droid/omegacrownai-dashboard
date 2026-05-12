@@ -3135,3 +3135,89 @@ model CreatorDistributionEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model CreatorBillingPlan {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name   String @default("Creator Starter")
+  tier   String @default("starter")
+  status String @default("active")
+
+  monthlyRenderLimit        Int @default(25)
+  monthlyVideoExportLimit   Int @default(10)
+  monthlyPodcastExportLimit Int @default(10)
+  monthlyDistributionLimit  Int @default(25)
+  storageMbLimit            Int @default(1024)
+
+  overageAllowed Boolean @default(false)
+
+  metadata Json?
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([tier])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CreatorUsageCounter {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  periodKey String
+  usageType String
+
+  used   Int    @default(0)
+  limit  Int    @default(0)
+  status String @default("active")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, workspaceId, periodKey, usageType])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([periodKey])
+  @@index([usageType])
+  @@index([status])
+}
+
+model CreatorUsageEvent {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  periodKey String
+  usageType String
+  amount    Int    @default(1)
+  status    String @default("recorded")
+
+  entityType String?
+  entityId   String?
+
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([periodKey])
+  @@index([usageType])
+  @@index([status])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}

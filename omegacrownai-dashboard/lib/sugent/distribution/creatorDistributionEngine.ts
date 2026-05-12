@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
+import { checkCreatorUsageLimit, recordCreatorUsage, recordCreatorUsageBlocked } from "@/lib/sugent/billing/creatorBillingEngine";
 
 function safeSlug(value: string) {
   const base = String(value || "creator-export")
@@ -148,6 +149,39 @@ export async function createCreatorDistribution({
     };
   }
 
+  const usageCheck = await checkCreatorUsageLimit({
+    companyId,
+    workspaceId: workspaceId || exportAsset.workspaceId || null,
+    usageType: "distribution",
+    amount: 1,
+  });
+
+  if (!usageCheck.ok) {
+    await recordCreatorUsageBlocked({
+      companyId,
+      workspaceId: workspaceId || exportAsset.workspaceId || null,
+      usageType: "distribution",
+      entityType: "CreatorExportAsset",
+      entityId: exportId,
+      reason: usageCheck.reason,
+      metadata: {
+        projectId: exportAsset.projectId,
+        projectType: exportAsset.projectType,
+        channel,
+        actorId: createdBy || "system-owner",
+        actorType,
+        planTier: usageCheck.plan.tier,
+      },
+    });
+
+    return {
+      ok: false,
+      status: "LIMIT_EXCEEDED",
+      reason: usageCheck.reason,
+      usage: usageCheck,
+    };
+  }
+
   const title = exportAsset.title || "OmegaCrownAI Creator Export";
   const description =
     exportAsset.description ||
@@ -212,6 +246,21 @@ export async function createCreatorDistribution({
     },
   });
 
+  await recordCreatorUsage({
+    companyId,
+    workspaceId: workspaceId || exportAsset.workspaceId || null,
+    usageType: "distribution",
+    amount: 1,
+    entityType: "CreatorDistributionRecord",
+    entityId: distribution.id,
+    metadata: {
+      exportId,
+      channel,
+      shareSlug,
+      shareUrl,
+    },
+  });
+
   await recordAuditEvent({
     companyId,
     workspaceId: workspaceId || exportAsset.workspaceId || null,
@@ -235,6 +284,7 @@ export async function createCreatorDistribution({
     ok: true,
     status: "READY",
     distribution,
+    usage: usageCheck,
   };
 }
 
