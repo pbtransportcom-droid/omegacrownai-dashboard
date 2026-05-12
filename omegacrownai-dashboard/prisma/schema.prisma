@@ -2722,3 +2722,80 @@ model SovereignRepairAction {
   @@index([status])
   @@index([createdAt])
 }
+
+model QAImprovementRun {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  projectType String  @default("video")
+  versionId   String?
+
+  status      String @default("queued")
+  targetScore Int    @default(80)
+  maxAttempts Int    @default(3)
+  attempt     Int    @default(0)
+
+  initialScore  Int?
+  finalScore    Int?
+  initialStatus String?
+  finalStatus   String?
+
+  improvementPlanJson Json?
+  resultJson          Json?
+  error               String?
+
+  actorId   String?
+  actorType String  @default("system")
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions QAImprovementAction[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([versionId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model QAImprovementAction {
+  id String @id @default(cuid())
+
+  runId     String
+  companyId String
+  projectId String
+  versionId String?
+
+  actionType String
+  status     String  @default("queued")
+  priority   String  @default("medium")
+  reason     String?
+  patchJson  Json?
+  resultJson Json?
+  error      String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  run QAImprovementRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([versionId])
+  @@index([actionType])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
