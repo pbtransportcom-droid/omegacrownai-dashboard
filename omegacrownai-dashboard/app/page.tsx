@@ -126,6 +126,11 @@ export default function HomePage() {
             Privacy
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/provider-secrets" className="inline-flex rounded-xl bg-purple-500 px-5 py-3 text-sm font-black text-white hover:bg-purple-400">
+            Provider Secrets Vault
+          </a>
+        </div>
       </section>
     </main>
   );

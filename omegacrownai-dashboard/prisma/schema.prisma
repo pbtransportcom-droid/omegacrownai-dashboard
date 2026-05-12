@@ -4141,3 +4141,113 @@ model LaunchChecklistItem {
   @@index([status])
   @@index([severity])
 }
+
+model ProviderEnvironment {
+  id String @id @default(cuid())
+
+  provider String // stripe, square, swipesimple, youtube, tiktok, instagram, linkedin, x, elevenlabs, stability, etc.
+  category String // payment, publishing, tts, image, video, storage, monitoring
+  mode     String @default("test") // test, live
+  status   String @default("inactive") // inactive, configured, ready, blocked, error
+
+  displayName String?
+  liveEnabled Boolean @default(false)
+  testEnabled Boolean @default(true)
+
+  requiredSecrets Json?
+  validationJson  Json?
+  lastValidatedAt DateTime?
+  lastError       String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  secrets ProviderSecret[]
+
+  @@unique([provider, category, mode])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([status])
+  @@index([liveEnabled])
+}
+
+model ProviderSecret {
+  id String @id @default(cuid())
+
+  environmentId String?
+
+  provider String
+  category String
+  mode     String @default("test")
+
+  secretName String
+  secretType String @default("api_key") // api_key, client_secret, webhook_secret, oauth_client, token, private_key
+  status     String @default("active") // active, rotated, revoked, expired
+
+  keyPrefix      String?
+  secretHash     String
+  encryptedValue String?
+  maskedValue    String?
+
+  lastFour   String?
+  expiresAt  DateTime?
+  rotatedAt  DateTime?
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+
+  createdByAdminId String?
+  rotatedByAdminId String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  environment ProviderEnvironment? @relation(fields: [environmentId], references: [id], onDelete: SetNull)
+
+  rotations ProviderSecretRotation[]
+
+  @@index([environmentId])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([secretName])
+  @@index([secretType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ProviderSecretRotation {
+  id String @id @default(cuid())
+
+  secretId String
+
+  provider String
+  category String
+  mode     String
+
+  rotationType String @default("manual") // manual, scheduled, emergency
+  status       String @default("completed") // pending, completed, failed
+
+  oldSecretHash    String?
+  newSecretHash    String?
+  rotatedByAdminId String?
+  reason           String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  secret ProviderSecret @relation(fields: [secretId], references: [id], onDelete: Cascade)
+
+  @@index([secretId])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([rotationType])
+  @@index([status])
+  @@index([createdAt])
+}
