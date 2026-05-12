@@ -97,6 +97,11 @@ export default function HomePage() {
         <a href="/onboarding" className="mt-4 inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
           Start Onboarding
         </a>
+              <div className="mt-3">
+          <a href="/customer?email=phase62-billing@omegacrownai.com" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+            Open Customer Dashboard
+          </a>
+        </div>
       </section>
     </main>
   );

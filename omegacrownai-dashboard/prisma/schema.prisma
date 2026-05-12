@@ -3273,6 +3273,7 @@ model CustomerUser {
   authProviders  CustomerAuthProvider[]
   sessions       CustomerSession[]
   onboardingRuns CustomerOnboardingSession[]
+  apiKeys        CustomerApiKey[]
 }
 
 model CustomerAuthProvider {
@@ -3342,6 +3343,7 @@ model CustomerOrganization {
   onboardingRuns        CustomerOnboardingSession[]
   paymentProviders      PaymentProvider[]
   customerSubscriptions CustomerSubscription[]
+  customerApiKeys       CustomerApiKey[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3528,4 +3530,33 @@ model BillingEvent {
   @@index([status])
   @@index([externalEventId])
   @@index([createdAt])
+}
+
+model CustomerApiKey {
+  id String @id @default(cuid())
+
+  userId         String?
+  organizationId String
+
+  name      String
+  keyPrefix String
+  keyHash   String @unique
+
+  status     String    @default("active") // active, revoked
+  scopes     Json?
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         CustomerUser?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([keyPrefix])
 }
