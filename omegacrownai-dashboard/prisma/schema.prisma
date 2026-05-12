@@ -1908,3 +1908,69 @@ model EditorsRoomMessage {
   @@index([agentType])
   @@index([createdAt])
 }
+
+model SoundDesignRoomSession {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String?
+  projectType String  @default("video")
+
+  topic    String
+  status   String @default("open")
+  metadata Json?
+
+  rounds SoundDesignRoomRound[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SoundDesignRoomRound {
+  id String @id @default(cuid())
+
+  sessionId     String
+  index         Int
+  audioJson     Json?
+  summary       String?
+  audioPlanJson Json?
+  consensus     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session  SoundDesignRoomSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages SoundDesignRoomMessage[]
+
+  @@index([sessionId])
+  @@index([index])
+  @@index([consensus])
+  @@index([createdAt])
+}
+
+model SoundDesignRoomMessage {
+  id String @id @default(cuid())
+
+  roundId    String
+  role       String
+  agentType  String?
+  content    String
+  parsedJson Json?
+
+  createdAt DateTime @default(now())
+
+  round SoundDesignRoomRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+  @@index([role])
+  @@index([agentType])
+  @@index([createdAt])
+}
