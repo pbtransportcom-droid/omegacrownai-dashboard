@@ -2873,3 +2873,83 @@ model SovereignPublishEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model CreatorExportAsset {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  projectType String  @default("video")
+
+  title       String?
+  description String?
+
+  assetType String @default("video")
+  format    String @default("mp4")
+  status    String @default("queued")
+
+  fileName        String?
+  filePath        String?
+  publicUrl       String?
+  mimeType        String?
+  sizeBytes       Int?
+  durationSeconds Int?
+
+  renderJobId      String?
+  policyDecisionId String?
+  qaScorecardId    String?
+  publishId        String?
+
+  manifestJson Json?
+  metadata     Json?
+  error        String?
+
+  createdBy   String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events CreatorExportEvent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([assetType])
+  @@index([format])
+  @@index([status])
+  @@index([renderJobId])
+  @@index([policyDecisionId])
+  @@index([qaScorecardId])
+  @@index([publishId])
+  @@index([createdAt])
+}
+
+model CreatorExportEvent {
+  id String @id @default(cuid())
+
+  exportId    String
+  companyId   String
+  projectId   String
+  projectType String @default("video")
+
+  type     String
+  status   String  @default("recorded")
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  export CreatorExportAsset @relation(fields: [exportId], references: [id], onDelete: Cascade)
+
+  @@index([exportId])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
