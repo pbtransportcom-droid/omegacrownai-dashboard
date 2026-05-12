@@ -3338,8 +3338,10 @@ model CustomerOrganization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships    CustomerMembership[]
-  onboardingRuns CustomerOnboardingSession[]
+  memberships           CustomerMembership[]
+  onboardingRuns        CustomerOnboardingSession[]
+  paymentProviders      PaymentProvider[]
+  customerSubscriptions CustomerSubscription[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3427,5 +3429,103 @@ model CustomerOnboardingEvent {
   @@index([userId])
   @@index([type])
   @@index([status])
+  @@index([createdAt])
+}
+
+model PaymentProvider {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+
+  provider String @default("manual") // manual, stripe, square, swipesimple
+  status   String @default("inactive") // inactive, connected, error
+  mode     String @default("test") // test, live, manual
+
+  displayName       String?
+  externalAccountId String?
+
+  credentialsJson Json?
+  metadata        Json?
+
+  connectedAt    DateTime?
+  disconnectedAt DateTime?
+  lastError      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([status])
+  @@index([mode])
+}
+
+model CustomerSubscription {
+  id String @id @default(cuid())
+
+  organizationId    String
+  companyId         String?
+  paymentProviderId String?
+
+  provider String @default("manual") // manual, stripe, square, swipesimple
+  planTier String @default("starter") // free, starter, pro, studio, enterprise
+  status   String @default("active") // trialing, active, past_due, cancelled, manual
+
+  billingCycle String @default("monthly") // monthly, annual, manual
+  currency     String @default("usd")
+  amountCents  Int    @default(0)
+
+  externalCustomerId     String?
+  externalSubscriptionId String?
+  externalPriceId        String?
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  trialEndsAt        DateTime?
+  cancelledAt        DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([paymentProviderId])
+  @@index([provider])
+  @@index([planTier])
+  @@index([status])
+}
+
+model BillingEvent {
+  id String @id @default(cuid())
+
+  organizationId String?
+  companyId      String?
+
+  provider  String @default("manual")
+  eventType String
+  status    String @default("received") // received, processed, failed, ignored
+
+  externalEventId String?
+  subscriptionId  String?
+  payloadJson     Json?
+  error           String?
+
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([eventType])
+  @@index([status])
+  @@index([externalEventId])
   @@index([createdAt])
 }

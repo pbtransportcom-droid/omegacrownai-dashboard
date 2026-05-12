@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { getOrCreateCompanyBrandKit } from "@/lib/sugent/brand-kit/brandKitEngine";
 import { getOrCreateCreatorBillingPlan } from "@/lib/sugent/billing/creatorBillingEngine";
+import { bootstrapOrganizationBilling } from "@/lib/sugent/customer-billing/customerPaymentProviderEngine";
 
 function slugify(value: string) {
   const base = String(value || "customer")
@@ -114,6 +115,13 @@ export async function startCustomerOnboarding({
     },
   });
 
+  const billingBootstrap = await bootstrapOrganizationBilling({
+    organizationId: organization.id,
+    companyId: null,
+    planTier: selectedPlanTier,
+    paymentMode,
+  });
+
   await prisma.customerOnboardingEvent.create({
     data: {
       onboardingId: onboarding.id,
@@ -125,6 +133,8 @@ export async function startCustomerOnboarding({
       metadata: {
         selectedPlanTier,
         paymentMode,
+        paymentProviderId: billingBootstrap.paymentProvider.id,
+        subscriptionId: billingBootstrap.subscription.id,
       },
     },
   });
@@ -134,6 +144,7 @@ export async function startCustomerOnboarding({
     user,
     organization,
     onboarding,
+    billing: billingBootstrap,
   };
 }
 

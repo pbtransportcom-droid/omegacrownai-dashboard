@@ -17,7 +17,7 @@ export default function OnboardingPage() {
         </h1>
 
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200">
-          Create your customer account, organization, and starter workspace. Payment is optional and can be connected later through Stripe, Square, SwipeSimple, or manual billing.
+          Create your customer account, organization, and starter workspace. Payment is optional and can be connected later through Stripe, Square, SwipeSimple, or manual billing. Phase 62 now creates manual billing and subscription records automatically during onboarding.
         </p>
       </section>
 
