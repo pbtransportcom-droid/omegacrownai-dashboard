@@ -2799,3 +2799,77 @@ model QAImprovementAction {
   @@index([priority])
   @@index([createdAt])
 }
+
+model SovereignPublishRecord {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  projectType String  @default("video")
+
+  status      String  @default("queued")
+  channel     String  @default("internal")
+  title       String?
+  description String?
+
+  policyDecisionId String?
+  qaScorecardId    String?
+  passportHash     String?
+  deploymentId     String?
+
+  publishPayloadJson Json?
+  resultJson         Json?
+  error              String?
+
+  actorId   String?
+  actorType String  @default("system")
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events SovereignPublishEvent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([channel])
+  @@index([policyDecisionId])
+  @@index([qaScorecardId])
+  @@index([passportHash])
+  @@index([deploymentId])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([createdAt])
+}
+
+model SovereignPublishEvent {
+  id String @id @default(cuid())
+
+  publishId   String
+  companyId   String
+  projectId   String
+  projectType String @default("video")
+
+  type     String
+  status   String  @default("recorded")
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  publish SovereignPublishRecord @relation(fields: [publishId], references: [id], onDelete: Cascade)
+
+  @@index([publishId])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
