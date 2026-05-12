@@ -67,7 +67,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, usage limits, download links, render evidence, public share links, and export-ready distribution records.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, usage limits, tracked download portals, QR share pages, render evidence, and export-ready distribution records.
         </p>
       </section>
 

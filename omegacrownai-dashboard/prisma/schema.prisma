@@ -3221,3 +3221,31 @@ model CreatorUsageEvent {
   @@index([entityId])
   @@index([createdAt])
 }
+
+model CreatorSharePortalEvent {
+  id String @id @default(cuid())
+
+  companyId      String
+  distributionId String
+  exportId       String?
+
+  shareSlug String
+  eventType String
+  status    String @default("recorded")
+
+  userAgent String?
+  ipHash    String?
+  referrer  String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([distributionId])
+  @@index([exportId])
+  @@index([shareSlug])
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+}

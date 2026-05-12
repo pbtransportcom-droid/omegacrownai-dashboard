@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { checkCreatorUsageLimit, recordCreatorUsage, recordCreatorUsageBlocked } from "@/lib/sugent/billing/creatorBillingEngine";
@@ -325,4 +326,120 @@ export async function getPublicShareBySlug(slug: string) {
   });
 
   return record;
+}
+
+function hashIp(value?: string | null) {
+  if (!value) return null;
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+export async function recordSharePortalEvent({
+  slug,
+  eventType,
+  userAgent,
+  ip,
+  referrer,
+  metadata,
+}: {
+  slug: string;
+  eventType: string;
+  userAgent?: string | null;
+  ip?: string | null;
+  referrer?: string | null;
+  metadata?: any;
+}) {
+  const record = await getPublicShareBySlug(slug);
+
+  if (!record) {
+    return {
+      ok: false,
+      status: "NOT_FOUND",
+      reason: "Share record not found.",
+    };
+  }
+
+  const event = await prisma.creatorSharePortalEvent.create({
+    data: {
+      companyId: record.companyId,
+      distributionId: record.id,
+      exportId: record.exportId,
+      shareSlug: slug,
+      eventType,
+      status: "recorded",
+      userAgent: userAgent || null,
+      ipHash: hashIp(ip),
+      referrer: referrer || null,
+      metadata: metadata || {},
+    },
+  });
+
+  await prisma.creatorDistributionEvent.create({
+    data: {
+      distributionId: record.id,
+      companyId: record.companyId,
+      exportId: record.exportId,
+      channel: record.channel,
+      type: `SHARE_${eventType.toUpperCase()}`,
+      status: "recorded",
+      message: `Share portal event recorded: ${eventType}.`,
+      metadata: {
+        shareSlug: slug,
+        eventId: event.id,
+      },
+    },
+  });
+
+  return {
+    ok: true,
+    event,
+  };
+}
+
+export async function getSharePortalDetails(slug: string) {
+  const record = await prisma.creatorDistributionRecord.findFirst({
+    where: {
+      shareSlug: slug,
+      status: "ready",
+    },
+    include: {
+      events: {
+        orderBy: { createdAt: "desc" },
+        take: 25,
+      },
+    },
+  });
+
+  if (!record) return null;
+
+  const [exportAsset, portalEvents] = await Promise.all([
+    prisma.creatorExportAsset.findFirst({
+      where: {
+        id: record.exportId,
+        companyId: record.companyId,
+      },
+    }),
+    prisma.creatorSharePortalEvent.findMany({
+      where: {
+        distributionId: record.id,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }),
+  ]);
+
+  const views = portalEvents.filter((event) => event.eventType === "view").length;
+  const downloads = portalEvents.filter((event) => event.eventType === "download").length;
+  const opens = portalEvents.filter((event) => event.eventType === "open_media").length;
+
+  return {
+    record,
+    exportAsset,
+    portalEvents,
+    summary: {
+      views,
+      downloads,
+      opens,
+      events: portalEvents.length,
+    },
+  };
 }
