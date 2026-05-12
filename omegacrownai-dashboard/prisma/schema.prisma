@@ -3339,15 +3339,17 @@ model CustomerOrganization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships                 CustomerMembership[]
-  onboardingRuns              CustomerOnboardingSession[]
-  paymentProviders            PaymentProvider[]
-  customerSubscriptions       CustomerSubscription[]
-  customerApiKeys             CustomerApiKey[]
-  customerTeamInvitations     CustomerTeamInvitation[]
-  customerPermissionOverrides CustomerPermissionOverride[]
-  customerExternalAccounts    CustomerExternalAccount[]
-  customerPublishingJobs      CustomerPublishingJob[]
+  memberships                        CustomerMembership[]
+  onboardingRuns                     CustomerOnboardingSession[]
+  paymentProviders                   PaymentProvider[]
+  customerSubscriptions              CustomerSubscription[]
+  customerApiKeys                    CustomerApiKey[]
+  customerTeamInvitations            CustomerTeamInvitation[]
+  customerPermissionOverrides        CustomerPermissionOverride[]
+  customerExternalAccounts           CustomerExternalAccount[]
+  customerPublishingJobs             CustomerPublishingJob[]
+  customerPremiumProviderCredentials CustomerPremiumProviderCredential[]
+  customerPremiumProviderRuns        CustomerPremiumProviderRun[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3733,6 +3735,128 @@ model CustomerPublishingEvent {
   @@index([publishingJobId])
   @@index([provider])
   @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CustomerPremiumProviderCredential {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+
+  provider String // elevenlabs, playht, aws_polly, google_tts, stability, runway, pika, omega_native
+  category String // tts, image, video, music
+  status   String @default("inactive") // inactive, connected, error, revoked
+  mode     String @default("test") // test, live
+
+  displayName    String?
+  defaultModel   String?
+  defaultVoiceId String?
+  credentialHash String?
+  credentialJson Json?
+  configJson     Json?
+  metadata       Json?
+
+  connectedByUserId String?
+  connectedAt       DateTime?
+  revokedAt         DateTime?
+  lastError         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([category])
+  @@index([status])
+  @@index([mode])
+}
+
+model CustomerPremiumProviderUsageEvent {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+
+  credentialId String?
+  provider     String
+  category     String
+  model        String?
+
+  usageType String // tts_characters, tts_seconds, images, video_seconds, music_seconds
+  amount    Int    @default(1)
+  costCents Int    @default(0)
+
+  entityType String?
+  entityId   String?
+
+  requestHash  String?
+  responseHash String?
+  status       String  @default("recorded") // recorded, simulated, failed, fallback
+  error        String?
+
+  requestJson  Json?
+  responseJson Json?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([credentialId])
+  @@index([provider])
+  @@index([category])
+  @@index([usageType])
+  @@index([status])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+model CustomerPremiumProviderRun {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+
+  credentialId     String?
+  provider         String
+  fallbackProvider String?
+  category         String
+
+  status     String  @default("queued") // queued, running, completed, failed, fallback
+  inputType  String?
+  outputType String?
+
+  prompt  String?
+  model   String?
+  voiceId String?
+
+  requestJson  Json?
+  responseJson Json?
+  outputUrl    String?
+  error        String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([credentialId])
+  @@index([provider])
+  @@index([fallbackProvider])
+  @@index([category])
   @@index([status])
   @@index([createdAt])
 }
