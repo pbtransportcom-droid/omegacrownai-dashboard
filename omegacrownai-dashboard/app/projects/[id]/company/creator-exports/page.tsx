@@ -37,6 +37,10 @@ export default async function CreatorExportsPage({
       ])
     : [[], []];
 
+  const latest = data?.exports?.[0] || null;
+  const completed = data?.exports?.filter((item: any) => item.status === "completed") || [];
+  const blocked = data?.exports?.filter((item: any) => item.status === "blocked") || [];
+
   return (
     <main className="space-y-6">
       <div className="flex justify-center">
@@ -49,15 +53,15 @@ export default async function CreatorExportsPage({
         </Link>
 
         <p className="mt-5 text-xs uppercase tracking-[0.25em] text-cyan-300">
-          Native Creator Product Completion · v3.0 Phase 46
+          Creator Export Polish + Media Player UI · v3.4 Phase 50
         </p>
 
         <h1 className="mt-3 text-4xl font-black text-white">
-          Creator Exports · {project?.name || "Project"}
+          Creator Media Library · {project?.name || "Project"}
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Generate video and podcast export records after runtime policy allows. This phase renders real MP4 videos and real MP3 podcast exports with placeholder narration cues, intro/outro beds, metadata, and download-ready export history.
+          Preview finished MP4 videos and MP3 podcasts directly in the dashboard, download exports, inspect render evidence, and manage your creator output history.
         </p>
       </section>
 
@@ -72,9 +76,30 @@ export default async function CreatorExportsPage({
             <Metric label="Podcast" value={String(data.summary.podcast)} />
           </section>
 
+          {latest && (
+            <section className="rounded-3xl border border-cyan-400/30 bg-cyan-500/10 p-5">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Latest Export</p>
+                  <h2 className="mt-2 text-2xl font-black text-white">{latest.title || "Creator Export"}</h2>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {latest.status} · {latest.projectType} · {latest.format} · {latest.sizeBytes ? formatBytes(latest.sizeBytes) : "size pending"}
+                  </p>
+                </div>
+
+                <StatusPill status={latest.status} />
+              </div>
+
+              <div className="mt-5">
+                <MediaPreview item={latest} featured />
+              </div>
+            </section>
+          )}
+
           <section className="grid gap-6 xl:grid-cols-2">
             <section className="rounded-3xl border border-border bg-panel/70 p-5">
-              <h2 className="text-xl font-black text-white">Export Video</h2>
+              <h2 className="text-xl font-black text-white">Create Video Export</h2>
+              <p className="mt-2 text-sm text-muted">Render a real MP4 with scene cards and audio bed.</p>
 
               <form action={`/api/company/${company.id}/creator-export/execute`} method="POST" className="mt-4 grid gap-3">
                 <input type="hidden" name="projectType" value="video" />
@@ -90,13 +115,14 @@ export default async function CreatorExportsPage({
                 </select>
 
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
-                  Create Video Export
+                  Render MP4 Export
                 </button>
               </form>
             </section>
 
             <section className="rounded-3xl border border-border bg-panel/70 p-5">
-              <h2 className="text-xl font-black text-white">Export Podcast</h2>
+              <h2 className="text-xl font-black text-white">Create Podcast Export</h2>
+              <p className="mt-2 text-sm text-muted">Render a real MP3 podcast with intro/outro audio bed.</p>
 
               <form action={`/api/company/${company.id}/creator-export/execute`} method="POST" className="mt-4 grid gap-3">
                 <input type="hidden" name="projectType" value="podcast" />
@@ -112,53 +138,72 @@ export default async function CreatorExportsPage({
                 </select>
 
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
-                  Create Podcast Export
+                  Render MP3 Export
                 </button>
               </form>
             </section>
           </section>
 
           <section className="rounded-3xl border border-border bg-panel/70 p-5">
-            <h2 className="text-xl font-black text-white">Export History</h2>
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-xl font-black text-white">Completed Media</h2>
+                <p className="mt-2 text-sm text-muted">Preview and download finished video and podcast exports.</p>
+              </div>
+              <div className="text-sm text-cyan-300">{completed.length} ready</div>
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-2">
+              {completed.length ? (
+                completed.map((item: any) => <ExportCard key={item.id} item={item} />)
+              ) : (
+                <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
+                  No completed media exports yet.
+                </div>
+              )}
+            </div>
+          </section>
+
+          {!!blocked.length && (
+            <section className="rounded-3xl border border-red-400/30 bg-red-500/10 p-5">
+              <h2 className="text-xl font-black text-white">Blocked Exports</h2>
+              <p className="mt-2 text-sm text-red-100">These exports were stopped by runtime policy and need QA, identity, governance, or audit repair.</p>
+
+              <div className="mt-5 space-y-3">
+                {blocked.map((item: any) => (
+                  <div key={item.id} className="rounded-2xl border border-red-400/20 bg-black/20 p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="text-sm font-black text-white">{item.title || "Blocked Export"}</div>
+                        <div className="mt-1 text-xs text-red-200">{item.projectType} · {item.format}</div>
+                        {item.error && <p className="mt-2 text-xs text-red-100">{item.error}</p>}
+                      </div>
+                      <StatusPill status={item.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="rounded-3xl border border-border bg-panel/70 p-5">
+            <h2 className="text-xl font-black text-white">Full Export History</h2>
 
             <div className="mt-4 space-y-3">
               {data.exports.length ? (
                 data.exports.map((item: any) => (
-                  <div key={item.id} className="rounded-2xl border border-border bg-black/20 p-4">
-                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                      <div>
-                        <div className="text-sm font-black text-white">{item.title || "Creator Export"}</div>
-                        <div className="mt-1 text-xs text-cyan-300">
-                          {item.status} · {item.projectType} · {item.format}
-                        </div>
-                        <div className="mt-1 font-mono text-[11px] text-muted">{item.id}</div>
-                      </div>
+                  <details key={item.id} className="rounded-2xl border border-border bg-black/20 p-4">
+                    <summary className="cursor-pointer text-sm font-black text-white">
+                      {item.title || "Creator Export"} · {item.status} · {item.projectType} · {item.format}
+                    </summary>
 
-                      <span className={`rounded-full px-3 py-1 text-xs font-black ${
-                        item.status === "completed"
-                          ? "bg-emerald-600 text-white"
-                          : item.status === "blocked"
-                            ? "bg-red-600 text-white"
-                            : "bg-slate-700 text-white"
-                      }`}>
-                        {item.status}
-                      </span>
-                    </div>
-
-                    <div className="mt-3 grid gap-2 text-xs">
+                    <div className="mt-4 grid gap-2 text-xs">
+                      <HashRow label="ID" value={item.id} />
                       <HashRow label="Public URL" value={item.publicUrl || "none"} />
                       <HashRow label="QA Scorecard" value={item.qaScorecardId || "none"} />
                       <HashRow label="Policy Decision" value={item.policyDecisionId || "none"} />
+                      <HashRow label="Manifest" value={item.metadata?.manifestPublicUrl || "none"} />
                     </div>
-
-                    {item.publicUrl && (
-                      <a
-                        href={item.publicUrl}
-                        className="mt-4 inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/20"
-                      >
-                        Open Export
-                      </a>
-                    )}
 
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {item.events.map((event: any) => (
@@ -171,9 +216,9 @@ export default async function CreatorExportsPage({
                     </div>
 
                     <pre className="mt-3 max-h-72 overflow-auto rounded-xl border border-border bg-slate-950 p-3 text-xs text-slate-200">
-                      {JSON.stringify(item.manifestJson || item.metadata || {}, null, 2)}
+                      {JSON.stringify(item.metadata || item.manifestJson || {}, null, 2)}
                     </pre>
-                  </div>
+                  </details>
                 ))
               ) : (
                 <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
@@ -189,6 +234,115 @@ export default async function CreatorExportsPage({
         </section>
       )}
     </main>
+  );
+}
+
+function ExportCard({ item }: { item: any }) {
+  return (
+    <div className="rounded-2xl border border-border bg-black/20 p-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="text-sm font-black text-white">{item.title || "Creator Export"}</div>
+          <div className="mt-1 text-xs text-cyan-300">
+            {item.projectType} · {item.format} · {item.sizeBytes ? formatBytes(item.sizeBytes) : "size pending"}
+          </div>
+          <div className="mt-1 font-mono text-[11px] text-muted">{item.id}</div>
+        </div>
+
+        <StatusPill status={item.status} />
+      </div>
+
+      <div className="mt-4">
+        <MediaPreview item={item} />
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {item.publicUrl && (
+          <>
+            <a
+              href={item.publicUrl}
+              className="rounded-xl bg-cyan-600 px-3 py-2 text-xs font-black text-white hover:bg-cyan-500"
+            >
+              Open
+            </a>
+            <a
+              href={item.publicUrl}
+              download
+              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Download
+            </a>
+          </>
+        )}
+
+        {item.metadata?.manifestPublicUrl && (
+          <a
+            href={item.metadata.manifestPublicUrl}
+            className="rounded-xl border border-slate-400/20 bg-slate-500/10 px-3 py-2 text-xs font-black text-slate-100 hover:bg-slate-500/20"
+          >
+            Manifest
+          </a>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-2 text-xs">
+        <HashRow label="Renderer" value={item.metadata?.renderer || "none"} />
+        <HashRow label="Output" value={item.metadata?.outputType || "none"} />
+        <HashRow label="Policy" value={item.metadata?.policyStatus || "none"} />
+      </div>
+    </div>
+  );
+}
+
+function MediaPreview({ item, featured = false }: { item: any; featured?: boolean }) {
+  if (!item.publicUrl) {
+    return (
+      <div className="rounded-2xl border border-border bg-slate-950 p-4 text-sm text-muted">
+        No media URL available.
+      </div>
+    );
+  }
+
+  if (item.format === "mp4" || item.assetType === "video") {
+    return (
+      <video
+        src={item.publicUrl}
+        controls
+        preload="metadata"
+        className={`w-full rounded-2xl border border-border bg-black ${featured ? "max-h-[560px]" : "max-h-[360px]"}`}
+      />
+    );
+  }
+
+  if (item.format === "mp3" || item.assetType === "audio") {
+    return (
+      <div className="rounded-2xl border border-border bg-slate-950 p-4">
+        <div className="mb-3 text-xs uppercase tracking-[0.18em] text-cyan-300">Podcast Preview</div>
+        <audio src={item.publicUrl} controls preload="metadata" className="w-full" />
+      </div>
+    );
+  }
+
+  return (
+    <a href={item.publicUrl} className="text-sm text-cyan-300 hover:underline">
+      Open export
+    </a>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  return (
+    <span className={`rounded-full px-3 py-1 text-xs font-black ${
+      status === "completed"
+        ? "bg-emerald-600 text-white"
+        : status === "blocked"
+          ? "bg-red-600 text-white"
+          : status === "running"
+            ? "bg-yellow-600 text-white"
+            : "bg-slate-700 text-white"
+    }`}>
+      {status}
+    </span>
   );
 }
 
@@ -208,4 +362,18 @@ function Metric({ label, value }: { label: string; value: string }) {
       <div className="mt-2 truncate text-xl font-black text-white">{value}</div>
     </div>
   );
+}
+
+function formatBytes(bytes: number) {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+
+  while (value >= 1024 && unit < units.length - 1) {
+    value = value / 1024;
+    unit += 1;
+  }
+
+  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
 }
