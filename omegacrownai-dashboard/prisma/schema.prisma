@@ -2191,3 +2191,101 @@ model CloneDetectionEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model PlatformPassport {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name         String
+  passportType String @default("company")
+  status       String @default("active")
+
+  identityJson  Json
+  proofJson     Json?
+  passportHash  String
+  signatureHash String?
+
+  issuedBy  String?
+  issuedAt  DateTime  @default(now())
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  signatures PassportSignature[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([passportType])
+  @@index([status])
+  @@index([passportHash])
+  @@index([signatureHash])
+  @@index([issuedAt])
+}
+
+model ProjectPassport {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  projectType String  @default("video")
+
+  name   String
+  status String @default("active")
+
+  identityJson  Json
+  proofJson     Json?
+  passportHash  String
+  signatureHash String?
+
+  issuedBy  String?
+  issuedAt  DateTime  @default(now())
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  signatures PassportSignature[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([passportHash])
+  @@index([signatureHash])
+  @@index([issuedAt])
+}
+
+model PassportSignature {
+  id String @id @default(cuid())
+
+  companyId          String
+  workspaceId        String?
+  platformPassportId String?
+  projectPassportId  String?
+
+  signatureType    String @default("sha256")
+  signer           String @default("OmegaCrownAI")
+  payloadHash      String
+  signatureHash    String
+  verificationJson Json?
+
+  createdAt DateTime @default(now())
+
+  platformPassport PlatformPassport? @relation(fields: [platformPassportId], references: [id], onDelete: Cascade)
+  projectPassport  ProjectPassport?  @relation(fields: [projectPassportId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([platformPassportId])
+  @@index([projectPassportId])
+  @@index([signatureType])
+  @@index([signer])
+  @@index([payloadHash])
+  @@index([signatureHash])
+  @@index([createdAt])
+}
