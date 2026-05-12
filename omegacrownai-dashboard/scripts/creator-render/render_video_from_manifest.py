@@ -3,13 +3,13 @@ import json
 import os
 import subprocess
 import sys
-import textwrap
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH = 1280
 HEIGHT = 720
 FPS = 24
+SAMPLE_RATE = 44100
 
 def safe_text(value):
     return str(value or "").replace("\n", " ").strip()
@@ -53,14 +53,12 @@ def create_scene_card(scene, index, total, title, out_path):
     img = Image.new("RGB", (WIDTH, HEIGHT), (8, 12, 28))
     draw = ImageDraw.Draw(img)
 
-    # simple premium gradient bars
     for y in range(HEIGHT):
         r = int(8 + y / HEIGHT * 12)
         g = int(12 + y / HEIGHT * 22)
         b = int(28 + y / HEIGHT * 45)
         draw.line([(0, y), (WIDTH, y)], fill=(r, g, b))
 
-    # accent panels
     draw.rounded_rectangle((70, 60, WIDTH - 70, HEIGHT - 60), radius=36, outline=(58, 214, 255), width=3)
     draw.rounded_rectangle((95, 88, WIDTH - 95, HEIGHT - 88), radius=28, fill=(10, 20, 42))
 
@@ -82,12 +80,82 @@ def create_scene_card(scene, index, total, title, out_path):
         draw.text((120, y), "Generated creator scene card", font=font_body, fill=(225, 235, 255))
 
     draw.text((120, HEIGHT - 120), safe_text(title), font=font_footer, fill=(148, 163, 184))
-    draw.text((WIDTH - 360, HEIGHT - 120), "Your journey, our royal priority.", font=font_footer, fill=(148, 163, 184))
+    draw.text((WIDTH - 400, HEIGHT - 120), "OmegaCrownAI Creator Export", font=font_footer, fill=(148, 163, 184))
 
     img.save(out_path)
 
 def run(cmd):
     subprocess.run(cmd, check=True)
+
+def scene_tone_frequency(index):
+    # Gentle placeholder voice cue per scene, not speech synthesis yet.
+    base = 420
+    return base + (index % 6) * 35
+
+def create_voiceover_placeholder(scene, index, duration, out_path):
+    text = safe_text(scene.get("voiceoverText") or scene.get("scriptSegment") or scene.get("visualPrompt") or "")
+    word_count = max(len(text.split()), 1)
+    freq = scene_tone_frequency(index)
+
+    # A low-volume pulsed tone acts as a placeholder for future TTS timing.
+    # It is intentionally quiet and mixed under the music bed.
+    run([
+        "ffmpeg", "-y",
+        "-f", "lavfi",
+        "-i", f"sine=frequency={freq}:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-af", "volume=0.055,afade=t=in:st=0:d=0.25,afade=t=out:st={}:d=0.35".format(max(duration - 0.35, 0)),
+        out_path.as_posix()
+    ])
+
+    return {
+        "sceneIndex": index,
+        "durationSeconds": duration,
+        "wordCount": word_count,
+        "frequency": freq,
+        "type": "voiceover_placeholder_tone"
+    }
+
+def create_music_bed(duration, out_path):
+    # Royal/premium ambient placeholder bed using layered soft sine tones.
+    run([
+        "ffmpeg", "-y",
+        "-f", "lavfi",
+        "-i", f"sine=frequency=110:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-f", "lavfi",
+        "-i", f"sine=frequency=220:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-filter_complex",
+        "[0:a]volume=0.035[a0];[1:a]volume=0.018[a1];[a0][a1]amix=inputs=2:duration=longest,afade=t=in:st=0:d=1,afade=t=out:st={}:d=1[a]".format(max(duration - 1, 0)),
+        "-map", "[a]",
+        out_path.as_posix()
+    ])
+
+def concat_audio_files(audio_files, concat_path, output_path):
+    concat_path.write_text(
+        "".join([f"file '{file.as_posix()}'\n" for file in audio_files]),
+        encoding="utf-8"
+    )
+
+    run([
+        "ffmpeg", "-y",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", concat_path.as_posix(),
+        "-c", "copy",
+        output_path.as_posix()
+    ])
+
+def mix_audio(voice_track, music_bed, output_path):
+    run([
+        "ffmpeg", "-y",
+        "-i", voice_track.as_posix(),
+        "-i", music_bed.as_posix(),
+        "-filter_complex",
+        "[0:a]volume=1.0[a0];[1:a]volume=1.0[a1];[a0][a1]amix=inputs=2:duration=longest:dropout_transition=0,alimiter=limit=0.8[a]",
+        "-map", "[a]",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        output_path.as_posix()
+    ])
 
 def main():
     if len(sys.argv) != 4:
@@ -113,22 +181,30 @@ def main():
         }]
 
     concat_file = work_dir / "concat.txt"
-    lines = []
+    video_lines = []
+    audio_files = []
+    audio_manifest = []
 
     for index, scene in enumerate(scenes):
         duration = int(scene.get("durationSeconds") or 6)
         duration = max(3, min(duration, 20))
+
         card_path = work_dir / f"scene_{index + 1:03d}.png"
         create_scene_card(scene, index, len(scenes), title, card_path)
-        lines.append(f"file '{card_path.as_posix()}'\n")
-        lines.append(f"duration {duration}\n")
 
-    # ffmpeg concat needs last file repeated
+        video_lines.append(f"file '{card_path.as_posix()}'\n")
+        video_lines.append(f"duration {duration}\n")
+
+        scene_audio = work_dir / f"voice_scene_{index + 1:03d}.wav"
+        audio_info = create_voiceover_placeholder(scene, index, duration, scene_audio)
+        audio_manifest.append(audio_info)
+        audio_files.append(scene_audio)
+
     last_card = work_dir / f"scene_{len(scenes):03d}.png"
-    lines.append(f"file '{last_card.as_posix()}'\n")
-    concat_file.write_text("".join(lines), encoding="utf-8")
+    video_lines.append(f"file '{last_card.as_posix()}'\n")
+    concat_file.write_text("".join(video_lines), encoding="utf-8")
 
-    temp_mp4 = work_dir / "video_no_audio.mp4"
+    temp_video = work_dir / "video_no_audio.mp4"
 
     run([
         "ffmpeg", "-y",
@@ -138,17 +214,24 @@ def main():
         "-vsync", "vfr",
         "-pix_fmt", "yuv420p",
         "-r", str(FPS),
-        temp_mp4.as_posix()
+        temp_video.as_posix()
     ])
 
-    # Add silent audio track for compatibility.
-    total_duration = sum(max(3, min(int(scene.get("durationSeconds") or 6), 20)) for scene in scenes)
+    total_duration = sum(item["durationSeconds"] for item in audio_manifest)
+
+    voice_concat = work_dir / "voice_concat.txt"
+    voice_track = work_dir / "voice_placeholder.wav"
+    music_bed = work_dir / "music_bed.wav"
+    mixed_audio = work_dir / "mixed_audio.m4a"
+
+    concat_audio_files(audio_files, voice_concat, voice_track)
+    create_music_bed(total_duration, music_bed)
+    mix_audio(voice_track, music_bed, mixed_audio)
 
     run([
         "ffmpeg", "-y",
-        "-i", temp_mp4.as_posix(),
-        "-f", "lavfi",
-        "-i", f"anullsrc=channel_layout=stereo:sample_rate=44100",
+        "-i", temp_video.as_posix(),
+        "-i", mixed_audio.as_posix(),
         "-shortest",
         "-t", str(total_duration),
         "-c:v", "libx264",
@@ -165,6 +248,15 @@ def main():
         "sizeBytes": output_mp4.stat().st_size,
         "durationSeconds": total_duration,
         "sceneCount": len(scenes),
+        "audio": {
+            "renderer": "placeholder_voiceover_plus_music_bed",
+            "voiceTrack": voice_track.as_posix(),
+            "musicBed": music_bed.as_posix(),
+            "mixedAudio": mixed_audio.as_posix(),
+            "voiceoverPlaceholders": audio_manifest,
+            "codec": "aac",
+            "sampleRate": SAMPLE_RATE
+        }
     }))
 
 if __name__ == "__main__":

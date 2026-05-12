@@ -168,8 +168,9 @@ async function renderRealVideoExport({
     durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
     manifestFileName,
     manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
-    renderer: "ffmpeg_scene_card_renderer",
+    renderer: "ffmpeg_scene_card_audio_renderer",
     sceneCount: parsed.sceneCount || manifest.scenes?.length || 0,
+    audio: parsed.audio || null,
   };
 }
 
@@ -344,10 +345,12 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
-        outputType: projectType === "video" ? "mp4_video" : "manifest_placeholder",
-        renderer: projectType === "video" ? "ffmpeg_scene_card_renderer" : "manifest_placeholder",
+        outputType: projectType === "video" ? "mp4_video_with_audio" : "manifest_placeholder",
+        renderer: projectType === "video" ? "ffmpeg_scene_card_audio_renderer" : "manifest_placeholder",
+        audioRenderer: projectType === "video" ? "placeholder_voiceover_plus_music_bed" : null,
+        audio: (written as any).audio || null,
         manifestPublicUrl: (written as any).manifestPublicUrl || null,
-        nextRenderer: projectType === "podcast" ? "tts_audio_renderer" : "completed_ffmpeg_video_renderer",
+        nextRenderer: projectType === "podcast" ? "tts_audio_renderer" : "completed_ffmpeg_video_audio_renderer",
       },
     },
   });
@@ -361,7 +364,7 @@ export async function executeCreatorExport({
       type: "EXPORT_COMPLETED",
       status: "completed",
       message: projectType === "video"
-        ? "Creator export completed and real MP4 file was rendered."
+        ? "Creator export completed with real MP4 video and AAC audio bed."
         : "Creator export completed and file manifest was written.",
       metadata: {
         publicUrl: completed.publicUrl,
