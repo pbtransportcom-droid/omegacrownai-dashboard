@@ -320,7 +320,7 @@ export default async function VideoStudioPage({
         <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">v3.8 Timeline Export</p>
         <h2 className="mt-2 text-xl font-black text-white">Timeline-aware exports are enabled</h2>
         <p className="mt-2 text-sm leading-6 text-slate-300">
-          Creator Exports now uses scene ordering, captions, and duration settings from the video timeline when rendering MP4 files.
+          Creator Exports now uses scene ordering, generated visual scene assets, captions, and duration settings from the video timeline when rendering MP4 files.
         </p>
       </section>
 

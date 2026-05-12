@@ -197,6 +197,66 @@ async function writePlaceholderExport({
 }
 
 
+
+async function generateSceneAssetsForManifest({
+  companyId,
+  base,
+  manifestPath,
+  manifest,
+}: {
+  companyId: string;
+  base: string;
+  manifestPath: string;
+  manifest: any;
+}) {
+  const dir = await ensureExportDir(companyId);
+  const assetDir = path.join(dir, `${base}-assets`);
+  const scriptPath = path.join(process.cwd(), "scripts", "creator-render", "generate_scene_assets.py");
+
+  const { stdout } = await execFileAsync("python3", [
+    scriptPath,
+    manifestPath,
+    assetDir,
+  ], {
+    maxBuffer: 1024 * 1024 * 10,
+  });
+
+  const parsed = JSON.parse(String(stdout || "{}").trim());
+  const assets = Array.isArray(parsed.assets) ? parsed.assets : [];
+
+  const scenes = Array.isArray(manifest.scenes)
+    ? manifest.scenes.map((scene: any, index: number) => {
+        const asset = assets.find((item: any) => item.sceneIndex === index);
+
+        if (!asset) return scene;
+
+        return {
+          ...scene,
+          assetPath: asset.filePath,
+          assetPublicUrl: `/exports/${companyId}/${base}-assets/${asset.fileName}`,
+          assetEngine: asset.engine,
+        };
+      })
+    : [];
+
+  return {
+    manifest: {
+      ...manifest,
+      scenes,
+      visualAssets: {
+        enabled: true,
+        engine: "pillow_deterministic_visual_asset",
+        count: assets.length,
+        assets: assets.map((asset: any) => ({
+          ...asset,
+          publicUrl: `/exports/${companyId}/${base}-assets/${asset.fileName}`,
+        })),
+      },
+    },
+    assets,
+  };
+}
+
 async function renderRealVideoExport({
   companyId,
   title,
@@ -217,6 +277,16 @@ async function renderRealVideoExport({
 
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
 
+  const assetResult = await generateSceneAssetsForManifest({
+    companyId,
+    base,
+    manifestPath,
+    manifest,
+  });
+
+  const renderManifest = assetResult.manifest;
+  await fs.writeFile(manifestPath, JSON.stringify(renderManifest, null, 2), "utf-8");
+
   const scriptPath = path.join(process.cwd(), "scripts", "creator-render", "render_video_from_manifest.py");
 
   const { stdout } = await execFileAsync("python3", [
@@ -236,13 +306,14 @@ async function renderRealVideoExport({
     filePath: outputPath,
     publicUrl: `/exports/${companyId}/${mp4FileName}`,
     sizeBytes: stats.size,
-    durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
+    durationSeconds: parsed.durationSeconds || renderManifest.durationSeconds || manifest.durationSeconds || null,
     manifestFileName,
     manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
     renderer: "ffmpeg_scene_card_tts_audio_renderer",
     sceneCount: parsed.sceneCount || manifest.scenes?.length || 0,
     audio: parsed.audio || null,
     timeline: parsed.timeline || null,
+    visualAssets: parsed.visualAssets || renderManifest.visualAssets || null,
   };
 }
 
@@ -531,6 +602,7 @@ export async function executeCreatorExport({
         audioRenderer: projectType === "video" ? "espeak_tts_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_espeak_tts_narration_music_bed" : null,
         audio: (written as any).audio || null,
         timeline: (written as any).timeline || null,
+        visualAssets: (written as any).visualAssets || null,
         manifestPublicUrl: (written as any).manifestPublicUrl || null,
         nextRenderer: projectType === "podcast" ? "completed_podcast_tts_mp3_renderer" : "completed_ffmpeg_video_tts_audio_renderer",
       },

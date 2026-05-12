@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 WIDTH = 1280
 HEIGHT = 720
@@ -75,17 +75,25 @@ def draw_wrapped(draw, text, font, x, y, max_width, line_spacing=12, fill=(245, 
     return y
 
 def create_scene_card(scene, index, total, title, out_path):
-    img = Image.new("RGB", (WIDTH, HEIGHT), (8, 12, 28))
-    draw = ImageDraw.Draw(img)
+    asset_path = scene.get("assetPath") or scene.get("visualAssetPath")
 
-    for y in range(HEIGHT):
-        r = int(8 + y / HEIGHT * 12)
-        g = int(12 + y / HEIGHT * 22)
-        b = int(28 + y / HEIGHT * 45)
-        draw.line([(0, y), (WIDTH, y)], fill=(r, g, b))
+    if asset_path and os.path.exists(asset_path):
+        img = Image.open(asset_path).convert("RGB").resize((WIDTH, HEIGHT))
+        img = img.filter(ImageFilter.GaussianBlur(radius=0.2))
+    else:
+        img = Image.new("RGB", (WIDTH, HEIGHT), (8, 12, 28))
+        draw_base = ImageDraw.Draw(img)
+        for y in range(HEIGHT):
+            r = int(8 + y / HEIGHT * 12)
+            g = int(12 + y / HEIGHT * 22)
+            b = int(28 + y / HEIGHT * 45)
+            draw_base.line([(0, y), (WIDTH, y)], fill=(r, g, b))
 
-    draw.rounded_rectangle((70, 60, WIDTH - 70, HEIGHT - 60), radius=36, outline=(58, 214, 255), width=3)
-    draw.rounded_rectangle((95, 88, WIDTH - 95, HEIGHT - 88), radius=28, fill=(10, 20, 42))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    draw.rectangle((0, 0, WIDTH, HEIGHT), fill=(0, 0, 0, 85))
+    draw.rounded_rectangle((70, 60, WIDTH - 70, HEIGHT - 60), radius=36, outline=(58, 214, 255, 170), width=3)
+    draw.rounded_rectangle((95, 88, WIDTH - 95, HEIGHT - 88), radius=28, fill=(10, 20, 42, 125))
 
     font_small = load_font(28)
     font_title = load_font(56)
@@ -338,6 +346,18 @@ def main():
             "source": manifest.get("source") or "timeline_editor",
             "exportSettings": manifest.get("exportSettings") or {},
             "sceneDurations": [scene.get("durationSeconds") for scene in scenes],
+        },
+        "visualAssets": {
+            "enabled": any(scene.get("assetPath") or scene.get("visualAssetPath") for scene in scenes),
+            "assets": [
+                {
+                    "sceneIndex": index,
+                    "sceneId": scene.get("id"),
+                    "assetPath": scene.get("assetPath") or scene.get("visualAssetPath"),
+                    "assetEngine": scene.get("assetEngine"),
+                }
+                for index, scene in enumerate(scenes)
+            ],
         },
         "audio": {
             "renderer": "espeak_tts_voiceover_plus_music_bed",

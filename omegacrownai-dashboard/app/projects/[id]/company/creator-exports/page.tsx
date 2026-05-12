@@ -63,7 +63,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, timeline scene ordering, captions, duration controls, download links, render evidence, and creator output history.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, timeline scene ordering, generated scene assets, captions, duration controls, download links, render evidence, and creator output history.
         </p>
       </section>
 
@@ -419,6 +419,7 @@ function ExportCard({ item }: { item: any }) {
         <HashRow label="Policy" value={item.metadata?.policyStatus || "none"} />
         <HashRow label="Timeline" value={item.metadata?.timeline?.source || "none"} />
         <HashRow label="Scene Durations" value={item.metadata?.timeline?.sceneDurations ? item.metadata.timeline.sceneDurations.join(", ") : "none"} />
+        <HashRow label="Visual Assets" value={item.metadata?.visualAssets?.enabled ? `${item.metadata.visualAssets.assets?.length || item.metadata.visualAssets.count || 0} generated` : "none"} />
       </div>
     </div>
   );
