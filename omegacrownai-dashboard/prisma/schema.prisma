@@ -3350,6 +3350,7 @@ model CustomerOrganization {
   customerPublishingJobs             CustomerPublishingJob[]
   customerPremiumProviderCredentials CustomerPremiumProviderCredential[]
   customerPremiumProviderRuns        CustomerPremiumProviderRun[]
+  customerStorageAssets              CustomerStorageAsset[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3859,4 +3860,80 @@ model CustomerPremiumProviderRun {
   @@index([category])
   @@index([status])
   @@index([createdAt])
+}
+
+model CustomerStorageAsset {
+  id String @id @default(cuid())
+
+  organizationId String
+  companyId      String?
+  workspaceId    String?
+
+  assetType String // export, image, video, audio, manifest, thumbnail, document, other
+  mimeType  String?
+  fileName  String
+  extension String?
+  sizeBytes Int     @default(0)
+
+  storageProvider String  @default("local") // local, s3, gcs, cloudflare_r2
+  bucket          String?
+  objectKey       String?
+  localPath       String?
+  publicUrl       String?
+  signedUrl       String?
+  cdnUrl          String?
+
+  checksum   String?
+  status     String  @default("active") // pending, active, archived, deleted, failed
+  visibility String  @default("private") // private, public, signed
+
+  expiresAt DateTime?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  versions CustomerStorageAssetVersion[]
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([assetType])
+  @@index([storageProvider])
+  @@index([status])
+  @@index([visibility])
+  @@index([createdAt])
+}
+
+model CustomerStorageAssetVersion {
+  id String @id @default(cuid())
+
+  assetId String
+  version Int    @default(1)
+
+  storageProvider String  @default("local")
+  bucket          String?
+  objectKey       String?
+  localPath       String?
+  publicUrl       String?
+  signedUrl       String?
+  cdnUrl          String?
+
+  sizeBytes Int     @default(0)
+  checksum  String?
+  status    String  @default("active")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  asset CustomerStorageAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([version])
+  @@index([storageProvider])
+  @@index([status])
+  @@index([checksum])
 }
