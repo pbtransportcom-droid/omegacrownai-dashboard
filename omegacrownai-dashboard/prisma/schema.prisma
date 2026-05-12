@@ -2652,3 +2652,73 @@ model RuntimePolicyDecision {
   @@index([decision])
   @@index([createdAt])
 }
+
+model SovereignRepairRun {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String?
+  projectType String?
+
+  status         String  @default("queued")
+  triggerType    String  @default("manual")
+  failedChecks   Json?
+  repairPlanJson Json?
+  resultJson     Json?
+  error          String?
+
+  actorId   String?
+  actorType String  @default("system")
+
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions SovereignRepairAction[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([triggerType])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([createdAt])
+}
+
+model SovereignRepairAction {
+  id String @id @default(cuid())
+
+  runId       String
+  companyId   String
+  workspaceId String?
+  projectId   String?
+  projectType String?
+
+  checkName  String
+  actionType String
+  status     String  @default("queued")
+  resultJson Json?
+  error      String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  run SovereignRepairRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([checkName])
+  @@index([actionType])
+  @@index([status])
+  @@index([createdAt])
+}
