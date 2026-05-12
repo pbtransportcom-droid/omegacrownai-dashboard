@@ -22,5 +22,5 @@ export async function GET(
     },
   });
 
-  return NextResponse.redirect(new URL(record.mediaUrl, req.url));
+  return NextResponse.redirect(new URL(record.mediaUrl.startsWith("/") ? record.mediaUrl : `/${record.mediaUrl}`, "https://omegacrownai.com"));
 }

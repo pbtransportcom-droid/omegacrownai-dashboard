@@ -59,7 +59,7 @@ export default async function CreatorExportsPage({
         </Link>
 
         <p className="mt-5 text-xs uppercase tracking-[0.25em] text-cyan-300">
-          Creator Export Polish + Media Player UI · v3.4 Phase 50
+          Creator v3 Launch-Ready Media System · v3.14 Phase 60
         </p>
 
         <h1 className="mt-3 text-4xl font-black text-white">
@@ -67,7 +67,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, usage limits, tracked download portals, QR share pages, render evidence, and export-ready distribution records.
+          Creator v3 is launch-ready: MP4/MP3 exports, TTS narration, visual templates, usage limits, render jobs, tracked download portals, QR share pages, and distribution-ready records.
         </p>
       </section>
 
