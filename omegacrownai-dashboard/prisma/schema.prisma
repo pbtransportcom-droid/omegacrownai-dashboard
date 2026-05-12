@@ -2578,3 +2578,77 @@ model RollbackRecord {
   @@index([actorType])
   @@index([createdAt])
 }
+
+model RuntimePolicyRule {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name     String
+  resource String
+  action   String
+  status   String @default("active")
+  severity String @default("block")
+  priority Int    @default(100)
+
+  requireGovernance Boolean @default(true)
+  requireQA         Boolean @default(false)
+  requirePassport   Boolean @default(false)
+  requireIdentity   Boolean @default(false)
+  requireAudit      Boolean @default(true)
+  requireDeployment Boolean @default(false)
+
+  minQaScore Int?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  decisions RuntimePolicyDecision[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([resource])
+  @@index([action])
+  @@index([status])
+  @@index([severity])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model RuntimePolicyDecision {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String?
+  projectType String?
+
+  ruleId    String?
+  actorId   String?
+  actorType String  @default("system")
+  resource  String
+  action    String
+  decision  String
+  reason    String?
+
+  checksJson Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  rule RuntimePolicyRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([ruleId])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([resource])
+  @@index([action])
+  @@index([decision])
+  @@index([createdAt])
+}
