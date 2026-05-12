@@ -115,6 +115,17 @@ export default function HomePage() {
             Read Docs
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/launch" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
+            Launch Readiness
+          </a>
+          <a href="/legal/terms" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
+            Terms
+          </a>
+          <a href="/legal/privacy" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
+            Privacy
+          </a>
+        </div>
       </section>
     </main>
   );

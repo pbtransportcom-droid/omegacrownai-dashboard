@@ -4092,3 +4092,52 @@ model PublicPricingPlan {
   @@index([status])
   @@index([sortOrder])
 }
+
+model LaunchChecklist {
+  id String @id @default(cuid())
+
+  name    String
+  version String @default("v4.0")
+  status  String @default("draft") // draft, running, passed, failed
+
+  ownerUserId String?
+  signedBy    String?
+  signedAt    DateTime?
+
+  summaryJson Json?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items LaunchChecklistItem[]
+
+  @@index([version])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LaunchChecklistItem {
+  id String @id @default(cuid())
+
+  checklistId String
+
+  category String // security, billing, legal, infra, support, marketing, product
+  title    String
+  status   String @default("pending") // pending, passed, failed, waived
+  severity String @default("required") // required, recommended, optional
+
+  evidenceJson Json?
+  completedBy  String?
+  completedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checklist LaunchChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+  @@index([category])
+  @@index([status])
+  @@index([severity])
+}
