@@ -169,7 +169,7 @@ async function renderRealVideoExport({
     durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
     manifestFileName,
     manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
-    renderer: "ffmpeg_scene_card_audio_renderer",
+    renderer: "ffmpeg_scene_card_tts_audio_renderer",
     sceneCount: parsed.sceneCount || manifest.scenes?.length || 0,
     audio: parsed.audio || null,
   };
@@ -218,7 +218,7 @@ async function renderRealPodcastExport({
     durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
     manifestFileName,
     manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
-    renderer: "ffmpeg_podcast_mp3_renderer",
+    renderer: "ffmpeg_podcast_tts_mp3_renderer",
     segmentCount: parsed.segmentCount || 0,
     audio: parsed.audio || null,
   };
@@ -450,11 +450,11 @@ export async function executeCreatorExport({
         policyStatus: policy.status,
         checks: policy.checks,
         outputType: projectType === "video" ? "mp4_video_with_audio" : projectType === "podcast" ? "mp3_podcast_audio" : "manifest_placeholder",
-        renderer: projectType === "video" ? "ffmpeg_scene_card_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_mp3_renderer" : "manifest_placeholder",
-        audioRenderer: projectType === "video" ? "placeholder_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_placeholder_narration_music_bed" : null,
+        renderer: projectType === "video" ? "ffmpeg_scene_card_tts_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_tts_mp3_renderer" : "manifest_placeholder",
+        audioRenderer: projectType === "video" ? "espeak_tts_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_espeak_tts_narration_music_bed" : null,
         audio: (written as any).audio || null,
         manifestPublicUrl: (written as any).manifestPublicUrl || null,
-        nextRenderer: projectType === "podcast" ? "completed_podcast_mp3_renderer" : "completed_ffmpeg_video_audio_renderer",
+        nextRenderer: projectType === "podcast" ? "completed_podcast_tts_mp3_renderer" : "completed_ffmpeg_video_tts_audio_renderer",
       },
     },
   });

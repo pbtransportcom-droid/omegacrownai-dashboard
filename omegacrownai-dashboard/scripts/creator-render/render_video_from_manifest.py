@@ -95,25 +95,67 @@ def scene_tone_frequency(index):
 def create_voiceover_placeholder(scene, index, duration, out_path):
     text = safe_text(scene.get("voiceoverText") or scene.get("scriptSegment") or scene.get("visualPrompt") or "")
     word_count = max(len(text.split()), 1)
-    freq = scene_tone_frequency(index)
 
-    # A low-volume pulsed tone acts as a placeholder for future TTS timing.
-    # It is intentionally quiet and mixed under the music bed.
-    run([
-        "ffmpeg", "-y",
-        "-f", "lavfi",
-        "-i", f"sine=frequency={freq}:duration={duration}:sample_rate={SAMPLE_RATE}",
-        "-af", "volume=0.055,afade=t=in:st=0:d=0.25,afade=t=out:st={}:d=0.35".format(max(duration - 0.35, 0)),
-        out_path.as_posix()
-    ])
+    if not text:
+        text = f"Scene {index + 1}. OmegaCrownAI creator export."
 
-    return {
-        "sceneIndex": index,
-        "durationSeconds": duration,
-        "wordCount": word_count,
-        "frequency": freq,
-        "type": "voiceover_placeholder_tone"
-    }
+    raw_tts = out_path.with_suffix(".raw_tts.wav")
+
+    try:
+        run([
+            "espeak-ng",
+            "-v", "en-us",
+            "-s", "145",
+            "-p", "45",
+            "-a", "145",
+            "-w", raw_tts.as_posix(),
+            text
+        ])
+
+        run([
+            "ffmpeg", "-y",
+            "-i", raw_tts.as_posix(),
+            "-af", "volume=1.15,aresample={}:async=1,apad,atrim=0:{},afade=t=in:st=0:d=0.12,afade=t=out:st={}:d=0.18".format(
+                SAMPLE_RATE,
+                duration,
+                max(duration - 0.2, 0)
+            ),
+            out_path.as_posix()
+        ])
+
+        return {
+            "sceneIndex": index,
+            "durationSeconds": duration,
+            "wordCount": word_count,
+            "type": "tts_voiceover",
+            "engine": "espeak-ng",
+            "voice": "en-us",
+            "speed": 145,
+            "text": text,
+            "file": out_path.as_posix()
+        }
+
+    except Exception:
+        freq = scene_tone_frequency(index)
+
+        run([
+            "ffmpeg", "-y",
+            "-f", "lavfi",
+            "-i", f"sine=frequency={freq}:duration={duration}:sample_rate={SAMPLE_RATE}",
+            "-af", "volume=0.055,afade=t=in:st=0:d=0.25,afade=t=out:st={}:d=0.35".format(max(duration - 0.35, 0)),
+            out_path.as_posix()
+        ])
+
+        return {
+            "sceneIndex": index,
+            "durationSeconds": duration,
+            "wordCount": word_count,
+            "frequency": freq,
+            "type": "voiceover_fallback_tone",
+            "engine": "ffmpeg_sine",
+            "text": text,
+            "file": out_path.as_posix()
+        }
 
 def create_music_bed(duration, out_path):
     # Royal/premium ambient placeholder bed using layered soft sine tones.
@@ -249,7 +291,7 @@ def main():
         "durationSeconds": total_duration,
         "sceneCount": len(scenes),
         "audio": {
-            "renderer": "placeholder_voiceover_plus_music_bed",
+            "renderer": "espeak_tts_voiceover_plus_music_bed",
             "voiceTrack": voice_track.as_posix(),
             "musicBed": music_bed.as_posix(),
             "mixedAudio": mixed_audio.as_posix(),

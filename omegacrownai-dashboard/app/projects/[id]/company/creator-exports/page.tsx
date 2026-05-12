@@ -63,7 +63,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts directly in the dashboard, download exports, inspect render evidence, and manage your creator output history.
+          Preview finished MP4 videos and MP3 podcasts directly in the dashboard, now with generated TTS narration, audio beds, download links, render evidence, and creator output history.
         </p>
       </section>
 
@@ -111,7 +111,7 @@ export default async function CreatorExportsPage({
           <section className="grid gap-6 xl:grid-cols-2">
             <section className="rounded-3xl border border-border bg-panel/70 p-5">
               <h2 className="text-xl font-black text-white">Create Video Export</h2>
-              <p className="mt-2 text-sm text-muted">Render a real MP4 with scene cards and audio bed.</p>
+              <p className="mt-2 text-sm text-muted">Render a real MP4 with scene cards, generated TTS narration, and audio bed.</p>
 
               <form action={`/api/company/${company.id}/creator-export/execute`} method="POST" className="mt-4 grid gap-3">
                 <input type="hidden" name="projectType" value="video" />
@@ -134,7 +134,7 @@ export default async function CreatorExportsPage({
 
             <section className="rounded-3xl border border-border bg-panel/70 p-5">
               <h2 className="text-xl font-black text-white">Create Podcast Export</h2>
-              <p className="mt-2 text-sm text-muted">Render a real MP3 podcast with intro/outro audio bed.</p>
+              <p className="mt-2 text-sm text-muted">Render a real MP3 podcast with generated TTS narration and intro/outro audio bed.</p>
 
               <form action={`/api/company/${company.id}/creator-export/execute`} method="POST" className="mt-4 grid gap-3">
                 <input type="hidden" name="projectType" value="podcast" />

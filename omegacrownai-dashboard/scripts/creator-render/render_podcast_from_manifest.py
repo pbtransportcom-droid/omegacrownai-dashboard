@@ -35,24 +35,65 @@ def create_intro_music(duration, out_path):
     ])
 
 def create_narration_placeholder(text, index, duration, out_path):
+    text = safe_text(text)
     word_count = max(len(text.split()), 1)
-    freq = 360 + (index % 8) * 30
 
-    run([
-        "ffmpeg", "-y",
-        "-f", "lavfi",
-        "-i", f"sine=frequency={freq}:duration={duration}:sample_rate={SAMPLE_RATE}",
-        "-af", f"volume=0.070,afade=t=in:st=0:d=0.2,afade=t=out:st={max(duration - 0.25, 0)}:d=0.25",
-        out_path.as_posix()
-    ])
+    if not text:
+        text = f"Podcast segment {index + 1}. OmegaCrownAI creator export."
 
-    return {
-        "index": index,
-        "wordCount": word_count,
-        "frequency": freq,
-        "durationSeconds": duration,
-        "type": "podcast_narration_placeholder_tone"
-    }
+    raw_tts = out_path.with_suffix(".raw_tts.wav")
+
+    try:
+        run([
+            "espeak-ng",
+            "-v", "en-us",
+            "-s", "145",
+            "-p", "45",
+            "-a", "150",
+            "-w", raw_tts.as_posix(),
+            text
+        ])
+
+        run([
+            "ffmpeg", "-y",
+            "-i", raw_tts.as_posix(),
+            "-af", f"volume=1.20,aresample={SAMPLE_RATE}:async=1,apad,atrim=0:{duration},afade=t=in:st=0:d=0.12,afade=t=out:st={max(duration - 0.2, 0)}:d=0.18",
+            out_path.as_posix()
+        ])
+
+        return {
+            "index": index,
+            "wordCount": word_count,
+            "durationSeconds": duration,
+            "type": "podcast_tts_narration",
+            "engine": "espeak-ng",
+            "voice": "en-us",
+            "speed": 145,
+            "text": text,
+            "file": out_path.as_posix()
+        }
+
+    except Exception:
+        freq = 360 + (index % 8) * 30
+
+        run([
+            "ffmpeg", "-y",
+            "-f", "lavfi",
+            "-i", f"sine=frequency={freq}:duration={duration}:sample_rate={SAMPLE_RATE}",
+            "-af", f"volume=0.070,afade=t=in:st=0:d=0.2,afade=t=out:st={max(duration - 0.25, 0)}:d=0.25",
+            out_path.as_posix()
+        ])
+
+        return {
+            "index": index,
+            "wordCount": word_count,
+            "frequency": freq,
+            "durationSeconds": duration,
+            "type": "podcast_narration_fallback_tone",
+            "engine": "ffmpeg_sine",
+            "text": text,
+            "file": out_path.as_posix()
+        }
 
 def concat_audio(audio_files, concat_path, output_path):
     concat_path.write_text(
@@ -164,7 +205,7 @@ def main():
         "durationSeconds": total_duration,
         "segmentCount": len(narration_manifest),
         "audio": {
-            "renderer": "podcast_placeholder_narration_music_bed",
+            "renderer": "podcast_espeak_tts_narration_music_bed",
             "codec": "mp3",
             "sampleRate": SAMPLE_RATE,
             "bitrate": "192k",
