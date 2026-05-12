@@ -5,6 +5,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { evaluateRuntimePolicy } from "@/lib/sugent/runtime-policy/runtimePolicyEngine";
+import { createCreatorRenderJob, updateCreatorRenderJob } from "@/lib/sugent/creator-render/renderJobEngine";
 
 const execFileAsync = promisify(execFile);
 
@@ -322,8 +323,33 @@ export async function executeCreatorExport({
     };
   }
 
-  const projectInfo = await getProjectInfo(projectId, projectType);
   const assetFormat = format || (projectType === "podcast" ? "mp3" : "mp4");
+
+  const renderJob = await createCreatorRenderJob({
+    companyId,
+    workspaceId: workspaceId || null,
+    projectId,
+    projectType,
+    format: assetFormat,
+    renderer: projectType === "podcast" ? "ffmpeg_podcast_mp3_renderer" : "ffmpeg_scene_card_audio_renderer",
+    inputJson: {
+      projectId,
+      projectType,
+      format: assetFormat,
+      source: "creator_export",
+    },
+    createdBy: actorId || "system-owner",
+    actorType,
+  });
+
+  await updateCreatorRenderJob({
+    jobId: renderJob.id,
+    status: "running",
+    progress: 10,
+    message: "Runtime policy allowed. Loading project data.",
+  });
+
+  const projectInfo = await getProjectInfo(projectId, projectType);
   const manifest = projectType === "podcast"
     ? buildPodcastManifest(projectInfo)
     : buildVideoManifest(projectInfo);
@@ -341,6 +367,7 @@ export async function executeCreatorExport({
       status: "running",
       mimeType: projectType === "podcast" ? "audio/mpeg" : "video/mp4",
       durationSeconds: manifest.durationSeconds || null,
+      renderJobId: renderJob.id,
       policyDecisionId: policy.decision?.id || null,
       qaScorecardId: policy.checks?.qa?.scorecardId || null,
       manifestJson: manifest,
@@ -368,6 +395,16 @@ export async function executeCreatorExport({
     },
   });
 
+  await updateCreatorRenderJob({
+    jobId: renderJob.id,
+    status: "running",
+    progress: 35,
+    message: "Manifest created. Starting media renderer.",
+    metadata: {
+      exportId: exportRecord.id,
+    },
+  });
+
   const written = projectType === "video"
     ? await renderRealVideoExport({
         companyId,
@@ -387,6 +424,18 @@ export async function executeCreatorExport({
           format: assetFormat,
           manifest,
         });
+
+  await updateCreatorRenderJob({
+    jobId: renderJob.id,
+    status: "running",
+    progress: 80,
+    message: "Media renderer completed. Saving export record.",
+    metadata: {
+      exportId: exportRecord.id,
+      publicUrl: written.publicUrl,
+      sizeBytes: written.sizeBytes,
+    },
+  });
 
   const completed = await prisma.creatorExportAsset.update({
     where: { id: exportRecord.id },
@@ -428,6 +477,20 @@ export async function executeCreatorExport({
         fileName: completed.fileName,
         sizeBytes: completed.sizeBytes,
       },
+    },
+  });
+
+  await updateCreatorRenderJob({
+    jobId: renderJob.id,
+    status: "completed",
+    progress: 100,
+    message: "Creator render job completed.",
+    outputJson: {
+      exportId: completed.id,
+      publicUrl: completed.publicUrl,
+      fileName: completed.fileName,
+      sizeBytes: completed.sizeBytes,
+      durationSeconds: completed.durationSeconds,
     },
   });
 

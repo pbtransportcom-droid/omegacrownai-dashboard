@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { getCreatorExportDashboard } from "@/lib/sugent/creator-export/creatorExportEngine";
+import { getCreatorRenderJobDashboard } from "@/lib/sugent/creator-render/renderJobEngine";
 
 export default async function CreatorExportsPage({
   params,
@@ -21,6 +22,7 @@ export default async function CreatorExportsPage({
 
   const company = companies[0] || null;
   const data = company ? await getCreatorExportDashboard(company.id) : null;
+  const renderJobs = company ? await getCreatorRenderJobDashboard(company.id) : null;
 
   const [videoProjects, podcastProjects] = company
     ? await Promise.all([
@@ -75,6 +77,16 @@ export default async function CreatorExportsPage({
             <Metric label="Video" value={String(data.summary.video)} />
             <Metric label="Podcast" value={String(data.summary.podcast)} />
           </section>
+
+          {renderJobs && (
+            <section className="grid gap-4 md:grid-cols-5">
+              <Metric label="Render Jobs" value={String(renderJobs.summary.jobs)} />
+              <Metric label="Queued" value={String(renderJobs.summary.queued)} />
+              <Metric label="Running Jobs" value={String(renderJobs.summary.running)} />
+              <Metric label="Completed Jobs" value={String(renderJobs.summary.completed)} />
+              <Metric label="Avg Progress" value={`${renderJobs.summary.averageProgress}%`} />
+            </section>
+          )}
 
           {latest && (
             <section className="rounded-3xl border border-cyan-400/30 bg-cyan-500/10 p-5">
@@ -182,6 +194,71 @@ export default async function CreatorExportsPage({
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {renderJobs && (
+            <section className="rounded-3xl border border-border bg-panel/70 p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-white">Render Job Queue</h2>
+                  <p className="mt-2 text-sm text-muted">Track queued, running, completed, and failed creator render jobs.</p>
+                </div>
+                <div className="text-sm text-cyan-300">{renderJobs.summary.averageProgress}% average progress</div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {renderJobs.jobs.length ? (
+                  renderJobs.jobs.slice(0, 12).map((job: any) => (
+                    <div key={job.id} className="rounded-2xl border border-border bg-black/20 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="text-sm font-black text-white">
+                            {job.projectType} · {job.format || "export"} · attempt {job.attempt}/{job.maxAttempts}
+                          </div>
+                          <div className="mt-1 font-mono text-[11px] text-muted">{job.id}</div>
+                        </div>
+
+                        <StatusPill status={job.status} />
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="h-3 overflow-hidden rounded-full bg-slate-900">
+                          <div
+                            className="h-full rounded-full bg-cyan-500"
+                            style={{ width: `${Math.max(0, Math.min(100, job.progress || 0))}%` }}
+                          />
+                        </div>
+                        <div className="mt-2 text-xs text-cyan-200">{job.progress || 0}% complete</div>
+                      </div>
+
+                      {job.error && <p className="mt-3 text-xs text-red-200">{job.error}</p>}
+
+                      {job.status === "failed" && (
+                        <form className="mt-3" action={`/api/company/${company.id}/creator-render-jobs/${job.id}/retry`} method="POST">
+                          <button className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-3 py-2 text-xs font-black text-yellow-100 hover:bg-yellow-500/20">
+                            Retry Job
+                          </button>
+                        </form>
+                      )}
+
+                      <div className="mt-4 grid gap-2 md:grid-cols-2">
+                        {job.events.slice(-4).map((event: any) => (
+                          <div key={event.id} className="rounded-xl border border-border bg-slate-950 p-3">
+                            <div className="text-xs font-black uppercase tracking-[0.14em] text-cyan-300">{event.type}</div>
+                            <div className="mt-1 text-sm text-white">{event.progress ?? job.progress}%</div>
+                            {event.message && <p className="mt-2 text-xs text-slate-300">{event.message}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
+                    No render jobs yet.
+                  </div>
+                )}
               </div>
             </section>
           )}

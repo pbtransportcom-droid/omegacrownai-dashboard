@@ -2953,3 +2953,79 @@ model CreatorExportEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model CreatorRenderJob {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String
+  projectType String  @default("video")
+
+  exportId    String?
+  jobType     String  @default("creator_export")
+  status      String  @default("queued")
+  progress    Int     @default(0)
+  attempt     Int     @default(0)
+  maxAttempts Int     @default(3)
+
+  format    String?
+  renderer  String?
+  queueName String  @default("creator-render")
+  priority  Int     @default(5)
+
+  inputJson  Json?
+  outputJson Json?
+  error      String?
+
+  queuedAt    DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+
+  createdBy String?
+  actorType String  @default("system")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events CreatorRenderJobEvent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([exportId])
+  @@index([jobType])
+  @@index([status])
+  @@index([queueName])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model CreatorRenderJobEvent {
+  id String @id @default(cuid())
+
+  jobId       String
+  companyId   String
+  projectId   String
+  projectType String @default("video")
+
+  type     String
+  status   String  @default("recorded")
+  progress Int?
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  job CreatorRenderJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
