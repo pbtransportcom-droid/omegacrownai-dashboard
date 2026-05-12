@@ -102,6 +102,11 @@ export default function HomePage() {
             Open Customer Dashboard
           </a>
         </div>
+              <div className="mt-3">
+          <a href="/admin/customers" className="inline-flex rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20">
+            Open Admin Console
+          </a>
+        </div>
       </section>
     </main>
   );

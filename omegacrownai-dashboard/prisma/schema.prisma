@@ -3937,3 +3937,101 @@ model CustomerStorageAssetVersion {
   @@index([status])
   @@index([checksum])
 }
+
+model CustomerSupportTicket {
+  id String @id @default(cuid())
+
+  organizationId String?
+  userId         String?
+  companyId      String?
+
+  subject     String
+  description String?
+  category    String? // billing, account, publishing, storage, abuse, technical
+  status      String  @default("open") // open, pending, resolved, closed
+  priority    String  @default("normal") // low, normal, high, urgent
+
+  assignedToAdminId String?
+
+  metadata Json?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([assignedToAdminId])
+  @@index([createdAt])
+}
+
+model CustomerAdminActionLog {
+  id String @id @default(cuid())
+
+  adminUserId    String?
+  organizationId String?
+  userId         String?
+  companyId      String?
+
+  action     String
+  entityType String?
+  entityId   String?
+
+  severity String @default("info") // info, warning, critical
+  status   String @default("recorded") // recorded, failed, reverted
+
+  reason     String?
+  beforeJson Json?
+  afterJson  Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([adminUserId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([severity])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CustomerAbuseControl {
+  id String @id @default(cuid())
+
+  organizationId String?
+  userId         String?
+  companyId      String?
+
+  controlType String // suspend_org, suspend_user, block_publishing, review_required, storage_hold
+  status      String @default("active") // active, lifted, expired
+
+  reason   String?
+  severity String  @default("warning") // warning, critical
+
+  createdByAdminId String?
+  liftedByAdminId  String?
+
+  expiresAt DateTime?
+  liftedAt  DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([controlType])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
