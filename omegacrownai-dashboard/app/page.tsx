@@ -89,6 +89,15 @@ export default function HomePage() {
           </div>
         ))}
       </section>
+    
+      <section className="mx-auto mt-8 max-w-3xl rounded-3xl border border-cyan-400/30 bg-cyan-500/10 p-6 text-center">
+        <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">v4.0 Commercialization</p>
+        <h2 className="mt-2 text-2xl font-black text-white">Customer onboarding is live</h2>
+        <p className="mt-2 text-sm text-slate-200">Start a customer account, organization, and commercial workspace path.</p>
+        <a href="/onboarding" className="mt-4 inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
+          Start Onboarding
+        </a>
+      </section>
     </main>
   );
 }

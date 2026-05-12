@@ -3249,3 +3249,183 @@ model CreatorSharePortalEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model CustomerUser {
+  id String @id @default(cuid())
+
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  name          String?
+  imageUrl      String?
+
+  status       String    @default("active")
+  passwordHash String?
+  lastLoginAt  DateTime?
+  timezone     String?
+  locale       String    @default("en-US")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships    CustomerMembership[]
+  authProviders  CustomerAuthProvider[]
+  sessions       CustomerSession[]
+  onboardingRuns CustomerOnboardingSession[]
+}
+
+model CustomerAuthProvider {
+  id String @id @default(cuid())
+
+  userId            String
+  provider          String    @default("email")
+  providerAccountId String?
+  accessTokenHash   String?
+  refreshTokenHash  String?
+  expiresAt         DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([provider])
+}
+
+model CustomerSession {
+  id String @id @default(cuid())
+
+  userId           String
+  sessionTokenHash String @unique
+
+  ipHash      String?
+  userAgent   String?
+  deviceLabel String?
+  status      String  @default("active")
+
+  expiresAt  DateTime
+  lastSeenAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user CustomerUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model CustomerOrganization {
+  id String @id @default(cuid())
+
+  name   String
+  slug   String @unique
+  status String @default("active")
+
+  ownerUserId        String?
+  companyId          String?
+  defaultWorkspaceId String?
+
+  onboardingStatus String @default("not_started")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships    CustomerMembership[]
+  onboardingRuns CustomerOnboardingSession[]
+
+  @@index([companyId])
+  @@index([defaultWorkspaceId])
+  @@index([status])
+  @@index([onboardingStatus])
+}
+
+model CustomerMembership {
+  id String @id @default(cuid())
+
+  userId         String
+  organizationId String
+
+  role   String @default("owner")
+  status String @default("active")
+
+  invitedByUserId String?
+  acceptedAt      DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         CustomerUser         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([role])
+  @@index([status])
+}
+
+model CustomerOnboardingSession {
+  id String @id @default(cuid())
+
+  userId         String?
+  organizationId String?
+
+  status      String @default("started")
+  currentStep String @default("account")
+
+  selectedPlanTier String?
+  paymentMode      String  @default("manual")
+
+  companyId        String?
+  workspaceId      String?
+  starterProjectId String?
+
+  completedAt DateTime?
+  error       String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         CustomerUser?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization CustomerOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([currentStep])
+  @@index([companyId])
+  @@index([workspaceId])
+}
+
+model CustomerOnboardingEvent {
+  id String @id @default(cuid())
+
+  onboardingId   String
+  organizationId String?
+  userId         String?
+
+  type     String
+  status   String  @default("recorded")
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([onboardingId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
