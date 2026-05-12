@@ -174,6 +174,55 @@ async function renderRealVideoExport({
   };
 }
 
+
+async function renderRealPodcastExport({
+  companyId,
+  title,
+  manifest,
+}: {
+  companyId: string;
+  title: string;
+  manifest: any;
+}) {
+  const dir = await ensureExportDir(companyId);
+  const timestamp = Date.now();
+  const base = `${safeFilePart(title)}-podcast-${timestamp}`;
+  const manifestFileName = `${base}.json`;
+  const mp3FileName = `${base}.mp3`;
+  const workDir = path.join(dir, `${base}-work`);
+  const manifestPath = path.join(dir, manifestFileName);
+  const outputPath = path.join(dir, mp3FileName);
+
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
+
+  const scriptPath = path.join(process.cwd(), "scripts", "creator-render", "render_podcast_from_manifest.py");
+
+  const { stdout } = await execFileAsync("python3", [
+    scriptPath,
+    manifestPath,
+    workDir,
+    outputPath,
+  ], {
+    maxBuffer: 1024 * 1024 * 10,
+  });
+
+  const parsed = JSON.parse(String(stdout || "{}").trim());
+  const stats = await fs.stat(outputPath);
+
+  return {
+    fileName: mp3FileName,
+    filePath: outputPath,
+    publicUrl: `/exports/${companyId}/${mp3FileName}`,
+    sizeBytes: stats.size,
+    durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
+    manifestFileName,
+    manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
+    renderer: "ffmpeg_podcast_mp3_renderer",
+    segmentCount: parsed.segmentCount || 0,
+    audio: parsed.audio || null,
+  };
+}
+
 export async function executeCreatorExport({
   companyId,
   workspaceId,
@@ -325,13 +374,19 @@ export async function executeCreatorExport({
         title: projectInfo.title,
         manifest,
       })
-    : await writePlaceholderExport({
-        companyId,
-        title: projectInfo.title,
-        projectType,
-        format: assetFormat,
-        manifest,
-      });
+    : projectType === "podcast"
+      ? await renderRealPodcastExport({
+          companyId,
+          title: projectInfo.title,
+          manifest,
+        })
+      : await writePlaceholderExport({
+          companyId,
+          title: projectInfo.title,
+          projectType,
+          format: assetFormat,
+          manifest,
+        });
 
   const completed = await prisma.creatorExportAsset.update({
     where: { id: exportRecord.id },
@@ -345,12 +400,12 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
-        outputType: projectType === "video" ? "mp4_video_with_audio" : "manifest_placeholder",
-        renderer: projectType === "video" ? "ffmpeg_scene_card_audio_renderer" : "manifest_placeholder",
-        audioRenderer: projectType === "video" ? "placeholder_voiceover_plus_music_bed" : null,
+        outputType: projectType === "video" ? "mp4_video_with_audio" : projectType === "podcast" ? "mp3_podcast_audio" : "manifest_placeholder",
+        renderer: projectType === "video" ? "ffmpeg_scene_card_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_mp3_renderer" : "manifest_placeholder",
+        audioRenderer: projectType === "video" ? "placeholder_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_placeholder_narration_music_bed" : null,
         audio: (written as any).audio || null,
         manifestPublicUrl: (written as any).manifestPublicUrl || null,
-        nextRenderer: projectType === "podcast" ? "tts_audio_renderer" : "completed_ffmpeg_video_audio_renderer",
+        nextRenderer: projectType === "podcast" ? "completed_podcast_mp3_renderer" : "completed_ffmpeg_video_audio_renderer",
       },
     },
   });
@@ -365,7 +420,9 @@ export async function executeCreatorExport({
       status: "completed",
       message: projectType === "video"
         ? "Creator export completed with real MP4 video and AAC audio bed."
-        : "Creator export completed and file manifest was written.",
+        : projectType === "podcast"
+          ? "Creator export completed with real MP3 podcast audio."
+          : "Creator export completed and file manifest was written.",
       metadata: {
         publicUrl: completed.publicUrl,
         fileName: completed.fileName,

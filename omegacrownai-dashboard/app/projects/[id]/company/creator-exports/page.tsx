@@ -57,7 +57,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Generate video and podcast export records after runtime policy allows. This phase renders real MP4 scene-card videos with placeholder voiceover cues, a background audio bed, AAC audio mixing, and export history.
+          Generate video and podcast export records after runtime policy allows. This phase renders real MP4 videos and real MP3 podcast exports with placeholder narration cues, intro/outro beds, metadata, and download-ready export history.
         </p>
       </section>
 
