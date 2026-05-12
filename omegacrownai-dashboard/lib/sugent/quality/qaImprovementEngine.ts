@@ -338,13 +338,15 @@ export async function runQAImprovementLoop({
     workspaceId: workspaceId || null,
     projectId,
     projectType,
-    actorId,
-    actorType,
+    actorId: "system-owner",
+    actorType: "system",
     resource: "runtime",
     action: "publish",
     metadata: {
       source: "qa_improvement_final_evaluation",
       qaImprovementRunId: run.id,
+      originalActorId: actorId,
+      authorityNormalized: true,
     },
   });
 

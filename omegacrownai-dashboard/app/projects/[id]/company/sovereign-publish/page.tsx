@@ -151,6 +151,14 @@ export default async function SovereignPublishPage({
                       </span>
                     </div>
 
+                    <div className="mt-4">
+                      <form action={`/api/company/${company.id}/sovereign-publish/${record.id}/verify`} method="POST">
+                        <button className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-500/20">
+                          Verify Evidence
+                        </button>
+                      </form>
+                    </div>
+
                     <div className="mt-3 grid gap-2 text-xs">
                       <HashRow label="Policy Decision" value={record.policyDecisionId || "none"} />
                       <HashRow label="QA Scorecard" value={record.qaScorecardId || "none"} />

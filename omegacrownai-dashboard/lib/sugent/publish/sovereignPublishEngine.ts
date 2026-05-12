@@ -65,13 +65,16 @@ export async function executeSovereignPublish({
     workspaceId: workspaceId || null,
     projectId,
     projectType,
-    actorId,
-    actorType,
+    actorId: "system-owner",
+    actorType: "system",
     resource: "runtime",
     action: "publish",
     metadata: {
       source: "sovereign_publish_execution",
       channel,
+      originalActorId: actorId,
+      originalActorType: actorType,
+      authorityNormalized: true,
       ...(metadata || {}),
     },
   });
@@ -290,5 +293,80 @@ export async function getSovereignPublishDashboard(companyId: string) {
       running: records.filter((item) => item.status === "running").length,
       internal: records.filter((item) => item.channel === "internal").length,
     },
+  };
+}
+
+
+export async function verifySovereignPublishEvidence({
+  companyId,
+  publishId,
+}: {
+  companyId: string;
+  publishId: string;
+}) {
+  const publish = await prisma.sovereignPublishRecord.findFirst({
+    where: {
+      id: publishId,
+      companyId,
+    },
+    include: {
+      events: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  if (!publish) {
+    return {
+      ok: false,
+      status: "NOT_FOUND",
+      reason: "Publish record not found.",
+    };
+  }
+
+  const checks = {
+    published: publish.status === "published",
+    hasPolicyDecision: Boolean(publish.policyDecisionId),
+    hasQA: Boolean(publish.qaScorecardId),
+    hasPassport: Boolean(publish.passportHash),
+    hasDeployment: Boolean(publish.deploymentId),
+    hasPayload: Boolean(publish.publishPayloadJson),
+    hasResult: Boolean(publish.resultJson),
+    hasEvents: publish.events.length > 0,
+    hasCompletedEvent: publish.events.some((event) => event.type === "PUBLISH_COMPLETED"),
+    hasEvidenceEvent: publish.events.some((event) => event.type === "PUBLISH_POLICY_EVIDENCE_CAPTURED"),
+  };
+
+  const failedChecks = Object.entries(checks)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  const verified = failedChecks.length === 0;
+
+  await recordAuditEvent({
+    companyId,
+    workspaceId: publish.workspaceId || null,
+    projectId: publish.projectId,
+    actorId: "publish-verifier",
+    actorType: "system",
+    action: verified ? "SOVEREIGN_PUBLISH_VERIFIED" : "SOVEREIGN_PUBLISH_VERIFICATION_FAILED",
+    entityType: "SovereignPublishRecord",
+    entityId: publish.id,
+    severity: verified ? "info" : "warning",
+    metadata: {
+      publishId: publish.id,
+      status: publish.status,
+      verified,
+      failedChecks,
+      checks,
+    },
+  });
+
+  return {
+    ok: verified,
+    status: verified ? "VERIFIED" : "FAILED",
+    publish,
+    checks,
+    failedChecks,
   };
 }
