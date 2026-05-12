@@ -86,6 +86,9 @@ export default async function CustomerDashboardPage({
                   <a href={`/customer-org/${org.id}/billing`} className="rounded-xl bg-yellow-500 px-4 py-2 text-xs font-black text-black hover:bg-yellow-400">
                     Billing
                   </a>
+                  <a href={`/customer-org/${org.id}/team`} className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-xs font-black text-purple-100 hover:bg-purple-500/20">
+                    Team
+                  </a>
                   <a href={`/api/customer-org/${org.id}/dashboard`} className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/20">
                     API
                   </a>

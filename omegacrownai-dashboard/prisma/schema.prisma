@@ -3339,11 +3339,13 @@ model CustomerOrganization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships           CustomerMembership[]
-  onboardingRuns        CustomerOnboardingSession[]
-  paymentProviders      PaymentProvider[]
-  customerSubscriptions CustomerSubscription[]
-  customerApiKeys       CustomerApiKey[]
+  memberships                 CustomerMembership[]
+  onboardingRuns              CustomerOnboardingSession[]
+  paymentProviders            PaymentProvider[]
+  customerSubscriptions       CustomerSubscription[]
+  customerApiKeys             CustomerApiKey[]
+  customerTeamInvitations     CustomerTeamInvitation[]
+  customerPermissionOverrides CustomerPermissionOverride[]
 
   @@index([companyId])
   @@index([defaultWorkspaceId])
@@ -3559,4 +3561,62 @@ model CustomerApiKey {
   @@index([organizationId])
   @@index([status])
   @@index([keyPrefix])
+}
+
+model CustomerTeamInvitation {
+  id String @id @default(cuid())
+
+  organizationId String
+  email          String
+  role           String @default("viewer") // owner, admin, editor, viewer, billing
+  status         String @default("pending") // pending, accepted, expired, revoked
+
+  invitedByUserId  String?
+  acceptedByUserId String?
+
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model CustomerPermissionOverride {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+
+  resourceType String
+  resourceId   String?
+  action       String
+  effect       String  @default("allow") // allow, deny
+
+  reason          String?
+  createdByUserId String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization CustomerOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([action])
+  @@index([effect])
 }
