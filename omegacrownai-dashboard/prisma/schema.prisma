@@ -3062,3 +3062,76 @@ model CompanyBrandKit {
   @@index([templateStyle])
   @@index([createdAt])
 }
+
+model CreatorDistributionRecord {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  exportId    String
+  projectId   String
+  projectType String  @default("video")
+
+  channel String @default("public_share")
+  status  String @default("ready")
+
+  title        String?
+  description  String?
+  caption      String?
+  hashtags     Json?
+  thumbnailUrl String?
+  mediaUrl     String?
+  shareSlug    String?
+  shareUrl     String?
+
+  platformPayloadJson Json?
+  resultJson          Json?
+  error               String?
+
+  createdBy String?
+  actorType String  @default("system")
+
+  scheduledAt DateTime?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events CreatorDistributionEvent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([exportId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([channel])
+  @@index([status])
+  @@index([shareSlug])
+  @@index([createdAt])
+}
+
+model CreatorDistributionEvent {
+  id String @id @default(cuid())
+
+  distributionId String
+  companyId      String
+  exportId       String
+  channel        String
+
+  type     String
+  status   String  @default("recorded")
+  message  String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  distribution CreatorDistributionRecord @relation(fields: [distributionId], references: [id], onDelete: Cascade)
+
+  @@index([distributionId])
+  @@index([companyId])
+  @@index([exportId])
+  @@index([channel])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}

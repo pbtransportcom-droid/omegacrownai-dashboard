@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { getCreatorExportDashboard } from "@/lib/sugent/creator-export/creatorExportEngine";
 import { getCreatorRenderJobDashboard } from "@/lib/sugent/creator-render/renderJobEngine";
+import { getCreatorDistributionDashboard } from "@/lib/sugent/distribution/creatorDistributionEngine";
 
 export default async function CreatorExportsPage({
   params,
@@ -23,6 +24,7 @@ export default async function CreatorExportsPage({
   const company = companies[0] || null;
   const data = company ? await getCreatorExportDashboard(company.id) : null;
   const renderJobs = company ? await getCreatorRenderJobDashboard(company.id) : null;
+  const distribution = company ? await getCreatorDistributionDashboard(company.id) : null;
 
   const [videoProjects, podcastProjects] = company
     ? await Promise.all([
@@ -63,7 +65,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, timeline scene ordering, generated scene assets, brand kit templates, captions, duration controls, download links, render evidence, and creator output history.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, visual templates, download links, render evidence, public share links, and export-ready distribution records.
         </p>
       </section>
 
@@ -85,6 +87,17 @@ export default async function CreatorExportsPage({
               <Metric label="Running Jobs" value={String(renderJobs.summary.running)} />
               <Metric label="Completed Jobs" value={String(renderJobs.summary.completed)} />
               <Metric label="Avg Progress" value={`${renderJobs.summary.averageProgress}%`} />
+            </section>
+          )}
+
+          {distribution && (
+            <section className="grid gap-4 md:grid-cols-6">
+              <Metric label="Distribution" value={String(distribution.summary.records)} />
+              <Metric label="YouTube" value={String(distribution.summary.youtube)} />
+              <Metric label="TikTok" value={String(distribution.summary.tiktok)} />
+              <Metric label="Instagram" value={String(distribution.summary.instagram)} />
+              <Metric label="Podcast RSS" value={String(distribution.summary.podcastRss)} />
+              <Metric label="Shares" value={String(distribution.summary.publicShare)} />
             </section>
           )}
 
@@ -173,7 +186,7 @@ export default async function CreatorExportsPage({
 
             <div className="mt-5 grid gap-4 xl:grid-cols-2">
               {completed.length ? (
-                completed.map((item: any) => <ExportCard key={item.id} item={item} />)
+                completed.map((item: any) => <ExportCard key={item.id} item={item} companyId={company.id} />)
               ) : (
                 <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
                   No completed media exports yet.
@@ -263,6 +276,56 @@ export default async function CreatorExportsPage({
                 ) : (
                   <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
                     No render jobs yet.
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {distribution && (
+            <section className="rounded-3xl border border-border bg-panel/70 p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-white">Distribution Records</h2>
+                  <p className="mt-2 text-sm text-muted">Export-ready records for public share, YouTube, TikTok, Instagram, and podcast RSS.</p>
+                </div>
+                <div className="text-sm text-cyan-300">{distribution.summary.records} prepared</div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {distribution.records.length ? (
+                  distribution.records.slice(0, 12).map((record: any) => (
+                    <div key={record.id} className="rounded-2xl border border-border bg-black/20 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="text-sm font-black text-white">{record.title || "Distribution Record"}</div>
+                          <div className="mt-1 text-xs text-cyan-300">{record.channel} · {record.status}</div>
+                          <div className="mt-1 font-mono text-[11px] text-muted">{record.id}</div>
+                        </div>
+                        <StatusPill status={record.status} />
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {record.shareUrl && (
+                          <a href={record.shareUrl} className="rounded-xl bg-cyan-600 px-3 py-2 text-xs font-black text-white hover:bg-cyan-500">
+                            Open Share
+                          </a>
+                        )}
+                        {record.mediaUrl && (
+                          <a href={record.mediaUrl} className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/20">
+                            Open Media
+                          </a>
+                        )}
+                      </div>
+
+                      <pre className="mt-3 max-h-56 overflow-auto rounded-xl border border-border bg-slate-950 p-3 text-xs text-slate-200">
+                        {JSON.stringify(record.platformPayloadJson || {}, null, 2)}
+                      </pre>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-border bg-black/20 p-4 text-sm text-muted">
+                    No distribution records yet.
                   </div>
                 )}
               </div>
@@ -414,7 +477,7 @@ function AudioStyleControls() {
   );
 }
 
-function ExportCard({ item }: { item: any }) {
+function ExportCard({ item, companyId }: { item: any; companyId: string }) {
   return (
     <div className="rounded-2xl border border-border bg-black/20 p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -459,6 +522,26 @@ function ExportCard({ item }: { item: any }) {
           >
             Manifest
           </a>
+        )}
+
+        {item.status === "completed" && (
+          <details className="w-full rounded-xl border border-border bg-slate-950 p-3">
+            <summary className="cursor-pointer text-xs font-black text-cyan-200">Prepare Distribution</summary>
+
+            <form action={`/api/company/${companyId}/creator-distribution/prepare`} method="POST" className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
+              <input type="hidden" name="exportId" value={item.id} />
+              <select name="channel" defaultValue="public_share" className="rounded-xl border border-border bg-black px-3 py-2 text-xs text-white outline-none">
+                <option value="public_share">Public Share</option>
+                <option value="youtube">YouTube Ready</option>
+                <option value="tiktok">TikTok Ready</option>
+                <option value="instagram">Instagram Ready</option>
+                <option value="podcast_rss">Podcast RSS Ready</option>
+              </select>
+              <button className="rounded-xl bg-cyan-600 px-3 py-2 text-xs font-black text-white hover:bg-cyan-500">
+                Prepare
+              </button>
+            </form>
+          </details>
         )}
       </div>
 
