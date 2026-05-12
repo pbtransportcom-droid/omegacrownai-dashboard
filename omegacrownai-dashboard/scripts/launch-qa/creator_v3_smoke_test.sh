@@ -19,6 +19,7 @@ check_head() {
   echo "---- $label"
   echo "$url"
 
+  local status
   status="$(curl -s -o /dev/null -w "%{http_code}" -I "$url")"
 
   echo "status=$status"
@@ -35,28 +36,25 @@ check_head "$BASE_URL/projects/$PROJECT_ID/company/video" "200" "Video Dashboard
 
 echo
 echo "---- Billing API"
-curl -s "$BASE_URL/api/company/$COMPANY_ID/creator-billing" | python3 - <<'PY'
-import json, sys
-data=json.load(sys.stdin)
+BILLING_JSON="$(curl -s "$BASE_URL/api/company/$COMPANY_ID/creator-billing")"
+python3 -c 'import json,sys
+data=json.loads(sys.argv[1])
 assert data["ok"] is True
 assert data["summary"]["counters"] >= 4
-print(json.dumps({
-  "tier": data["summary"]["tier"],
-  "usage": data["summary"]["usage"],
-}, indent=2))
-PY
+print(json.dumps({"tier": data["summary"]["tier"], "usage": data["summary"]["usage"]}, indent=2))
+' "$BILLING_JSON"
 
 echo
 echo "---- Distribution API"
-SHARE_SLUG="$(curl -s "$BASE_URL/api/company/$COMPANY_ID/creator-distribution" | python3 - <<'PY'
-import json, sys
-data=json.load(sys.stdin)
+DISTRIBUTION_JSON="$(curl -s "$BASE_URL/api/company/$COMPANY_ID/creator-distribution")"
+SHARE_SLUG="$(python3 -c 'import json,sys
+data=json.loads(sys.argv[1])
 assert data["ok"] is True
 records=[r for r in data["records"] if r.get("shareSlug")]
 assert records, "No shareSlug records found"
 print(records[0]["shareSlug"])
-PY
-)"
+' "$DISTRIBUTION_JSON")"
+
 echo "shareSlug=$SHARE_SLUG"
 
 check_head "$BASE_URL/share/$SHARE_SLUG" "200" "Share Portal"
@@ -77,38 +75,46 @@ case "$download_status" in
   *) echo "FAIL: expected redirect for download route"; exit 1 ;;
 esac
 
+open_location="$(curl -s -I "$BASE_URL/share/$SHARE_SLUG/open" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r')"
+download_location="$(curl -s -I "$BASE_URL/share/$SHARE_SLUG/download" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r')"
+
+echo "open_location=$open_location"
+echo "download_location=$download_location"
+
+case "$open_location" in
+  https://omegacrownai.com/exports/*) ;;
+  *) echo "FAIL: open route location is not public exports URL"; exit 1 ;;
+esac
+
+case "$download_location" in
+  https://omegacrownai.com/exports/*) ;;
+  *) echo "FAIL: download route location is not public exports URL"; exit 1 ;;
+esac
+
 echo
 echo "---- Latest Media URLs"
 MP4_FILE="$(ls -t "public/exports/$COMPANY_ID"/*.mp4 | head -1)"
 echo "mp4=$MP4_FILE"
 
-ffprobe -v error \
-  -show_entries format=format_name,duration,bit_rate \
-  -show_entries stream=codec_name,codec_type \
-  -of json \
-  "$MP4_FILE" | python3 - <<'PY'
-import json, sys
-data=json.load(sys.stdin)
+MP4_PROBE="$(ffprobe -v error -show_entries format=format_name,duration,bit_rate -show_entries stream=codec_name,codec_type -of json "$MP4_FILE")"
+python3 -c 'import json,sys
+data=json.loads(sys.argv[1])
 streams=data.get("streams", [])
 assert any(s.get("codec_type")=="video" for s in streams)
 assert any(s.get("codec_type")=="audio" for s in streams)
 print(json.dumps(data, indent=2))
-PY
+' "$MP4_PROBE"
 
 if ls "public/exports/$COMPANY_ID"/*.mp3 >/dev/null 2>&1; then
   MP3_FILE="$(ls -t "public/exports/$COMPANY_ID"/*.mp3 | head -1)"
   echo "mp3=$MP3_FILE"
 
-  ffprobe -v error \
-    -show_entries format=format_name,duration,bit_rate \
-    -show_entries stream=codec_name,channels,sample_rate \
-    -of json \
-    "$MP3_FILE" | python3 - <<'PY'
-import json, sys
-data=json.load(sys.stdin)
+  MP3_PROBE="$(ffprobe -v error -show_entries format=format_name,duration,bit_rate -show_entries stream=codec_name,channels,sample_rate -of json "$MP3_FILE")"
+  python3 -c 'import json,sys
+data=json.loads(sys.argv[1])
 assert data["streams"][0]["codec_name"] == "mp3"
 print(json.dumps(data, indent=2))
-PY
+' "$MP3_PROBE"
 fi
 
 echo
