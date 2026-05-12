@@ -2289,3 +2289,144 @@ model PassportSignature {
   @@index([signatureHash])
   @@index([createdAt])
 }
+
+model GovernanceTenant {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name             String
+  status           String @default("active")
+  sovereigntyLevel String @default("standard")
+
+  metadata Json?
+
+  policies  GovernancePolicy[]
+  roles     GovernanceRole[]
+  decisions GovernanceDecision[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([sovereigntyLevel])
+  @@index([createdAt])
+}
+
+model GovernancePolicy {
+  id String @id @default(cuid())
+
+  tenantId    String
+  companyId   String
+  workspaceId String?
+
+  name       String
+  scope      String @default("company")
+  resource   String
+  action     String
+  effect     String @default("allow")
+  priority   Int    @default(100)
+  conditions Json?
+  status     String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant GovernanceTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([scope])
+  @@index([resource])
+  @@index([action])
+  @@index([effect])
+  @@index([status])
+  @@index([priority])
+}
+
+model GovernanceRole {
+  id String @id @default(cuid())
+
+  tenantId    String
+  companyId   String
+  workspaceId String?
+
+  name           String
+  slug           String
+  authorityLevel Int    @default(1)
+  permissions    Json
+  status         String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      GovernanceTenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignments GovernanceRoleAssignment[]
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([slug])
+  @@index([authorityLevel])
+  @@index([status])
+}
+
+model GovernanceRoleAssignment {
+  id String @id @default(cuid())
+
+  roleId      String
+  companyId   String
+  workspaceId String?
+
+  actorId   String
+  actorType String @default("system")
+  status    String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role GovernanceRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([roleId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([status])
+}
+
+model GovernanceDecision {
+  id String @id @default(cuid())
+
+  tenantId    String?
+  companyId   String
+  workspaceId String?
+
+  actorId         String?
+  actorType       String  @default("system")
+  resource        String
+  action          String
+  decision        String
+  reason          String?
+  matchedPolicyId String?
+  matchedRoleId   String?
+  metadata        Json?
+
+  createdAt DateTime @default(now())
+
+  tenant GovernanceTenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([resource])
+  @@index([action])
+  @@index([decision])
+  @@index([createdAt])
+}
