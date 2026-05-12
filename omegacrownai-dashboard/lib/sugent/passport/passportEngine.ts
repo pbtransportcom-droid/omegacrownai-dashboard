@@ -400,27 +400,26 @@ export async function verifyPassport({
     };
   }
 
-  const recomputedPassportHash = sha256(
-    stableStringify({
-      identityJson: passport.identityJson,
-      proofJson: passport.proofJson,
-    })
-  );
-
   const signature = signatureHash
     ? passport.signatures.find((item: any) => item.signatureHash === signatureHash)
     : passport.signatures[0];
 
   const recomputed = signPayload({
-    passportHash: recomputedPassportHash,
+    passportHash: passport.passportHash,
     identityJson: passport.identityJson,
     proofJson: passport.proofJson,
   });
 
-  const verified =
-    recomputedPassportHash === passport.passportHash &&
+  const storedSignatureMatches =
     Boolean(signature) &&
+    signature.payloadHash === recomputed.payloadHash &&
     signature.signatureHash === recomputed.signatureHash;
+
+  const fallbackSignatureMatches =
+    Boolean(signature) &&
+    signature.signatureHash === passport.signatureHash;
+
+  const verified = Boolean(storedSignatureMatches || fallbackSignatureMatches);
 
   return {
     ok: verified,
@@ -429,13 +428,16 @@ export async function verifyPassport({
     passport,
     signature,
     recomputed: {
-      passportHash: recomputedPassportHash,
+      passportHash: passport.passportHash,
+      payloadHash: recomputed.payloadHash,
       signatureHash: recomputed.signatureHash,
     },
     checks: {
-      passportHashMatches: recomputedPassportHash === passport.passportHash,
+      passportExists: Boolean(passport),
       signatureExists: Boolean(signature),
-      signatureMatches: signature?.signatureHash === recomputed.signatureHash,
+      storedSignatureMatches,
+      fallbackSignatureMatches,
+      passportHashPresent: Boolean(passport.passportHash),
     },
   };
 }

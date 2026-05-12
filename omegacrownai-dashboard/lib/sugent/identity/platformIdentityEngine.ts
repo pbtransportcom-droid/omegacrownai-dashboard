@@ -361,6 +361,47 @@ export async function protectProjectAssets({
 
       created.push({ fingerprint, watermark });
     }
+
+    if (created.length === 0) {
+      const prompt = `${video.title || ""} ${video.description || ""}`.trim();
+      const content = stableStringify({
+        id: video.id,
+        title: video.title,
+        description: video.description,
+        status: video.status,
+        durationSeconds: video.durationSeconds,
+        aspectRatio: video.aspectRatio,
+      });
+
+      const fingerprint = await createAssetFingerprint({
+        companyId,
+        projectId,
+        projectType,
+        assetId: video.id,
+        sourceType: "video_project_fallback",
+        prompt,
+        content,
+        metadata: {
+          fallback: true,
+          reason: "No video assets or scenes existed for project identity protection.",
+        },
+      });
+
+      const watermark = await createPlatformWatermark({
+        companyId,
+        projectId,
+        projectType,
+        assetId: video.id,
+        source: "video_project_fallback",
+        prompt,
+        metadata: {
+          fingerprintId: fingerprint.id,
+          fallback: true,
+        },
+      });
+
+      created.push({ fingerprint, watermark });
+    }
   }
 
   return {

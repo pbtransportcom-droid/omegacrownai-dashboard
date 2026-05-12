@@ -14,13 +14,32 @@ function unique(values: string[]) {
 async function findLatestProjectVersion(companyId: string, projectId?: string | null) {
   if (!projectId) return null;
 
-  return prisma.projectVersion.findFirst({
+  const existing = await prisma.projectVersion.findFirst({
     where: {
       companyId,
       projectId,
     },
     orderBy: {
       createdAt: "desc",
+    },
+  });
+
+  if (existing) return existing;
+
+  return prisma.projectVersion.create({
+    data: {
+      companyId,
+      projectId,
+      projectType: "video",
+      label: "Auto-created QA repair version",
+      status: "draft",
+      snapshotJson: {
+        source: "sovereign_repair",
+        reason: "ProjectVersion was missing during QA repair.",
+        projectId,
+        repairVersion: `repair-${Date.now()}`,
+        title: "Auto-created QA repair version",
+      },
     },
   });
 }
@@ -266,7 +285,11 @@ async function repairDeployment({
 }
 
 export function buildRepairPlan(failedChecks: string[]) {
-  const checks = unique(failedChecks);
+  let checks = unique(failedChecks);
+
+  if (checks.includes("passport") && !checks.includes("identity")) {
+    checks = ["identity", ...checks];
+  }
 
   return checks.map((checkName) => {
     const actionType =
