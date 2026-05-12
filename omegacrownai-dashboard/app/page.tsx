@@ -19,6 +19,7 @@ const phases = [
   "Director's Room",
   "Reliability Layer",
   "Editor's Room",
+  "Full Observability Dashboard",
 ];
 
 export default function HomePage() {
