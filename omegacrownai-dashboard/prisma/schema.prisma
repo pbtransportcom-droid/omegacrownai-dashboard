@@ -2100,3 +2100,94 @@ model AssetGeneratorRoomMessage {
   @@index([agentType])
   @@index([createdAt])
 }
+
+model PlatformWatermark {
+  id String @id @default(cuid())
+
+  companyId   String?
+  workspaceId String?
+  projectId   String?
+  projectType String?
+  assetId     String?
+
+  watermarkType String @default("metadata")
+  watermarkKey  String
+  payloadJson   Json
+  hash          String
+  status        String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([assetId])
+  @@index([watermarkType])
+  @@index([watermarkKey])
+  @@index([hash])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AssetFingerprint {
+  id String @id @default(cuid())
+
+  companyId   String?
+  workspaceId String?
+  projectId   String?
+  projectType String?
+  assetId     String?
+
+  sourceType  String
+  fingerprint String
+  promptHash  String?
+  contentHash String?
+  lineageHash String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([assetId])
+  @@index([sourceType])
+  @@index([fingerprint])
+  @@index([promptHash])
+  @@index([contentHash])
+  @@index([lineageHash])
+  @@index([createdAt])
+}
+
+model CloneDetectionEvent {
+  id String @id @default(cuid())
+
+  companyId   String?
+  workspaceId String?
+  projectId   String?
+  assetId     String?
+
+  suspectedHash String
+  matchedHash   String?
+  matchScore    Int     @default(0)
+  status        String  @default("open")
+  reason        String?
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([assetId])
+  @@index([suspectedHash])
+  @@index([matchedHash])
+  @@index([matchScore])
+  @@index([status])
+  @@index([createdAt])
+}
