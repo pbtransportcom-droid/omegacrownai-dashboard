@@ -1974,3 +1974,63 @@ model SoundDesignRoomMessage {
   @@index([agentType])
   @@index([createdAt])
 }
+
+model AuditEvent {
+  id String @id @default(cuid())
+
+  companyId   String?
+  workspaceId String?
+  projectId   String?
+  actorId     String?
+  actorType   String  @default("system")
+
+  action     String
+  entityType String
+  entityId   String?
+  severity   String  @default("info")
+
+  metadata   Json?
+  beforeJson Json?
+  afterJson  Json?
+
+  hash         String
+  previousHash String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model ComplianceReport {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  title    String
+  status   String @default("generated")
+  scope    String @default("company")
+  summary  Json?
+  findings Json?
+  metadata Json?
+
+  generatedBy String?
+  generatedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([scope])
+  @@index([generatedAt])
+}
