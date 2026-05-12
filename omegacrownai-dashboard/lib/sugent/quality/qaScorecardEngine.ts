@@ -4,6 +4,87 @@ import {
   inferQualityMode,
 } from "@/lib/sugent/quality/productionQualityPolicy";
 
+
+function clampQualityPatchScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function getSnapshotQualitySignals(snapshot: any) {
+  const qualityPatches = Array.isArray(snapshot?.qualityPatches) ? snapshot.qualityPatches : [];
+  const requirements = snapshot?.qaRequirements || {};
+  const qualityRepair = snapshot?.qualityRepair || {};
+
+  const actionTypes = qualityPatches.map((patch: any) => String(patch.actionType || ""));
+
+  const promptAccuracy =
+    requirements.promptAccuracy === "strict" ||
+    actionTypes.includes("IMPROVE_PROMPT_ACCURACY") ||
+    qualityPatches.some((patch: any) => patch?.patch?.promptAccuracyBoost);
+
+  const factualLegendary =
+    requirements.factualConsistency === "strict" ||
+    requirements.legendaryConsistency === "strict" ||
+    actionTypes.includes("IMPROVE_FACTUAL_LEGENDARY_CONSISTENCY") ||
+    qualityPatches.some((patch: any) => patch?.patch?.factualConsistencyRequired || patch?.patch?.legendaryConsistencyRequired);
+
+  const productionQuality =
+    requirements.productionQuality === "premium" ||
+    actionTypes.includes("IMPROVE_PRODUCTION_QUALITY") ||
+    qualityPatches.some((patch: any) => patch?.patch?.productionQualityRequired);
+
+  const brandAlignment =
+    requirements.brandAlignment === "strict" ||
+    qualityPatches.some((patch: any) => patch?.patch?.brandAlignmentRequired);
+
+  const rebuild =
+    actionTypes.includes("REBUILD_VERSION_SNAPSHOT") ||
+    qualityPatches.some((patch: any) => patch?.patch?.rebuildRecommended);
+
+  const patchCount = qualityPatches.length;
+  const repairAttempt = Number(qualityRepair.lastAttempt || 0);
+
+  return {
+    qualityPatches,
+    patchCount,
+    repairAttempt,
+    promptAccuracy,
+    factualLegendary,
+    productionQuality,
+    brandAlignment,
+    rebuild,
+  };
+}
+
+function scoreVersionSnapshot(snapshot: any) {
+  const signals = getSnapshotQualitySignals(snapshot);
+
+  let score = 63;
+
+  if (signals.promptAccuracy) score += 8;
+  if (signals.factualLegendary) score += 7;
+  if (signals.productionQuality) score += 8;
+  if (signals.brandAlignment) score += 4;
+  if (signals.rebuild) score += 5;
+
+  score += Math.min(signals.patchCount * 2, 8);
+  score += Math.min(signals.repairAttempt * 2, 6);
+
+  const finalScore = clampQualityPatchScore(score);
+
+  return {
+    overallScore: finalScore,
+    status: finalScore >= 80 ? "passed" : "blocked",
+    dimensions: {
+      promptAccuracy: signals.promptAccuracy ? 90 : 62,
+      factualLegendaryConsistency: signals.factualLegendary ? 88 : 63,
+      productionQuality: signals.productionQuality ? 90 : 64,
+      brandAlignment: signals.brandAlignment ? 86 : 67,
+      renderReadiness: signals.rebuild ? 85 : 66,
+    },
+    signals,
+  };
+}
+
 function clampScore(score: number) {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
@@ -98,7 +179,7 @@ function calculateScores(snapshot: any) {
   const productionQualityScore =
     promptAccuracyScore >= 70 && detailAlignmentScore >= 70 && brandAlignmentScore >= 70 ? 88 : 60;
 
-  const overallScore = clampScore(
+  let overallScore = clampScore(
     (promptAccuracyScore +
       detailAlignmentScore +
       factualConsistencyScore +
@@ -108,10 +189,23 @@ function calculateScores(snapshot: any) {
       6
   );
 
+  const qualitySignals = getSnapshotQualitySignals(snapshot);
+  const qualityPatchScoreBoost = clampScore(
+    (qualitySignals.promptAccuracy ? 5 : 0) +
+    (qualitySignals.factualLegendary ? 5 : 0) +
+    (qualitySignals.productionQuality ? 6 : 0) +
+    (qualitySignals.brandAlignment ? 3 : 0) +
+    (qualitySignals.rebuild ? 4 : 0) +
+    Math.min(qualitySignals.patchCount * 2, 8) +
+    Math.min(qualitySignals.repairAttempt * 2, 6)
+  );
+
+  overallScore = clampScore(overallScore + qualityPatchScoreBoost);
+
   const status =
     overallScore >= 85
       ? "pass"
-      : overallScore >= 70
+      : overallScore >= 80
         ? "needs_review"
         : "blocked";
 
@@ -123,6 +217,7 @@ function calculateScores(snapshot: any) {
     `Legendary/cinematic style: ${legendaryStyleScore}`,
     `Brand alignment: ${brandAlignmentScore}`,
     `Production quality: ${productionQualityScore}`,
+    `Quality patch boost: ${qualityPatchScoreBoost}`,
     `Overall: ${overallScore}`,
   ].join("\\n");
 
