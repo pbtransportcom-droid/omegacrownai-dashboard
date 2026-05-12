@@ -2430,3 +2430,151 @@ model GovernanceDecision {
   @@index([decision])
   @@index([createdAt])
 }
+
+model DeploymentProfile {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name          String
+  environment   String  @default("production")
+  status        String  @default("active")
+  sovereignMode Boolean @default(true)
+
+  configJson Json?
+  rulesJson  Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  releases    ReleaseBundle[]
+  deployments DeploymentRun[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([environment])
+  @@index([status])
+  @@index([sovereignMode])
+  @@index([createdAt])
+}
+
+model ReleaseBundle {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  profileId   String?
+
+  name    String
+  version String
+  status  String @default("draft")
+
+  sourceRef            String?
+  commitHash           String?
+  passportHash         String?
+  governanceDecisionId String?
+
+  manifestJson  Json
+  proofJson     Json?
+  bundleHash    String
+  signatureHash String?
+
+  createdBy  String?
+  approvedBy String?
+  approvedAt DateTime?
+  revokedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile     DeploymentProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  deployments DeploymentRun[]
+  rollbacks   RollbackRecord[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([profileId])
+  @@index([version])
+  @@index([status])
+  @@index([sourceRef])
+  @@index([commitHash])
+  @@index([passportHash])
+  @@index([bundleHash])
+  @@index([signatureHash])
+  @@index([createdAt])
+}
+
+model DeploymentRun {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  profileId   String?
+  releaseId   String?
+
+  environment String @default("production")
+  status      String @default("queued")
+
+  actorId            String?
+  actorType          String    @default("system")
+  approvalDecisionId String?
+  startedAt          DateTime?
+  completedAt        DateTime?
+
+  resultJson Json?
+  logsJson   Json?
+  error      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile DeploymentProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  release ReleaseBundle?     @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([profileId])
+  @@index([releaseId])
+  @@index([environment])
+  @@index([status])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([createdAt])
+}
+
+model RollbackRecord {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  releaseId   String?
+
+  fromDeploymentId String?
+  toReleaseId      String?
+
+  status             String  @default("queued")
+  reason             String?
+  actorId            String?
+  actorType          String  @default("system")
+  approvalDecisionId String?
+
+  resultJson Json?
+  error      String?
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  release ReleaseBundle? @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([releaseId])
+  @@index([fromDeploymentId])
+  @@index([toReleaseId])
+  @@index([status])
+  @@index([actorId])
+  @@index([actorType])
+  @@index([createdAt])
+}
