@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { evaluateRuntimePolicy } from "@/lib/sugent/runtime-policy/runtimePolicyEngine";
 import { createCreatorRenderJob, updateCreatorRenderJob } from "@/lib/sugent/creator-render/renderJobEngine";
+import { getOrCreateCompanyBrandKit, normalizeBrandKit, type BrandKitInput } from "@/lib/sugent/brand-kit/brandKitEngine";
 
 const execFileAsync = promisify(execFile);
 
@@ -72,7 +73,7 @@ async function getProjectInfo(projectId: string, projectType: string) {
   };
 }
 
-function buildVideoManifest(projectInfo: any, audioStyle?: any) {
+function buildVideoManifest(projectInfo: any, audioStyle?: any, brandKit?: any) {
   const video = projectInfo.source;
   const scenes = Array.isArray(video?.scenes) ? video.scenes : [];
 
@@ -137,6 +138,7 @@ function buildVideoManifest(projectInfo: any, audioStyle?: any) {
     },
     scenes: manifestScenes,
     audioStyle: audioStyle || {},
+    brandKit: brandKit || {},
     productionNotes: {
       output: "Timeline-aware FFmpeg MP4 export with captions, ordered scenes, duration controls, and configurable audio style.",
       nextStep: "Connect visual asset generation and full timeline compositing.",
@@ -144,7 +146,7 @@ function buildVideoManifest(projectInfo: any, audioStyle?: any) {
   };
 }
 
-function buildPodcastManifest(projectInfo: any, audioStyle?: any) {
+function buildPodcastManifest(projectInfo: any, audioStyle?: any, brandKit?: any) {
   const podcast = projectInfo.source;
 
   return {
@@ -158,6 +160,7 @@ function buildPodcastManifest(projectInfo: any, audioStyle?: any) {
       format: "mp3",
     },
     audioStyle: audioStyle || {},
+    brandKit: brandKit || {},
     productionNotes: {
       output: "Placeholder audio manifest for native creator export pipeline.",
       nextStep: "Connect this manifest to actual TTS/audio renderer.",
@@ -375,6 +378,7 @@ export async function executeCreatorExport({
   actorType = "system",
   format,
   audioStyle,
+  brandOverrides,
 }: {
   companyId: string;
   workspaceId?: string | null;
@@ -384,6 +388,7 @@ export async function executeCreatorExport({
   actorType?: string;
   format?: string;
   audioStyle?: CreatorAudioStyle | null;
+  brandOverrides?: BrandKitInput | null;
 }) {
   const action = projectType === "podcast" ? "render_audio" : "render";
 
@@ -470,6 +475,20 @@ export async function executeCreatorExport({
   const assetFormat = format || (projectType === "podcast" ? "mp3" : "mp4");
   const normalizedAudioStyle = normalizeAudioStyle(audioStyle);
 
+  const companyBrandKit = await getOrCreateCompanyBrandKit(companyId, workspaceId || null);
+  const normalizedBrandKit = normalizeBrandKit({
+    name: companyBrandKit.name,
+    primaryColor: brandOverrides?.primaryColor || companyBrandKit.primaryColor,
+    secondaryColor: brandOverrides?.secondaryColor || companyBrandKit.secondaryColor,
+    accentColor: brandOverrides?.accentColor || companyBrandKit.accentColor,
+    backgroundColor: brandOverrides?.backgroundColor || companyBrandKit.backgroundColor,
+    textColor: brandOverrides?.textColor || companyBrandKit.textColor,
+    logoUrl: brandOverrides?.logoUrl || companyBrandKit.logoUrl,
+    logoPlacement: brandOverrides?.logoPlacement || companyBrandKit.logoPlacement,
+    fontStyle: brandOverrides?.fontStyle || companyBrandKit.fontStyle,
+    templateStyle: brandOverrides?.templateStyle || companyBrandKit.templateStyle,
+  });
+
   const renderJob = await createCreatorRenderJob({
     companyId,
     workspaceId: workspaceId || null,
@@ -483,6 +502,7 @@ export async function executeCreatorExport({
       format: assetFormat,
       source: "creator_export",
       audioStyle: normalizedAudioStyle,
+      brandKit: normalizedBrandKit,
     },
     createdBy: actorId || "system-owner",
     actorType,
@@ -497,8 +517,8 @@ export async function executeCreatorExport({
 
   const projectInfo = await getProjectInfo(projectId, projectType);
   const manifest = projectType === "podcast"
-    ? buildPodcastManifest(projectInfo, normalizedAudioStyle)
-    : buildVideoManifest(projectInfo, normalizedAudioStyle);
+    ? buildPodcastManifest(projectInfo, normalizedAudioStyle, normalizedBrandKit)
+    : buildVideoManifest(projectInfo, normalizedAudioStyle, normalizedBrandKit);
 
   const exportRecord = await prisma.creatorExportAsset.create({
     data: {
@@ -597,6 +617,7 @@ export async function executeCreatorExport({
         policyStatus: policy.status,
         checks: policy.checks,
         audioStyle: normalizedAudioStyle,
+        brandKit: normalizedBrandKit,
         outputType: projectType === "video" ? "mp4_video_with_audio" : projectType === "podcast" ? "mp3_podcast_audio" : "manifest_placeholder",
         renderer: projectType === "video" ? "ffmpeg_scene_card_tts_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_tts_mp3_renderer" : "manifest_placeholder",
         audioRenderer: projectType === "video" ? "espeak_tts_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_espeak_tts_narration_music_bed" : null,

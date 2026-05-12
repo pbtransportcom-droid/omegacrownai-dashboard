@@ -31,6 +31,17 @@ export async function POST(
       musicVolume: body.musicVolume ? Number(body.musicVolume) : 1,
       voiceVolume: body.voiceVolume ? Number(body.voiceVolume) : 1,
     },
+    brandOverrides: {
+      primaryColor: body.primaryColor ? String(body.primaryColor) : undefined,
+      secondaryColor: body.secondaryColor ? String(body.secondaryColor) : undefined,
+      accentColor: body.accentColor ? String(body.accentColor) : undefined,
+      backgroundColor: body.backgroundColor ? String(body.backgroundColor) : undefined,
+      textColor: body.textColor ? String(body.textColor) : undefined,
+      logoUrl: body.logoUrl ? String(body.logoUrl) : undefined,
+      logoPlacement: body.logoPlacement ? String(body.logoPlacement) : undefined,
+      fontStyle: body.fontStyle ? String(body.fontStyle) : undefined,
+      templateStyle: body.templateStyle ? String(body.templateStyle) : undefined,
+    },
   });
 
   return NextResponse.json(result, {

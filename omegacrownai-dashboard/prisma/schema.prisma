@@ -3029,3 +3029,36 @@ model CreatorRenderJobEvent {
   @@index([status])
   @@index([createdAt])
 }
+
+model CompanyBrandKit {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+
+  name   String @default("Default Brand Kit")
+  status String @default("active")
+
+  primaryColor    String @default("#22d3ee")
+  secondaryColor  String @default("#0f172a")
+  accentColor     String @default("#facc15")
+  backgroundColor String @default("#020617")
+  textColor       String @default("#ffffff")
+
+  logoUrl       String?
+  logoPlacement String  @default("top-center")
+  fontStyle     String  @default("premium-sans")
+  templateStyle String  @default("cinematic")
+
+  metadata Json?
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([templateStyle])
+  @@index([createdAt])
+}

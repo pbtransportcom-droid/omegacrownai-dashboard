@@ -39,6 +39,27 @@ def mood_frequencies(mood):
         return (110, 220)
     return (110, 220)
 
+def parse_hex_color(value, fallback):
+    value = str(value or "").strip().lstrip("#")
+    if len(value) != 6:
+        return fallback
+    try:
+        return tuple(int(value[i:i+2], 16) for i in (0, 2, 4))
+    except Exception:
+        return fallback
+
+def get_brand_kit(manifest):
+    kit = manifest.get("brandKit") or {}
+    return {
+        "primaryColor": parse_hex_color(kit.get("primaryColor"), (34, 211, 238)),
+        "secondaryColor": parse_hex_color(kit.get("secondaryColor"), (15, 23, 42)),
+        "accentColor": parse_hex_color(kit.get("accentColor"), (250, 204, 21)),
+        "backgroundColor": parse_hex_color(kit.get("backgroundColor"), (2, 6, 23)),
+        "textColor": parse_hex_color(kit.get("textColor"), (255, 255, 255)),
+        "logoPlacement": kit.get("logoPlacement") or "top-center",
+        "templateStyle": kit.get("templateStyle") or "cinematic",
+    }
+
 def load_font(size):
     candidates = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -74,7 +95,7 @@ def draw_wrapped(draw, text, font, x, y, max_width, line_spacing=12, fill=(245, 
 
     return y
 
-def create_scene_card(scene, index, total, title, out_path):
+def create_scene_card(scene, index, total, title, out_path, brand_kit):
     asset_path = scene.get("assetPath") or scene.get("visualAssetPath")
 
     if asset_path and os.path.exists(asset_path):
@@ -90,10 +111,16 @@ def create_scene_card(scene, index, total, title, out_path):
             draw_base.line([(0, y), (WIDTH, y)], fill=(r, g, b))
 
     draw = ImageDraw.Draw(img, "RGBA")
+    primary = brand_kit["primaryColor"]
+    secondary = brand_kit["secondaryColor"]
+    accent = brand_kit["accentColor"]
+    text_color = brand_kit["textColor"]
+    template_style = brand_kit["templateStyle"]
 
     draw.rectangle((0, 0, WIDTH, HEIGHT), fill=(0, 0, 0, 85))
-    draw.rounded_rectangle((70, 60, WIDTH - 70, HEIGHT - 60), radius=36, outline=(58, 214, 255, 170), width=3)
-    draw.rounded_rectangle((95, 88, WIDTH - 95, HEIGHT - 88), radius=28, fill=(10, 20, 42, 125))
+    border_width = 5 if template_style == "royal" else 3
+    draw.rounded_rectangle((70, 60, WIDTH - 70, HEIGHT - 60), radius=36, outline=(*accent, 180), width=border_width)
+    draw.rounded_rectangle((95, 88, WIDTH - 95, HEIGHT - 88), radius=28, fill=(*secondary, 135))
 
     font_small = load_font(28)
     font_title = load_font(56)
@@ -106,15 +133,15 @@ def create_scene_card(scene, index, total, title, out_path):
     timeline_order = safe_text(scene.get("timelineOrder") if scene.get("timelineOrder") is not None else index)
     duration = safe_text(scene.get("durationSeconds") or "")
 
-    draw.text((120, 120), f"OmegaCrownAI · Timeline Scene {index + 1} of {total}", font=font_small, fill=(103, 232, 249))
-    draw.text((WIDTH - 390, 120), f"Order {timeline_order} · {duration}s", font=font_footer, fill=(148, 235, 255))
+    draw.text((120, 120), f"OmegaCrownAI · Timeline Scene {index + 1} of {total}", font=font_small, fill=(*accent, 235))
+    draw.text((WIDTH - 390, 120), f"Order {timeline_order} · {duration}s", font=font_footer, fill=(*primary, 235))
 
-    draw_wrapped(draw, scene_title, font_title, 120, 180, WIDTH - 240, line_spacing=16, fill=(255, 255, 255))
+    draw_wrapped(draw, scene_title, font_title, 120, 180, WIDTH - 240, line_spacing=16, fill=(*text_color, 255))
 
     y = 320
     if caption:
-        draw.rounded_rectangle((120, y - 12, WIDTH - 120, y + 82), radius=18, fill=(15, 31, 58), outline=(34, 211, 238), width=1)
-        draw_wrapped(draw, caption, font_body, 145, y, WIDTH - 290, line_spacing=10, fill=(235, 253, 255))
+        draw.rounded_rectangle((120, y - 12, WIDTH - 120, y + 82), radius=18, fill=(*secondary, 190), outline=(*accent, 160), width=1)
+        draw_wrapped(draw, caption, font_body, 145, y, WIDTH - 290, line_spacing=10, fill=(*text_color, 255))
         y += 115
 
     if voiceover:
@@ -264,6 +291,7 @@ def main():
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     audio_style = get_audio_style(manifest)
+    brand_kit = get_brand_kit(manifest)
     title = manifest.get("title") or "OmegaCrownAI Video"
     scenes = manifest.get("scenes") or []
 
@@ -284,7 +312,7 @@ def main():
         duration = max(3, min(duration, 20))
 
         card_path = work_dir / f"scene_{index + 1:03d}.png"
-        create_scene_card(scene, index, len(scenes), title, card_path)
+        create_scene_card(scene, index, len(scenes), title, card_path, brand_kit)
 
         video_lines.append(f"file '{card_path.as_posix()}'\n")
         video_lines.append(f"duration {duration}\n")
@@ -346,6 +374,10 @@ def main():
             "source": manifest.get("source") or "timeline_editor",
             "exportSettings": manifest.get("exportSettings") or {},
             "sceneDurations": [scene.get("durationSeconds") for scene in scenes],
+        },
+        "brandKit": {
+            "templateStyle": brand_kit["templateStyle"],
+            "logoPlacement": brand_kit["logoPlacement"],
         },
         "visualAssets": {
             "enabled": any(scene.get("assetPath") or scene.get("visualAssetPath") for scene in scenes),

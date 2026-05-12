@@ -63,7 +63,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, timeline scene ordering, generated scene assets, captions, duration controls, download links, render evidence, and creator output history.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, timeline scene ordering, generated scene assets, brand kit templates, captions, duration controls, download links, render evidence, and creator output history.
         </p>
       </section>
 
@@ -127,6 +127,7 @@ export default async function CreatorExportsPage({
                 </select>
 
                 <AudioStyleControls />
+                <BrandKitControls />
 
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
                   Render MP4 Export
@@ -152,6 +153,7 @@ export default async function CreatorExportsPage({
                 </select>
 
                 <AudioStyleControls />
+                <BrandKitControls />
 
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
                   Render MP3 Export
@@ -319,6 +321,53 @@ export default async function CreatorExportsPage({
 }
 
 
+
+function BrandKitControls() {
+  return (
+    <div className="grid gap-3 rounded-2xl border border-border bg-black/20 p-3">
+      <div className="text-xs font-black uppercase tracking-[0.18em] text-yellow-300">Brand Kit</div>
+
+      <select name="templateStyle" defaultValue="cinematic" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none">
+        <option value="cinematic">Cinematic</option>
+        <option value="royal">Royal</option>
+        <option value="luxury">Luxury</option>
+        <option value="minimal">Minimal</option>
+        <option value="energetic">Energetic</option>
+      </select>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="grid gap-1 text-xs text-muted">
+          Primary Color
+          <input name="primaryColor" defaultValue="#22d3ee" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+
+        <label className="grid gap-1 text-xs text-muted">
+          Accent Color
+          <input name="accentColor" defaultValue="#facc15" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="grid gap-1 text-xs text-muted">
+          Background
+          <input name="backgroundColor" defaultValue="#020617" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+
+        <label className="grid gap-1 text-xs text-muted">
+          Text Color
+          <input name="textColor" defaultValue="#ffffff" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+      </div>
+
+      <select name="logoPlacement" defaultValue="top-center" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none">
+        <option value="top-center">Logo Top Center</option>
+        <option value="top-left">Logo Top Left</option>
+        <option value="bottom-right">Logo Bottom Right</option>
+      </select>
+    </div>
+  );
+}
+
 function AudioStyleControls() {
   return (
     <div className="grid gap-3 rounded-2xl border border-border bg-black/20 p-3">
@@ -420,6 +469,8 @@ function ExportCard({ item }: { item: any }) {
         <HashRow label="Timeline" value={item.metadata?.timeline?.source || "none"} />
         <HashRow label="Scene Durations" value={item.metadata?.timeline?.sceneDurations ? item.metadata.timeline.sceneDurations.join(", ") : "none"} />
         <HashRow label="Visual Assets" value={item.metadata?.visualAssets?.enabled ? `${item.metadata.visualAssets.assets?.length || item.metadata.visualAssets.count || 0} generated` : "none"} />
+        <HashRow label="Template" value={item.metadata?.brandKit?.templateStyle || "none"} />
+        <HashRow label="Brand Primary" value={item.metadata?.brandKit?.primaryColor || "none"} />
       </div>
     </div>
   );
