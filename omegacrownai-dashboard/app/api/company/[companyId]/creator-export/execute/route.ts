@@ -23,6 +23,14 @@ export async function POST(
     actorId: body.actorId ? String(body.actorId) : "system-owner",
     actorType: body.actorType ? String(body.actorType) : "system",
     format: body.format ? String(body.format) : undefined,
+    audioStyle: {
+      musicMood: body.musicMood ? String(body.musicMood) : "cinematic",
+      voiceSpeed: body.voiceSpeed ? Number(body.voiceSpeed) : 145,
+      voicePitch: body.voicePitch ? Number(body.voicePitch) : 45,
+      introOutro: body.introOutro === false || body.introOutro === "false" ? false : true,
+      musicVolume: body.musicVolume ? Number(body.musicVolume) : 1,
+      voiceVolume: body.voiceVolume ? Number(body.voiceVolume) : 1,
+    },
   });
 
   return NextResponse.json(result, {

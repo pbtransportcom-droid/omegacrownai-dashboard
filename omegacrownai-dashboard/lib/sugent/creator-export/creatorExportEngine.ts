@@ -11,6 +11,27 @@ const execFileAsync = promisify(execFile);
 
 const EXPORT_ROOT = path.join(process.cwd(), "public", "exports");
 
+type CreatorAudioStyle = {
+  musicMood?: string;
+  voiceSpeed?: number;
+  voicePitch?: number;
+  introOutro?: boolean;
+  musicVolume?: number;
+  voiceVolume?: number;
+};
+
+function normalizeAudioStyle(audioStyle?: CreatorAudioStyle | null) {
+  return {
+    musicMood: audioStyle?.musicMood || "cinematic",
+    voiceSpeed: Number.isFinite(Number(audioStyle?.voiceSpeed)) ? Number(audioStyle?.voiceSpeed) : 145,
+    voicePitch: Number.isFinite(Number(audioStyle?.voicePitch)) ? Number(audioStyle?.voicePitch) : 45,
+    introOutro: audioStyle?.introOutro === false ? false : true,
+    musicVolume: Number.isFinite(Number(audioStyle?.musicVolume)) ? Number(audioStyle?.musicVolume) : 1,
+    voiceVolume: Number.isFinite(Number(audioStyle?.voiceVolume)) ? Number(audioStyle?.voiceVolume) : 1,
+  };
+}
+
+
 async function ensureExportDir(companyId: string) {
   const dir = path.join(EXPORT_ROOT, companyId);
   await fs.mkdir(dir, { recursive: true });
@@ -51,7 +72,7 @@ async function getProjectInfo(projectId: string, projectType: string) {
   };
 }
 
-function buildVideoManifest(projectInfo: any) {
+function buildVideoManifest(projectInfo: any, audioStyle?: any) {
   const video = projectInfo.source;
   const scenes = Array.isArray(video?.scenes) ? video.scenes : [];
 
@@ -68,14 +89,15 @@ function buildVideoManifest(projectInfo: any) {
       visualPrompt: scene.visualPrompt || scene.prompt || "",
       durationSeconds: scene.durationSeconds || 6,
     })),
+    audioStyle: audioStyle || {},
     productionNotes: {
-      output: "Placeholder MP4 manifest for native creator export pipeline.",
-      nextStep: "Connect this manifest to actual ffmpeg/media renderer.",
+      output: "FFmpeg MP4 export with configurable audio style.",
+      nextStep: "Upgrade to premium voice/music engines.",
     },
   };
 }
 
-function buildPodcastManifest(projectInfo: any) {
+function buildPodcastManifest(projectInfo: any, audioStyle?: any) {
   const podcast = projectInfo.source;
 
   return {
@@ -85,9 +107,10 @@ function buildPodcastManifest(projectInfo: any) {
     durationSeconds: podcast?.durationSeconds || 180,
     audioPlan: {
       voice: podcast?.voice || "default",
-      music: podcast?.musicStyle || "cinematic",
+      music: audioStyle?.musicMood || podcast?.musicStyle || "cinematic",
       format: "mp3",
     },
+    audioStyle: audioStyle || {},
     productionNotes: {
       output: "Placeholder audio manifest for native creator export pipeline.",
       nextStep: "Connect this manifest to actual TTS/audio renderer.",
@@ -232,6 +255,7 @@ export async function executeCreatorExport({
   actorId = "system-owner",
   actorType = "system",
   format,
+  audioStyle,
 }: {
   companyId: string;
   workspaceId?: string | null;
@@ -240,6 +264,7 @@ export async function executeCreatorExport({
   actorId?: string | null;
   actorType?: string;
   format?: string;
+  audioStyle?: CreatorAudioStyle | null;
 }) {
   const action = projectType === "podcast" ? "render_audio" : "render";
 
@@ -324,6 +349,7 @@ export async function executeCreatorExport({
   }
 
   const assetFormat = format || (projectType === "podcast" ? "mp3" : "mp4");
+  const normalizedAudioStyle = normalizeAudioStyle(audioStyle);
 
   const renderJob = await createCreatorRenderJob({
     companyId,
@@ -337,6 +363,7 @@ export async function executeCreatorExport({
       projectType,
       format: assetFormat,
       source: "creator_export",
+      audioStyle: normalizedAudioStyle,
     },
     createdBy: actorId || "system-owner",
     actorType,
@@ -351,8 +378,8 @@ export async function executeCreatorExport({
 
   const projectInfo = await getProjectInfo(projectId, projectType);
   const manifest = projectType === "podcast"
-    ? buildPodcastManifest(projectInfo)
-    : buildVideoManifest(projectInfo);
+    ? buildPodcastManifest(projectInfo, normalizedAudioStyle)
+    : buildVideoManifest(projectInfo, normalizedAudioStyle);
 
   const exportRecord = await prisma.creatorExportAsset.create({
     data: {
@@ -376,6 +403,7 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
+        audioStyle: normalizedAudioStyle,
       },
     },
   });
@@ -449,6 +477,7 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
+        audioStyle: normalizedAudioStyle,
         outputType: projectType === "video" ? "mp4_video_with_audio" : projectType === "podcast" ? "mp3_podcast_audio" : "manifest_placeholder",
         renderer: projectType === "video" ? "ffmpeg_scene_card_tts_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_tts_mp3_renderer" : "manifest_placeholder",
         audioRenderer: projectType === "video" ? "espeak_tts_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_espeak_tts_narration_music_bed" : null,

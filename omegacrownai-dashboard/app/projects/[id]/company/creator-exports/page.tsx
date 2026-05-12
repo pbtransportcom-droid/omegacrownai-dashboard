@@ -63,7 +63,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Preview finished MP4 videos and MP3 podcasts directly in the dashboard, now with generated TTS narration, audio beds, download links, render evidence, and creator output history.
+          Preview finished MP4 videos and MP3 podcasts with generated TTS narration, selectable music moods, voice speed/pitch controls, download links, render evidence, and creator output history.
         </p>
       </section>
 
@@ -126,6 +126,8 @@ export default async function CreatorExportsPage({
                   ))}
                 </select>
 
+                <AudioStyleControls />
+
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
                   Render MP4 Export
                 </button>
@@ -148,6 +150,8 @@ export default async function CreatorExportsPage({
                     </option>
                   ))}
                 </select>
+
+                <AudioStyleControls />
 
                 <button className="rounded-xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-500">
                   Render MP3 Export
@@ -311,6 +315,53 @@ export default async function CreatorExportsPage({
         </section>
       )}
     </main>
+  );
+}
+
+
+function AudioStyleControls() {
+  return (
+    <div className="grid gap-3 rounded-2xl border border-border bg-black/20 p-3">
+      <div className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Audio Style</div>
+
+      <select name="musicMood" defaultValue="cinematic" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none">
+        <option value="cinematic">Cinematic</option>
+        <option value="luxury">Luxury</option>
+        <option value="royal">Royal</option>
+        <option value="calm">Calm</option>
+        <option value="dramatic">Dramatic</option>
+        <option value="energetic">Energetic</option>
+      </select>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="grid gap-1 text-xs text-muted">
+          Voice Speed
+          <input name="voiceSpeed" defaultValue="145" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+
+        <label className="grid gap-1 text-xs text-muted">
+          Voice Pitch
+          <input name="voicePitch" defaultValue="45" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="grid gap-1 text-xs text-muted">
+          Voice Volume
+          <input name="voiceVolume" defaultValue="1" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+
+        <label className="grid gap-1 text-xs text-muted">
+          Music Volume
+          <input name="musicVolume" defaultValue="1" className="rounded-xl border border-border bg-slate-950 px-4 py-3 text-sm text-white outline-none" />
+        </label>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-slate-200">
+        <input name="introOutro" type="checkbox" value="true" defaultChecked />
+        Include intro/outro bed
+      </label>
+    </div>
   );
 }
 

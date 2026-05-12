@@ -9,6 +9,31 @@ SAMPLE_RATE = 44100
 def safe_text(value):
     return str(value or "").replace("\n", " ").strip()
 
+def get_audio_style(manifest):
+    style = manifest.get("audioStyle") or {}
+    return {
+        "musicMood": style.get("musicMood") or manifest.get("audioPlan", {}).get("music") or "cinematic",
+        "voiceSpeed": int(style.get("voiceSpeed") or 145),
+        "voicePitch": int(style.get("voicePitch") or 45),
+        "introOutro": False if style.get("introOutro") is False else True,
+        "musicVolume": float(style.get("musicVolume") or 1),
+        "voiceVolume": float(style.get("voiceVolume") or 1),
+    }
+
+def mood_frequencies(mood):
+    mood = str(mood or "cinematic").lower()
+    if mood == "royal":
+        return (98, 196)
+    if mood == "energetic":
+        return (146, 292)
+    if mood == "calm":
+        return (82, 164)
+    if mood == "dramatic":
+        return (73, 146)
+    if mood == "luxury":
+        return (110, 220)
+    return (110, 220)
+
 def run(cmd):
     subprocess.run(cmd, check=True)
 
@@ -21,20 +46,23 @@ def create_tone_audio(freq, duration, volume, out_path):
         out_path.as_posix()
     ])
 
-def create_intro_music(duration, out_path):
+def create_intro_music(duration, out_path, audio_style):
+    freq_one, freq_two = mood_frequencies(audio_style["musicMood"])
+    music_volume = audio_style["musicVolume"]
+
     run([
         "ffmpeg", "-y",
         "-f", "lavfi",
-        "-i", f"sine=frequency=110:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-i", f"sine=frequency={freq_one}:duration={duration}:sample_rate={SAMPLE_RATE}",
         "-f", "lavfi",
-        "-i", f"sine=frequency=220:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-i", f"sine=frequency={freq_two}:duration={duration}:sample_rate={SAMPLE_RATE}",
         "-filter_complex",
-        f"[0:a]volume=0.060[a0];[1:a]volume=0.028[a1];[a0][a1]amix=inputs=2:duration=longest,afade=t=in:st=0:d=0.5,afade=t=out:st={max(duration - 0.7, 0)}:d=0.7[a]",
+        f"[0:a]volume={0.060 * music_volume}[a0];[1:a]volume={0.028 * music_volume}[a1];[a0][a1]amix=inputs=2:duration=longest,afade=t=in:st=0:d=0.5,afade=t=out:st={max(duration - 0.7, 0)}:d=0.7[a]",
         "-map", "[a]",
         out_path.as_posix()
     ])
 
-def create_narration_placeholder(text, index, duration, out_path):
+def create_narration_placeholder(text, index, duration, out_path, audio_style):
     text = safe_text(text)
     word_count = max(len(text.split()), 1)
 
@@ -47,8 +75,8 @@ def create_narration_placeholder(text, index, duration, out_path):
         run([
             "espeak-ng",
             "-v", "en-us",
-            "-s", "145",
-            "-p", "45",
+            "-s", str(audio_style["voiceSpeed"]),
+            "-p", str(audio_style["voicePitch"]),
             "-a", "150",
             "-w", raw_tts.as_posix(),
             text
@@ -57,7 +85,7 @@ def create_narration_placeholder(text, index, duration, out_path):
         run([
             "ffmpeg", "-y",
             "-i", raw_tts.as_posix(),
-            "-af", f"volume=1.20,aresample={SAMPLE_RATE}:async=1,apad,atrim=0:{duration},afade=t=in:st=0:d=0.12,afade=t=out:st={max(duration - 0.2, 0)}:d=0.18",
+            "-af", f"volume={1.20 * audio_style['voiceVolume']},aresample={SAMPLE_RATE}:async=1,apad,atrim=0:{duration},afade=t=in:st=0:d=0.12,afade=t=out:st={max(duration - 0.2, 0)}:d=0.18",
             out_path.as_posix()
         ])
 
@@ -68,7 +96,8 @@ def create_narration_placeholder(text, index, duration, out_path):
             "type": "podcast_tts_narration",
             "engine": "espeak-ng",
             "voice": "en-us",
-            "speed": 145,
+            "speed": audio_style["voiceSpeed"],
+            "pitch": audio_style["voicePitch"],
             "text": text,
             "file": out_path.as_posix()
         }
@@ -123,6 +152,7 @@ def main():
     output_mp3.parent.mkdir(parents=True, exist_ok=True)
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    audio_style = get_audio_style(manifest)
     title = safe_text(manifest.get("title") or "OmegaCrownAI Podcast")
     description = safe_text(manifest.get("description") or "")
 
@@ -152,8 +182,9 @@ def main():
     narration_manifest = []
 
     intro = work_dir / "intro_music.wav"
-    create_intro_music(5, intro)
-    audio_files.append(intro)
+    if audio_style["introOutro"]:
+        create_intro_music(5, intro, audio_style)
+        audio_files.append(intro)
 
     for index, segment in enumerate(segments):
         text = safe_text(
@@ -169,14 +200,15 @@ def main():
         duration = max(5, min(duration, 45))
 
         segment_audio = work_dir / f"narration_{index + 1:03d}.wav"
-        info = create_narration_placeholder(text, index, duration, segment_audio)
+        info = create_narration_placeholder(text, index, duration, segment_audio, audio_style)
         info["title"] = safe_text(segment.get("title") or f"Segment {index + 1}")
         narration_manifest.append(info)
         audio_files.append(segment_audio)
 
     outro = work_dir / "outro_music.wav"
-    create_intro_music(5, outro)
-    audio_files.append(outro)
+    if audio_style["introOutro"]:
+        create_intro_music(5, outro, audio_style)
+        audio_files.append(outro)
 
     concat_path = work_dir / "podcast_concat.txt"
     wav_mix = work_dir / "podcast_mix.wav"
@@ -196,7 +228,7 @@ def main():
         output_mp3.as_posix()
     ])
 
-    total_duration = 10 + sum(item["durationSeconds"] for item in narration_manifest)
+    total_duration = (10 if audio_style["introOutro"] else 0) + sum(item["durationSeconds"] for item in narration_manifest)
 
     print(json.dumps({
         "ok": True,
@@ -206,6 +238,7 @@ def main():
         "segmentCount": len(narration_manifest),
         "audio": {
             "renderer": "podcast_espeak_tts_narration_music_bed",
+            "audioStyle": audio_style,
             "codec": "mp3",
             "sampleRate": SAMPLE_RATE,
             "bitrate": "192k",

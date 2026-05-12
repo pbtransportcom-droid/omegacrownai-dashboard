@@ -14,6 +14,31 @@ SAMPLE_RATE = 44100
 def safe_text(value):
     return str(value or "").replace("\n", " ").strip()
 
+def get_audio_style(manifest):
+    style = manifest.get("audioStyle") or {}
+    return {
+        "musicMood": style.get("musicMood") or "cinematic",
+        "voiceSpeed": int(style.get("voiceSpeed") or 145),
+        "voicePitch": int(style.get("voicePitch") or 45),
+        "introOutro": False if style.get("introOutro") is False else True,
+        "musicVolume": float(style.get("musicVolume") or 1),
+        "voiceVolume": float(style.get("voiceVolume") or 1),
+    }
+
+def mood_frequencies(mood):
+    mood = str(mood or "cinematic").lower()
+    if mood == "royal":
+        return (98, 196)
+    if mood == "energetic":
+        return (146, 292)
+    if mood == "calm":
+        return (82, 164)
+    if mood == "dramatic":
+        return (73, 146)
+    if mood == "luxury":
+        return (110, 220)
+    return (110, 220)
+
 def load_font(size):
     candidates = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -92,7 +117,7 @@ def scene_tone_frequency(index):
     base = 420
     return base + (index % 6) * 35
 
-def create_voiceover_placeholder(scene, index, duration, out_path):
+def create_voiceover_placeholder(scene, index, duration, out_path, audio_style):
     text = safe_text(scene.get("voiceoverText") or scene.get("scriptSegment") or scene.get("visualPrompt") or "")
     word_count = max(len(text.split()), 1)
 
@@ -105,8 +130,8 @@ def create_voiceover_placeholder(scene, index, duration, out_path):
         run([
             "espeak-ng",
             "-v", "en-us",
-            "-s", "145",
-            "-p", "45",
+            "-s", str(audio_style["voiceSpeed"]),
+            "-p", str(audio_style["voicePitch"]),
             "-a", "145",
             "-w", raw_tts.as_posix(),
             text
@@ -115,7 +140,8 @@ def create_voiceover_placeholder(scene, index, duration, out_path):
         run([
             "ffmpeg", "-y",
             "-i", raw_tts.as_posix(),
-            "-af", "volume=1.15,aresample={}:async=1,apad,atrim=0:{},afade=t=in:st=0:d=0.12,afade=t=out:st={}:d=0.18".format(
+            "-af", "volume={},aresample={}:async=1,apad,atrim=0:{},afade=t=in:st=0:d=0.12,afade=t=out:st={}:d=0.18".format(
+                1.15 * audio_style["voiceVolume"],
                 SAMPLE_RATE,
                 duration,
                 max(duration - 0.2, 0)
@@ -130,7 +156,8 @@ def create_voiceover_placeholder(scene, index, duration, out_path):
             "type": "tts_voiceover",
             "engine": "espeak-ng",
             "voice": "en-us",
-            "speed": 145,
+            "speed": audio_style["voiceSpeed"],
+            "pitch": audio_style["voicePitch"],
             "text": text,
             "file": out_path.as_posix()
         }
@@ -157,16 +184,22 @@ def create_voiceover_placeholder(scene, index, duration, out_path):
             "file": out_path.as_posix()
         }
 
-def create_music_bed(duration, out_path):
-    # Royal/premium ambient placeholder bed using layered soft sine tones.
+def create_music_bed(duration, out_path, audio_style):
+    freq_one, freq_two = mood_frequencies(audio_style["musicMood"])
+    music_volume = audio_style["musicVolume"]
+
     run([
         "ffmpeg", "-y",
         "-f", "lavfi",
-        "-i", f"sine=frequency=110:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-i", f"sine=frequency={freq_one}:duration={duration}:sample_rate={SAMPLE_RATE}",
         "-f", "lavfi",
-        "-i", f"sine=frequency=220:duration={duration}:sample_rate={SAMPLE_RATE}",
+        "-i", f"sine=frequency={freq_two}:duration={duration}:sample_rate={SAMPLE_RATE}",
         "-filter_complex",
-        "[0:a]volume=0.035[a0];[1:a]volume=0.018[a1];[a0][a1]amix=inputs=2:duration=longest,afade=t=in:st=0:d=1,afade=t=out:st={}:d=1[a]".format(max(duration - 1, 0)),
+        "[0:a]volume={}[a0];[1:a]volume={}[a1];[a0][a1]amix=inputs=2:duration=longest,afade=t=in:st=0:d=1,afade=t=out:st={}:d=1[a]".format(
+            0.035 * music_volume,
+            0.018 * music_volume,
+            max(duration - 1, 0)
+        ),
         "-map", "[a]",
         out_path.as_posix()
     ])
@@ -212,6 +245,7 @@ def main():
     output_mp4.parent.mkdir(parents=True, exist_ok=True)
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    audio_style = get_audio_style(manifest)
     title = manifest.get("title") or "OmegaCrownAI Video"
     scenes = manifest.get("scenes") or []
 
@@ -238,7 +272,7 @@ def main():
         video_lines.append(f"duration {duration}\n")
 
         scene_audio = work_dir / f"voice_scene_{index + 1:03d}.wav"
-        audio_info = create_voiceover_placeholder(scene, index, duration, scene_audio)
+        audio_info = create_voiceover_placeholder(scene, index, duration, scene_audio, audio_style)
         audio_manifest.append(audio_info)
         audio_files.append(scene_audio)
 
@@ -267,7 +301,7 @@ def main():
     mixed_audio = work_dir / "mixed_audio.m4a"
 
     concat_audio_files(audio_files, voice_concat, voice_track)
-    create_music_bed(total_duration, music_bed)
+    create_music_bed(total_duration, music_bed, audio_style)
     mix_audio(voice_track, music_bed, mixed_audio)
 
     run([
@@ -292,6 +326,7 @@ def main():
         "sceneCount": len(scenes),
         "audio": {
             "renderer": "espeak_tts_voiceover_plus_music_bed",
+            "audioStyle": audio_style,
             "voiceTrack": voice_track.as_posix(),
             "musicBed": music_bed.as_posix(),
             "mixedAudio": mixed_audio.as_posix(),
