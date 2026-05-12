@@ -59,6 +59,15 @@ export default async function CreativeStudioPage({
           </Link>
         </div>
 
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            href={`/projects/${id}/company/asset-room`}
+            className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-5 py-3 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+          >
+            Asset Room
+          </Link>
+        </div>
+
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
           Run Director, Editor, and Reviewer agents across video and podcast workflows. Every run is logged, versioned, reviewed, and approval-gated.
         </p>

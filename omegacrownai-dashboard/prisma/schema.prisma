@@ -2034,3 +2034,69 @@ model ComplianceReport {
   @@index([scope])
   @@index([generatedAt])
 }
+
+model AssetGeneratorRoomSession {
+  id String @id @default(cuid())
+
+  companyId   String
+  workspaceId String?
+  projectId   String?
+  projectType String  @default("video")
+
+  topic    String
+  status   String @default("open")
+  metadata Json?
+
+  rounds AssetGeneratorRoomRound[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([projectType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AssetGeneratorRoomRound {
+  id String @id @default(cuid())
+
+  sessionId     String
+  index         Int
+  sourceJson    Json?
+  summary       String?
+  assetPlanJson Json?
+  consensus     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session  AssetGeneratorRoomSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages AssetGeneratorRoomMessage[]
+
+  @@index([sessionId])
+  @@index([index])
+  @@index([consensus])
+  @@index([createdAt])
+}
+
+model AssetGeneratorRoomMessage {
+  id String @id @default(cuid())
+
+  roundId    String
+  role       String
+  agentType  String?
+  content    String
+  parsedJson Json?
+
+  createdAt DateTime @default(now())
+
+  round AssetGeneratorRoomRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+  @@index([role])
+  @@index([agentType])
+  @@index([createdAt])
+}
