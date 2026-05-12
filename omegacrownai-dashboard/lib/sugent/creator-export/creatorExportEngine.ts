@@ -76,23 +76,70 @@ function buildVideoManifest(projectInfo: any, audioStyle?: any) {
   const video = projectInfo.source;
   const scenes = Array.isArray(video?.scenes) ? video.scenes : [];
 
+  const orderedScenes = [...scenes].sort((a: any, b: any) => {
+    const aOrder = Number(a.timelineOrder ?? a.index ?? a.order ?? 0);
+    const bOrder = Number(b.timelineOrder ?? b.index ?? b.order ?? 0);
+    return aOrder - bOrder;
+  });
+
+  const manifestScenes = orderedScenes.map((scene: any, index: number) => {
+    const durationSeconds = Number(
+      scene.durationSeconds ??
+      scene.timelineDurationSeconds ??
+      scene.duration ??
+      6
+    );
+
+    const caption =
+      scene.caption ||
+      scene.subtitle ||
+      scene.onScreenText ||
+      scene.title ||
+      `Scene ${index + 1}`;
+
+    return {
+      id: scene.id,
+      index,
+      sourceIndex: scene.index ?? null,
+      timelineOrder: scene.timelineOrder ?? scene.index ?? index,
+      title: scene.title || `Scene ${index + 1}`,
+      caption,
+      voiceoverText: scene.voiceoverText || scene.scriptSegment || scene.caption || "",
+      visualPrompt: scene.visualPrompt || scene.prompt || "",
+      durationSeconds: Math.max(3, Math.min(Number.isFinite(durationSeconds) ? durationSeconds : 6, 20)),
+      transition: scene.transition || "cut",
+      metadata: {
+        source: "video_scene_timeline",
+        sceneId: scene.id,
+        originalIndex: scene.index ?? null,
+      },
+    };
+  });
+
+  const totalDuration = manifestScenes.reduce(
+    (sum: number, scene: any) => sum + Number(scene.durationSeconds || 0),
+    0
+  );
+
   return {
     kind: "omegacrownai_video_export",
+    manifestVersion: "v3.8-phase54",
+    source: "timeline_editor",
     title: projectInfo.title,
     description: projectInfo.description,
-    durationSeconds: video?.durationSeconds || Math.max(scenes.length * 6, 30),
+    durationSeconds: totalDuration || video?.durationSeconds || Math.max(manifestScenes.length * 6, 30),
     aspectRatio: video?.aspectRatio || "16:9",
-    scenes: scenes.map((scene: any, index: number) => ({
-      index,
-      title: scene.title || `Scene ${index + 1}`,
-      voiceoverText: scene.voiceoverText || scene.scriptSegment || "",
-      visualPrompt: scene.visualPrompt || scene.prompt || "",
-      durationSeconds: scene.durationSeconds || 6,
-    })),
+    exportSettings: {
+      useTimelineOrder: true,
+      captionsEnabled: true,
+      transitionsEnabled: true,
+      renderMode: "timeline_scene_cards",
+    },
+    scenes: manifestScenes,
     audioStyle: audioStyle || {},
     productionNotes: {
-      output: "FFmpeg MP4 export with configurable audio style.",
-      nextStep: "Upgrade to premium voice/music engines.",
+      output: "Timeline-aware FFmpeg MP4 export with captions, ordered scenes, duration controls, and configurable audio style.",
+      nextStep: "Connect visual asset generation and full timeline compositing.",
     },
   };
 }
@@ -195,6 +242,7 @@ async function renderRealVideoExport({
     renderer: "ffmpeg_scene_card_tts_audio_renderer",
     sceneCount: parsed.sceneCount || manifest.scenes?.length || 0,
     audio: parsed.audio || null,
+    timeline: parsed.timeline || null,
   };
 }
 
@@ -482,6 +530,7 @@ export async function executeCreatorExport({
         renderer: projectType === "video" ? "ffmpeg_scene_card_tts_audio_renderer" : projectType === "podcast" ? "ffmpeg_podcast_tts_mp3_renderer" : "manifest_placeholder",
         audioRenderer: projectType === "video" ? "espeak_tts_voiceover_plus_music_bed" : projectType === "podcast" ? "podcast_espeak_tts_narration_music_bed" : null,
         audio: (written as any).audio || null,
+        timeline: (written as any).timeline || null,
         manifestPublicUrl: (written as any).manifestPublicUrl || null,
         nextRenderer: projectType === "podcast" ? "completed_podcast_tts_mp3_renderer" : "completed_ffmpeg_video_tts_audio_renderer",
       },

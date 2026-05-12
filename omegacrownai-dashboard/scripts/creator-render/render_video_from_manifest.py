@@ -93,19 +93,29 @@ def create_scene_card(scene, index, total, title, out_path):
     font_footer = load_font(24)
 
     scene_title = safe_text(scene.get("title") or f"Scene {index + 1}")
+    caption = safe_text(scene.get("caption") or scene_title)
     voiceover = safe_text(scene.get("voiceoverText") or scene.get("scriptSegment") or scene.get("visualPrompt") or "")
+    timeline_order = safe_text(scene.get("timelineOrder") if scene.get("timelineOrder") is not None else index)
+    duration = safe_text(scene.get("durationSeconds") or "")
 
-    draw.text((120, 120), f"OmegaCrownAI · Scene {index + 1} of {total}", font=font_small, fill=(103, 232, 249))
+    draw.text((120, 120), f"OmegaCrownAI · Timeline Scene {index + 1} of {total}", font=font_small, fill=(103, 232, 249))
+    draw.text((WIDTH - 390, 120), f"Order {timeline_order} · {duration}s", font=font_footer, fill=(148, 235, 255))
+
     draw_wrapped(draw, scene_title, font_title, 120, 180, WIDTH - 240, line_spacing=16, fill=(255, 255, 255))
 
-    y = 330
+    y = 320
+    if caption:
+        draw.rounded_rectangle((120, y - 12, WIDTH - 120, y + 82), radius=18, fill=(15, 31, 58), outline=(34, 211, 238), width=1)
+        draw_wrapped(draw, caption, font_body, 145, y, WIDTH - 290, line_spacing=10, fill=(235, 253, 255))
+        y += 115
+
     if voiceover:
-        y = draw_wrapped(draw, voiceover, font_body, 120, y, WIDTH - 240, line_spacing=14, fill=(225, 235, 255))
+        y = draw_wrapped(draw, voiceover, font_small, 120, y, WIDTH - 240, line_spacing=10, fill=(205, 215, 235))
     else:
-        draw.text((120, y), "Generated creator scene card", font=font_body, fill=(225, 235, 255))
+        draw.text((120, y), "Generated creator timeline card", font=font_small, fill=(205, 215, 235))
 
     draw.text((120, HEIGHT - 120), safe_text(title), font=font_footer, fill=(148, 163, 184))
-    draw.text((WIDTH - 400, HEIGHT - 120), "OmegaCrownAI Creator Export", font=font_footer, fill=(148, 163, 184))
+    draw.text((WIDTH - 430, HEIGHT - 120), "Timeline Export · OmegaCrownAI", font=font_footer, fill=(148, 163, 184))
 
     img.save(out_path)
 
@@ -324,6 +334,11 @@ def main():
         "sizeBytes": output_mp4.stat().st_size,
         "durationSeconds": total_duration,
         "sceneCount": len(scenes),
+        "timeline": {
+            "source": manifest.get("source") or "timeline_editor",
+            "exportSettings": manifest.get("exportSettings") or {},
+            "sceneDurations": [scene.get("durationSeconds") for scene in scenes],
+        },
         "audio": {
             "renderer": "espeak_tts_voiceover_plus_music_bed",
             "audioStyle": audio_style,
