@@ -4035,3 +4035,60 @@ model CustomerAbuseControl {
   @@index([severity])
   @@index([createdAt])
 }
+
+model MarketingLead {
+  id String @id @default(cuid())
+
+  email       String
+  name        String?
+  companyName String?
+  phone       String?
+
+  source String?
+  status String  @default("new") // new, contacted, converted, ignored
+
+  interest     String?
+  planInterest String?
+  message      String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([source])
+  @@index([status])
+  @@index([planInterest])
+  @@index([createdAt])
+}
+
+model PublicPricingPlan {
+  id String @id @default(cuid())
+
+  name   String
+  tier   String @unique // free, starter, pro, studio, enterprise
+  status String @default("active") // active, hidden, archived
+
+  monthlyPriceCents Int    @default(0)
+  annualPriceCents  Int    @default(0)
+  currency          String @default("usd")
+
+  headline    String?
+  description String?
+  ctaLabel    String?
+  ctaHref     String?
+
+  featuresJson Json?
+  limitsJson   Json?
+  badge        String?
+  sortOrder    Int     @default(0)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([sortOrder])
+}

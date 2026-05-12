@@ -107,6 +107,14 @@ export default function HomePage() {
             Open Admin Console
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/pricing" className="inline-flex rounded-xl bg-yellow-500 px-5 py-3 text-sm font-black text-black hover:bg-yellow-400">
+            View Pricing
+          </a>
+          <a href="/docs" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+            Read Docs
+          </a>
+        </div>
       </section>
     </main>
   );
