@@ -57,7 +57,7 @@ export default async function CreatorExportsPage({
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-          Generate video and podcast export records after runtime policy allows. This phase creates export manifests and a download-ready pipeline foundation for real MP4/audio rendering.
+          Generate video and podcast export records after runtime policy allows. This phase renders real MP4 scene-card videos from CreatorExport manifests and keeps the audio/podcast export pipeline ready for the next renderer.
         </p>
       </section>
 
@@ -156,7 +156,7 @@ export default async function CreatorExportsPage({
                         href={item.publicUrl}
                         className="mt-4 inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-500/20"
                       >
-                        Open Export Manifest
+                        Open Export
                       </a>
                     )}
 

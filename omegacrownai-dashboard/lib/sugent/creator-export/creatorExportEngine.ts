@@ -1,8 +1,12 @@
 import fs from "fs/promises";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/sugent/audit/auditEngine";
 import { evaluateRuntimePolicy } from "@/lib/sugent/runtime-policy/runtimePolicyEngine";
+
+const execFileAsync = promisify(execFile);
 
 const EXPORT_ROOT = path.join(process.cwd(), "public", "exports");
 
@@ -118,6 +122,54 @@ async function writePlaceholderExport({
     filePath,
     publicUrl: `/exports/${companyId}/${fileName}`,
     sizeBytes: stats.size,
+  };
+}
+
+
+async function renderRealVideoExport({
+  companyId,
+  title,
+  manifest,
+}: {
+  companyId: string;
+  title: string;
+  manifest: any;
+}) {
+  const dir = await ensureExportDir(companyId);
+  const timestamp = Date.now();
+  const base = `${safeFilePart(title)}-video-${timestamp}`;
+  const manifestFileName = `${base}.json`;
+  const mp4FileName = `${base}.mp4`;
+  const workDir = path.join(dir, `${base}-work`);
+  const manifestPath = path.join(dir, manifestFileName);
+  const outputPath = path.join(dir, mp4FileName);
+
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
+
+  const scriptPath = path.join(process.cwd(), "scripts", "creator-render", "render_video_from_manifest.py");
+
+  const { stdout } = await execFileAsync("python3", [
+    scriptPath,
+    manifestPath,
+    workDir,
+    outputPath,
+  ], {
+    maxBuffer: 1024 * 1024 * 10,
+  });
+
+  const parsed = JSON.parse(String(stdout || "{}").trim());
+  const stats = await fs.stat(outputPath);
+
+  return {
+    fileName: mp4FileName,
+    filePath: outputPath,
+    publicUrl: `/exports/${companyId}/${mp4FileName}`,
+    sizeBytes: stats.size,
+    durationSeconds: parsed.durationSeconds || manifest.durationSeconds || null,
+    manifestFileName,
+    manifestPublicUrl: `/exports/${companyId}/${manifestFileName}`,
+    renderer: "ffmpeg_scene_card_renderer",
+    sceneCount: parsed.sceneCount || manifest.scenes?.length || 0,
   };
 }
 
@@ -266,13 +318,19 @@ export async function executeCreatorExport({
     },
   });
 
-  const written = await writePlaceholderExport({
-    companyId,
-    title: projectInfo.title,
-    projectType,
-    format: assetFormat,
-    manifest,
-  });
+  const written = projectType === "video"
+    ? await renderRealVideoExport({
+        companyId,
+        title: projectInfo.title,
+        manifest,
+      })
+    : await writePlaceholderExport({
+        companyId,
+        title: projectInfo.title,
+        projectType,
+        format: assetFormat,
+        manifest,
+      });
 
   const completed = await prisma.creatorExportAsset.update({
     where: { id: exportRecord.id },
@@ -286,8 +344,10 @@ export async function executeCreatorExport({
       metadata: {
         policyStatus: policy.status,
         checks: policy.checks,
-        outputType: "manifest_placeholder",
-        nextRenderer: projectType === "podcast" ? "tts_audio_renderer" : "ffmpeg_video_renderer",
+        outputType: projectType === "video" ? "mp4_video" : "manifest_placeholder",
+        renderer: projectType === "video" ? "ffmpeg_scene_card_renderer" : "manifest_placeholder",
+        manifestPublicUrl: (written as any).manifestPublicUrl || null,
+        nextRenderer: projectType === "podcast" ? "tts_audio_renderer" : "completed_ffmpeg_video_renderer",
       },
     },
   });
@@ -300,7 +360,9 @@ export async function executeCreatorExport({
       projectType,
       type: "EXPORT_COMPLETED",
       status: "completed",
-      message: "Creator export completed and file manifest was written.",
+      message: projectType === "video"
+        ? "Creator export completed and real MP4 file was rendered."
+        : "Creator export completed and file manifest was written.",
       metadata: {
         publicUrl: completed.publicUrl,
         fileName: completed.fileName,
