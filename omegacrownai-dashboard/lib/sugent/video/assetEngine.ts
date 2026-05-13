@@ -30,6 +30,24 @@ export async function createAssetGenerationJobs({
     },
   });
 
+  const parentProject = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+
+  if (!parentProject) {
+    return [];
+  }
+
+  const parentProject = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+
+  if (!parentProject) {
+    return [];
+  }
+
   const jobs = [];
 
   for (const scene of project.scenes) {
