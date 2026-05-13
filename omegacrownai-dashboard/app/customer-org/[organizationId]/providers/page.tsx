@@ -15,7 +15,47 @@ export default async function CustomerProvidersPage({
         <div className="rounded-3xl border border-red-400/30 bg-red-500/10 p-6 text-red-100">
           Provider organization not found.
         </div>
-      </main>
+      
+      <section className="rounded-3xl border border-cyan-400/30 bg-cyan-500/10 p-5">
+        <h2 className="text-xl font-black text-white">Premium Provider Activation Runs</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-200">
+          Run TTS, image, and video providers through the Phase 76 adapter layer. If a requested provider is not configured, Omega Native fallback is used safely.
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <form action="/api/premium-provider-activation/run" method="POST">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="category" value="tts" />
+            <input type="hidden" name="provider" value="elevenlabs" />
+            <input type="hidden" name="prompt" value="OmegaCrownAI customer TTS provider test." />
+            <button className="w-full rounded-xl bg-cyan-600 px-4 py-3 text-xs font-black uppercase text-white hover:bg-cyan-500">
+              Run TTS
+            </button>
+          </form>
+
+          <form action="/api/premium-provider-activation/run" method="POST">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="category" value="image" />
+            <input type="hidden" name="provider" value="stability" />
+            <input type="hidden" name="prompt" value="Luxury OmegaCrownAI launch image." />
+            <button className="w-full rounded-xl bg-purple-600 px-4 py-3 text-xs font-black uppercase text-white hover:bg-purple-500">
+              Run Image
+            </button>
+          </form>
+
+          <form action="/api/premium-provider-activation/run" method="POST">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="category" value="video" />
+            <input type="hidden" name="provider" value="runway" />
+            <input type="hidden" name="prompt" value="OmegaCrownAI launch video scene." />
+            <button className="w-full rounded-xl bg-yellow-500 px-4 py-3 text-xs font-black uppercase text-black hover:bg-yellow-400">
+              Run Video
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </main>
     );
   }
 

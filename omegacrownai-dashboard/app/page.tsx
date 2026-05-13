@@ -151,6 +151,11 @@ export default function HomePage() {
             Publishing Execution
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/premium-providers" className="inline-flex rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-black hover:bg-orange-400">
+            Premium Providers
+          </a>
+        </div>
       </section>
     </main>
   );

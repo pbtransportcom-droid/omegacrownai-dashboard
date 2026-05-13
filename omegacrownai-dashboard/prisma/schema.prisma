@@ -4649,3 +4649,126 @@ model PublishingWebhookDelivery {
   @@index([status])
   @@index([createdAt])
 }
+
+model PremiumProviderAdapter {
+  id String @id @default(cuid())
+
+  provider    String // elevenlabs, playht, aws_polly, google_tts, stability, runway, pika, omega_native
+  category    String // tts, image, video
+  displayName String
+
+  mode   String @default("test") // test, live
+  status String @default("available") // available, disabled, blocked, error
+
+  priority        Int     @default(100)
+  fallbackEnabled Boolean @default(true)
+
+  requiredSecrets Json?
+  capabilities    Json?
+  limitsJson      Json?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs PremiumProviderRun[]
+
+  @@unique([provider, category, mode])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([status])
+  @@index([priority])
+}
+
+model PremiumProviderRun {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  adapterId String?
+  provider  String
+  category  String
+  mode      String  @default("test")
+
+  status               String  @default("queued") // queued, running, completed, failed, fallback
+  usedFallback         Boolean @default(false)
+  fallbackFromProvider String?
+  fallbackReason       String?
+
+  inputType  String? // text, prompt, image, video, manifest
+  outputType String? // audio, image, video, json
+  prompt     String?
+  voiceId    String?
+  modelName  String?
+
+  requestJson        Json?
+  responseJson       Json?
+  outputUrl          String?
+  outputMetadataJson Json?
+
+  unitsUsed          Int    @default(0)
+  estimatedCostCents Int    @default(0)
+  currency           String @default("usd")
+
+  error String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+
+  createdBy String?
+  actorType String  @default("system")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adapter PremiumProviderAdapter? @relation(fields: [adapterId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([adapterId])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([status])
+  @@index([usedFallback])
+  @@index([createdAt])
+}
+
+model PremiumProviderUsage {
+  id String @id @default(cuid())
+
+  organizationId String
+  provider       String
+  category       String
+  mode           String @default("test")
+
+  period        String // YYYY-MM
+  runs          Int    @default(0)
+  completedRuns Int    @default(0)
+  failedRuns    Int    @default(0)
+  fallbackRuns  Int    @default(0)
+
+  unitsUsed          Int    @default(0)
+  estimatedCostCents Int    @default(0)
+  currency           String @default("usd")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, provider, category, mode, period])
+  @@index([organizationId])
+  @@index([provider])
+  @@index([category])
+  @@index([mode])
+  @@index([period])
+}
