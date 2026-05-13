@@ -4446,3 +4446,116 @@ model ExternalPaymentAttempt {
   @@index([referenceCode])
   @@index([createdAt])
 }
+
+model CustomerOAuthProvider {
+  id String @id @default(cuid())
+
+  provider    String // youtube, tiktok, instagram, linkedin, x
+  displayName String
+  category    String @default("publishing")
+
+  authUrl   String?
+  tokenUrl  String?
+  revokeUrl String?
+  scopes    Json?
+
+  status String @default("available") // available, disabled, deprecated
+  mode   String @default("test") // test, live
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  connections CustomerOAuthConnection[]
+  states      CustomerOAuthState[]
+
+  @@unique([provider, mode])
+  @@index([provider])
+  @@index([status])
+  @@index([mode])
+}
+
+model CustomerOAuthState {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  providerId String?
+  provider   String
+  mode       String  @default("test")
+
+  state       String  @unique
+  status      String  @default("created") // created, used, expired, failed
+  redirectUri String?
+  returnUrl   String?
+
+  scopes   Json?
+  metadata Json?
+
+  expiresAt DateTime?
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  oauthProvider CustomerOAuthProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([mode])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CustomerOAuthConnection {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  providerId String?
+  provider   String
+  mode       String  @default("test")
+
+  status String @default("connected") // connected, disconnected, expired, error, refresh_required
+
+  providerAccountId     String?
+  providerAccountName   String?
+  providerAccountHandle String?
+  providerAccountUrl    String?
+
+  accessTokenHash       String?
+  encryptedAccessToken  String?
+  refreshTokenHash      String?
+  encryptedRefreshToken String?
+  tokenType             String?
+  scope                 String?
+
+  expiresAt       DateTime?
+  refreshedAt     DateTime?
+  disconnectedAt  DateTime?
+  lastValidatedAt DateTime?
+  lastError       String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  oauthProvider CustomerOAuthProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([mode])
+  @@index([status])
+  @@index([providerAccountId])
+  @@index([createdAt])
+}

@@ -141,6 +141,11 @@ export default function HomePage() {
             External Payments
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/oauth-publishing" className="inline-flex rounded-xl bg-fuchsia-500 px-5 py-3 text-sm font-black text-white hover:bg-fuchsia-400">
+            OAuth Publishing
+          </a>
+        </div>
       </section>
     </main>
   );

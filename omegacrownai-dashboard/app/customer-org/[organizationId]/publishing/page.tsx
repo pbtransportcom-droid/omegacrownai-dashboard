@@ -15,7 +15,28 @@ export default async function CustomerPublishingPage({
         <div className="rounded-3xl border border-red-400/30 bg-red-500/10 p-6 text-red-100">
           Publishing organization not found.
         </div>
-      </main>
+      
+      <section className="rounded-3xl border border-purple-400/30 bg-purple-500/10 p-5">
+        <h2 className="text-xl font-black text-white">OAuth Publishing Connections</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-200">
+          Connect publishing accounts for YouTube, TikTok, Instagram, LinkedIn, and X. Phase 74 creates OAuth state and connection records; real publishing execution starts in Phase 75.
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
+          {["youtube", "tiktok", "instagram", "linkedin", "x"].map((provider) => (
+            <form key={provider} action="/api/oauth/publishing/connect" method="POST">
+              <input type="hidden" name="organizationId" value={organizationId} />
+              <input type="hidden" name="provider" value={provider} />
+              <input type="hidden" name="mode" value="test" />
+              <button className="w-full rounded-xl bg-purple-600 px-4 py-3 text-xs font-black uppercase text-white hover:bg-purple-500">
+                Connect {provider}
+              </button>
+            </form>
+          ))}
+        </div>
+      </section>
+
+    </main>
     );
   }
 
