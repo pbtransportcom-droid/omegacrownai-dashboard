@@ -4375,3 +4375,74 @@ model StripeCheckoutSessionRecord {
   @@index([mode])
   @@index([status])
 }
+
+model ExternalPaymentLink {
+  id String @id @default(cuid())
+
+  provider String // square, swipesimple, manual
+  planTier String @default("pro")
+  mode     String @default("live") // test, live, manual
+
+  label      String
+  paymentUrl String
+  status     String @default("active") // active, inactive, archived
+
+  amountCents  Int    @default(0)
+  currency     String @default("usd")
+  billingCycle String @default("monthly") // monthly, annual, manual
+
+  description String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts ExternalPaymentAttempt[]
+
+  @@index([provider])
+  @@index([planTier])
+  @@index([mode])
+  @@index([status])
+  @@index([billingCycle])
+}
+
+model ExternalPaymentAttempt {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  paymentLinkId String?
+  provider      String
+  planTier      String
+  mode          String  @default("live")
+
+  status        String  @default("redirected") // redirected, pending, paid, failed, cancelled, manually_confirmed
+  checkoutUrl   String?
+  returnUrl     String?
+  referenceCode String?
+
+  amountCents Int    @default(0)
+  currency    String @default("usd")
+
+  paidAt      DateTime?
+  confirmedBy String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paymentLink ExternalPaymentLink? @relation(fields: [paymentLinkId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([provider])
+  @@index([planTier])
+  @@index([mode])
+  @@index([status])
+  @@index([referenceCode])
+  @@index([createdAt])
+}

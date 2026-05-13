@@ -136,6 +136,11 @@ export default function HomePage() {
             Stripe Billing Control
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/external-payments" className="inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-black text-black hover:bg-green-400">
+            External Payments
+          </a>
+        </div>
       </section>
     </main>
   );

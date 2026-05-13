@@ -15,7 +15,35 @@ export default async function CustomerBillingPage({
         <div className="rounded-3xl border border-red-400/30 bg-red-500/10 p-6 text-red-100">
           Billing organization not found.
         </div>
-      </main>
+      
+      <section className="rounded-3xl border border-yellow-400/30 bg-yellow-500/10 p-5">
+        <h2 className="text-xl font-black text-white">Square / SwipeSimple Payments</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-200">
+          Stripe remains available when Stripe test/live credentials are configured. You can also pay through Square or SwipeSimple using external payment links.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <form action="/api/external-payments/checkout" method="POST">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="provider" value="square" />
+            <input type="hidden" name="planTier" value="pro" />
+            <button className="rounded-xl bg-yellow-500 px-5 py-3 text-sm font-black text-black hover:bg-yellow-400">
+              Pay with Square
+            </button>
+          </form>
+
+          <form action="/api/external-payments/checkout" method="POST">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <input type="hidden" name="provider" value="swipesimple" />
+            <input type="hidden" name="planTier" value="pro" />
+            <button className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+              Pay with SwipeSimple
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </main>
     );
   }
 
