@@ -1,0 +1,20 @@
+import { NextResponse } from "next/server";
+import {
+  createVariants,
+  sampleCampaign
+} from "@/lib/distribution/distribution-super-pipeline";
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      phase: "v6.7 Phase 88",
+      service: "Distribution variants",
+      variants: createVariants(sampleCampaign)
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
+}
