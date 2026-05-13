@@ -131,6 +131,11 @@ export default function HomePage() {
             Provider Secrets Vault
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/stripe-billing" className="inline-flex rounded-xl bg-indigo-500 px-5 py-3 text-sm font-black text-white hover:bg-indigo-400">
+            Stripe Billing Control
+          </a>
+        </div>
       </section>
     </main>
   );

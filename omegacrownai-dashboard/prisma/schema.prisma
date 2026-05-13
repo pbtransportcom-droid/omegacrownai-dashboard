@@ -4251,3 +4251,127 @@ model ProviderSecretRotation {
   @@index([status])
   @@index([createdAt])
 }
+
+model StripeBillingCustomer {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  stripeCustomerId String  @unique
+  email            String?
+  name             String?
+
+  mode   String @default("test") // test, live
+  status String @default("active")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([mode])
+  @@index([status])
+}
+
+model StripeBillingSubscription {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String  @unique
+  stripePriceId        String?
+  stripeProductId      String?
+
+  planTier String
+  mode     String @default("test")
+  status   String
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  cancelledAt        DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([stripeCustomerId])
+  @@index([planTier])
+  @@index([mode])
+  @@index([status])
+}
+
+model StripeBillingEvent {
+  id String @id @default(cuid())
+
+  organizationId String?
+  userId         String?
+  companyId      String?
+
+  stripeEventId String? @unique
+  eventType     String
+  mode          String  @default("test")
+  status        String  @default("received") // received, processed, failed, ignored
+
+  stripeCustomerId        String?
+  stripeSubscriptionId    String?
+  stripeCheckoutSessionId String?
+
+  payloadJson Json?
+  resultJson  Json?
+  error       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([eventType])
+  @@index([mode])
+  @@index([status])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+}
+
+model StripeCheckoutSessionRecord {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  stripeSessionId  String  @unique
+  stripeCustomerId String?
+  planTier         String
+  mode             String  @default("test")
+  status           String  @default("created")
+
+  checkoutUrl String?
+  successUrl  String?
+  cancelUrl   String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([planTier])
+  @@index([mode])
+  @@index([status])
+}
