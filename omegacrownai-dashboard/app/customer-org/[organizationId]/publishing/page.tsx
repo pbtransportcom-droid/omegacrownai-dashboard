@@ -36,6 +36,27 @@ export default async function CustomerPublishingPage({
         </div>
       </section>
 
+    
+      <section className="rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-5">
+        <h2 className="text-xl font-black text-white">Publishing Execution Attempts</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-200">
+          Execute provider publishing attempts against connected OAuth accounts. Phase 75 records simulated provider execution and publish history before real provider API execution is enabled.
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
+          {["youtube", "tiktok", "instagram", "linkedin", "x"].map((provider) => (
+            <form key={provider} action="/api/publishing-execution/attempts" method="POST">
+              <input type="hidden" name="organizationId" value={organizationId} />
+              <input type="hidden" name="provider" value={provider} />
+              <input type="hidden" name="title" value={`OmegaCrownAI ${provider} publish`} />
+              <button className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-xs font-black uppercase text-white hover:bg-emerald-500">
+                Queue {provider}
+              </button>
+            </form>
+          ))}
+        </div>
+      </section>
+
     </main>
     );
   }

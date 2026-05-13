@@ -146,6 +146,11 @@ export default function HomePage() {
             OAuth Publishing
           </a>
         </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/publishing-execution" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
+            Publishing Execution
+          </a>
+        </div>
       </section>
     </main>
   );

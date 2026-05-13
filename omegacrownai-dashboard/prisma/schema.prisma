@@ -4559,3 +4559,93 @@ model CustomerOAuthConnection {
   @@index([providerAccountId])
   @@index([createdAt])
 }
+
+model PublishingExecutionAttempt {
+  id String @id @default(cuid())
+
+  organizationId String
+  userId         String?
+  companyId      String?
+
+  connectionId String?
+  publishJobId String?
+  exportId     String?
+
+  provider String
+  mode     String @default("test")
+
+  status        String @default("queued") // queued, running, published, failed, retrying, cancelled
+  attemptNumber Int    @default(1)
+  maxAttempts   Int    @default(3)
+
+  title        String?
+  description  String?
+  mediaUrl     String?
+  thumbnailUrl String?
+  caption      String?
+  hashtags     Json?
+
+  providerPostId  String?
+  providerPostUrl String?
+
+  requestJson  Json?
+  responseJson Json?
+  error        String?
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+  nextRetryAt DateTime?
+
+  createdBy String?
+  actorType String  @default("system")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  webhookDeliveries PublishingWebhookDelivery[]
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([companyId])
+  @@index([connectionId])
+  @@index([publishJobId])
+  @@index([exportId])
+  @@index([provider])
+  @@index([mode])
+  @@index([status])
+  @@index([attemptNumber])
+  @@index([createdAt])
+}
+
+model PublishingWebhookDelivery {
+  id String @id @default(cuid())
+
+  attemptId String?
+
+  organizationId String?
+  provider       String?
+  targetUrl      String
+
+  status         String  @default("queued") // queued, delivered, failed, skipped
+  responseStatus Int?
+  responseBody   String?
+  error          String?
+
+  payloadJson Json?
+  metadata    Json?
+
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  attempt PublishingExecutionAttempt? @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+
+  @@index([attemptId])
+  @@index([organizationId])
+  @@index([provider])
+  @@index([status])
+  @@index([createdAt])
+}
