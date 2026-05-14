@@ -22,6 +22,8 @@ export function AutomateWorkspace() {
   const [workflow, setWorkflow] = useState<AutomationWorkflowView | null>(null);
   const [loading, setLoading] = useState(true);
   const [demoAllowed, setDemoAllowed] = useState(true);
+  const [runLoading, setRunLoading] = useState(false);
+  const [runResult, setRunResult] = useState<any>(null);
 
   async function loadWorkflow(nextDemoAllowed = demoAllowed) {
     setLoading(true);
@@ -52,6 +54,35 @@ export function AutomateWorkspace() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function runWorkflow() {
+    setRunLoading(true);
+    setRunResult(null);
+
+    try {
+      const response = await fetch("/api/automation/run", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      });
+
+      const data = await response.json();
+
+      setRunResult(data);
+    } catch (error: any) {
+      setRunResult({
+        ok: false,
+        phase: "v8.7 Phase 107",
+        status: "error",
+        summary: "Automation run request failed.",
+        notes: [error?.message || "Unknown client-side execution error."]
+      });
+    } finally {
+      setRunLoading(false);
     }
   }
 
@@ -103,6 +134,14 @@ export function AutomateWorkspace() {
             className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-60"
           >
             Demo fallback: {demoAllowed ? "on" : "off"}
+          </button>
+
+          <button
+            onClick={runWorkflow}
+            disabled={runLoading || loading || workflow?.status !== "live_data"}
+            className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-500 disabled:opacity-60"
+          >
+            {runLoading ? "Running..." : "Run Automation"}
           </button>
         </div>
       </div>
@@ -156,6 +195,23 @@ export function AutomateWorkspace() {
           <p className="mt-6 rounded-2xl border border-border bg-black/20 p-4 text-sm text-muted">
             No workflow nodes available.
           </p>
+        ) : null}
+
+        {runResult ? (
+          <div className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4">
+            <h3 className="text-sm font-black text-white">Latest run result</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-200">
+              {runResult.summary}
+            </p>
+            <p className="mt-2 font-mono text-xs text-emerald-200">
+              {runResult.status} {runResult.runId ? `· ${runResult.runId}` : ""}
+            </p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+              {(runResult.notes || []).map((note: string) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         <div className="mt-6 rounded-2xl border border-border bg-slate-950 p-4">
