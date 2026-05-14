@@ -1,5 +1,6 @@
 import { getLiveMarketData } from "@/lib/trading/live-market-data";
 import { searchGlobalMarkets } from "@/lib/trading/global-market-search";
+import { fetchCoinGeckoCryptoProfile } from "@/lib/trading/providers/coingecko-provider";
 
 function formatPair(symbol: string) {
   const clean = symbol.trim().toUpperCase();
@@ -22,7 +23,17 @@ export async function getCryptoMarketIntelligence({
   const cleanSymbol = formatPair(symbol || "BTCUSDT");
   const cleanTimeframe = timeframe || "1h";
 
+  const providerErrors: string[] = [];
+
   const search = await searchGlobalMarkets(cleanSymbol);
+
+  let coinGecko: any = null;
+  try {
+    coinGecko = await fetchCoinGeckoCryptoProfile(cleanSymbol);
+  } catch (error: any) {
+    providerErrors.push(error?.message || "CoinGecko provider failed.");
+  }
+
   const live = await getLiveMarketData({
     symbol: cleanSymbol,
     marketType: "crypto",
@@ -50,13 +61,38 @@ export async function getCryptoMarketIntelligence({
     timeframe: cleanTimeframe,
     status: live.status,
     provider: live.provider,
-    profile: live.profile || result.profile || search.results?.[0] || null,
+    providerChain: live.providerChain || [],
+    providerErrors: [...providerErrors, ...(live.providerErrors || [])],
+    factualSources: [
+      coinGecko ? "coingecko" : null,
+      live.provider,
+      ...(live.providerChain || []),
+    ].filter(Boolean),
+    profile: coinGecko
+      ? {
+          name: coinGecko.name,
+          symbol: coinGecko.symbol,
+          type: "crypto",
+          sector: coinGecko.categories?.slice(0, 3).join(" / ") || "Crypto",
+          summary: coinGecko.description || live.profile?.summary || result.profile?.summary || search.results?.[0]?.message || null,
+          riskNote: live.profile?.riskNote || result.profile?.riskNote || "Crypto assets are highly volatile. Review liquidity, volatility, market structure, and risk before making decisions.",
+          homepage: coinGecko.homepage,
+          marketCapRank: coinGecko.marketCapRank,
+        }
+      : live.profile || result.profile || search.results?.[0] || null,
+    coinGecko,
     marketSnapshot: {
       price: live.price || result.price || latestClose || null,
       changePercent: live.changePercent || result.changePercent || null,
       rangeChangePercent,
       candleCount: candles.length,
       latestVolume: latest?.volume || null,
+      marketCapUsd: coinGecko?.marketData?.marketCapUsd || null,
+      totalVolumeUsd: coinGecko?.marketData?.totalVolumeUsd || null,
+      circulatingSupply: coinGecko?.marketData?.circulatingSupply || null,
+      marketCapRank: coinGecko?.marketCapRank || null,
+      priceChange24hPercent: coinGecko?.marketData?.priceChange24hPercent || null,
+      priceChange7dPercent: coinGecko?.marketData?.priceChange7dPercent || null,
       latestHigh: latest?.high || null,
       latestLow: latest?.low || null,
     },
