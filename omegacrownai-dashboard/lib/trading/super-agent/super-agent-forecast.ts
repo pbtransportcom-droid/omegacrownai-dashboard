@@ -398,11 +398,13 @@ export async function runSuperAgentTradingForecast({
     data.result?.risk ||
     null;
 
-  const providerChain = [
-    ...(data.factualSources || []),
-    ...(data.providerChain || []),
-    data.provider,
-  ].filter(Boolean);
+  const providerChain = Array.from(
+    new Set([
+      ...(data.factualSources || []),
+      ...(data.providerChain || []),
+      data.provider,
+    ].filter(Boolean))
+  );
 
   const providerErrors = data.providerErrors || [];
 
