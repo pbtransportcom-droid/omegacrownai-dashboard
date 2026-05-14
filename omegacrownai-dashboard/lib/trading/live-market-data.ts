@@ -34,6 +34,8 @@ export async function getLiveMarketData({
   }
 
   try {
+    const providerErrors: string[] = [];
+
     const isCrypto =
       cleanMarketType === "crypto" ||
       cleanSymbol.includes("USDT") ||
@@ -59,13 +61,16 @@ export async function getLiveMarketData({
             marketType: cleanMarketType,
             provider: binance.provider,
             providerChain: ["binance-public-market-data", "trading-v2-engine-fallback"],
+            providerErrors,
             message: "Live crypto candles loaded from Binance public market data.",
             candles: binance.candles,
             price: binance.candles[binance.candles.length - 1]?.close || null,
           };
         }
-      } catch {
-        // Fall back to existing trading-v2 engine below.
+
+        providerErrors.push("Binance returned no candles.");
+      } catch (error: any) {
+        providerErrors.push(error?.message || "Binance provider failed.");
       }
     }
 
@@ -84,7 +89,10 @@ export async function getLiveMarketData({
       timeframe: cleanTimeframe,
       marketType: cleanMarketType,
       provider: safeResult?.provider || "trading-v2-engine",
-      providerChain: [safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"],
+      providerChain: isCrypto
+        ? ["binance-public-market-data-attempted", safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"]
+        : [safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"],
+      providerErrors,
       message: "Live market data loaded from configured public/provider engine.",
       result,
       candles: safeResult?.candles || [],
