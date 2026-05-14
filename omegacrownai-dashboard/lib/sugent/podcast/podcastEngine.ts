@@ -203,15 +203,6 @@ export async function generatePodcastVoiceJobs({
     return [];
   }
 
-  const parentProject = await prisma.project.findUnique({
-    where: { id: podcastProjectId },
-    select: { id: true },
-  });
-
-  if (!parentProject) {
-    return [];
-  }
-
   const jobs = [];
 
   for (const segment of podcast.segments) {
