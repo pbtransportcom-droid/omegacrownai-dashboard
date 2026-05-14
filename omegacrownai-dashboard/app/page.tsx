@@ -123,12 +123,6 @@ export default function HomePage() {
           <a href="/automate" className="inline-flex rounded-xl bg-blue-500 px-5 py-3 text-sm font-black text-white hover:bg-blue-400">
             Automation
           </a>
-          <a href="/trade" className="inline-flex rounded-xl bg-yellow-500 px-5 py-3 text-sm font-black text-black hover:bg-yellow-400">
-            Trading
-          </a>
-          <a href="/automate" className="inline-flex rounded-xl bg-blue-500 px-5 py-3 text-sm font-black text-white hover:bg-blue-400">
-            Automation
-          </a>
         </div>
 
               <div className="mt-3 flex flex-wrap justify-center gap-3">
