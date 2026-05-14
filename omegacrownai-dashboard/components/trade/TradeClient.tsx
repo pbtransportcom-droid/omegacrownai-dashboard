@@ -507,6 +507,8 @@ export default function TradeClient() {
   const [marketType, setMarketType] = useState<"stock" | "crypto">("crypto");
   const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d" | "40d" | "90d" | "1y">("40d");
   const [loading, setLoading] = useState(false);
+  const [cryptoIntel, setCryptoIntel] = useState<any>(null);
+  const [cryptoIntelLoading, setCryptoIntelLoading] = useState(false);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
   const [rankResult, setRankResult] = useState<RankResult | null>(null);
@@ -530,6 +532,60 @@ export default function TradeClient() {
   useEffect(() => {
     setChatAnswer("");
   }, [result?.symbol, result?.signal, result?.confidence]);
+
+
+  async function loadCryptoIntelligence(symbolValue?: string) {
+    const nextSymbol = String(symbolValue || symbol || "").trim();
+
+    if (!nextSymbol) {
+      setCryptoIntel(null);
+      return;
+    }
+
+    const upperSymbol = nextSymbol.toUpperCase();
+    const isCrypto =
+      marketType === "crypto" ||
+      upperSymbol.includes("-USD") ||
+      upperSymbol.includes("USDT") ||
+      upperSymbol.includes("BTC") ||
+      upperSymbol.includes("ETH") ||
+      upperSymbol.includes("SOL");
+
+    if (!isCrypto) {
+      setCryptoIntel(null);
+      return;
+    }
+
+    setCryptoIntelLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/trading/crypto?symbol=${encodeURIComponent(upperSymbol)}&timeframe=${encodeURIComponent(timeframe || "1h")}`,
+        {
+          cache: "no-store"
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || "Crypto intelligence failed.");
+      }
+
+      setCryptoIntel(data);
+    } catch (error: any) {
+      setCryptoIntel({
+        ok: false,
+        symbol: upperSymbol,
+        status: "error",
+        explanation: {
+          plainEnglish: error?.message || "Crypto intelligence unavailable."
+        }
+      });
+    } finally {
+      setCryptoIntelLoading(false);
+    }
+  }
 
   async function saveSignalAlert() {
     const confidence = Number(alertConfidence || 75);
@@ -866,6 +922,7 @@ export default function TradeClient() {
 
       const data = await res.json();
       setResult(data);
+      loadCryptoIntelligence(data?.symbol || symbol);
     } catch (error: any) {
       setResult({
         ok: false,
@@ -1460,7 +1517,106 @@ export default function TradeClient() {
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-cyan-400/25 bg-slate-950 p-5 shadow-lg shadow-cyan-950/20">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+              
+      {cryptoIntel ? (
+        <section className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">
+                Crypto Intelligence
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                {cryptoIntel.symbol || result?.symbol}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                {cryptoIntel.explanation?.plainEnglish || "Live crypto intelligence loaded."}
+              </p>
+            </div>
+            <div className="rounded-xl border border-cyan-400/30 bg-black/30 px-4 py-3 text-right">
+              <p className="text-xs uppercase text-slate-400">Provider</p>
+              <p className="text-sm font-black text-cyan-100">
+                {cryptoIntel.provider || "provider unavailable"}
+              </p>
+            </div>
+          </div>
+
+          {cryptoIntelLoading ? (
+            <p className="mt-4 text-sm text-cyan-200">Loading crypto intelligence...</p>
+          ) : null}
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Price</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {cryptoIntel.marketSnapshot?.price ?? "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Signal</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {cryptoIntel.technicals?.signal || "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Confidence</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {cryptoIntel.technicals?.confidence ?? "N/A"}%
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Risk</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {cryptoIntel.technicals?.risk || "N/A"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+              <h3 className="text-sm font-black text-emerald-200">Bullish Factors</h3>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-200">
+                {(cryptoIntel.explanation?.bullishFactors || ["No bullish factors available."]).map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-4">
+              <h3 className="text-sm font-black text-red-200">Bearish / Risk Factors</h3>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-200">
+                {(cryptoIntel.explanation?.bearishFactors?.length
+                  ? cryptoIntel.explanation.bearishFactors
+                  : ["No bearish factors returned by the model. Always review volatility and market news."]
+                ).map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-border bg-black/30 p-4">
+            <h3 className="text-sm font-black text-white">Trade Plan</h3>
+            <div className="mt-3 grid gap-3 text-sm text-slate-200 md:grid-cols-5">
+              <p>Entry: {cryptoIntel.technicals?.tradePlan?.entryZone?.join(" - ") || "N/A"}</p>
+              <p>Stop: {cryptoIntel.technicals?.tradePlan?.stopLoss ?? "N/A"}</p>
+              <p>TP: {cryptoIntel.technicals?.tradePlan?.takeProfit?.join(" / ") || "N/A"}</p>
+              <p>Support: {cryptoIntel.technicals?.tradePlan?.support ?? "N/A"}</p>
+              <p>Resistance: {cryptoIntel.technicals?.tradePlan?.resistance ?? "N/A"}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+            <h3 className="text-sm font-black text-yellow-100">Limitations</h3>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-200">
+              {(cryptoIntel.explanation?.limitations || []).map((item: string) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+<div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
                 Symbol Details
               </div>
               <div className="mt-2 text-2xl font-black text-white">
