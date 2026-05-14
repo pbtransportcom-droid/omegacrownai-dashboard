@@ -1,4 +1,5 @@
 import { analyzeSymbolV2 } from "@/lib/trading-v2/engine";
+import { fetchBinanceCryptoCandles } from "@/lib/trading/providers/binance-provider";
 
 export type LiveMarketDataStatus =
   | "live_data"
@@ -33,6 +34,41 @@ export async function getLiveMarketData({
   }
 
   try {
+    const isCrypto =
+      cleanMarketType === "crypto" ||
+      cleanSymbol.includes("USDT") ||
+      cleanSymbol.includes("-USD") ||
+      cleanSymbol.includes("BTC") ||
+      cleanSymbol.includes("ETH") ||
+      cleanSymbol.includes("SOL");
+
+    if (isCrypto) {
+      try {
+        const binance = await fetchBinanceCryptoCandles({
+          symbol: cleanSymbol,
+          timeframe: cleanTimeframe,
+          limit: 300,
+        });
+
+        if (binance.candles.length) {
+          return {
+            ok: true,
+            status: "live_data" as LiveMarketDataStatus,
+            symbol: cleanSymbol,
+            timeframe: cleanTimeframe,
+            marketType: cleanMarketType,
+            provider: binance.provider,
+            providerChain: ["binance-public-market-data", "trading-v2-engine-fallback"],
+            message: "Live crypto candles loaded from Binance public market data.",
+            candles: binance.candles,
+            price: binance.candles[binance.candles.length - 1]?.close || null,
+          };
+        }
+      } catch {
+        // Fall back to existing trading-v2 engine below.
+      }
+    }
+
     const result = await analyzeSymbolV2({
       symbol: cleanSymbol,
       timeframe: cleanTimeframe,
@@ -48,6 +84,7 @@ export async function getLiveMarketData({
       timeframe: cleanTimeframe,
       marketType: cleanMarketType,
       provider: safeResult?.provider || "trading-v2-engine",
+      providerChain: [safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"],
       message: "Live market data loaded from configured public/provider engine.",
       result,
       candles: safeResult?.candles || [],
