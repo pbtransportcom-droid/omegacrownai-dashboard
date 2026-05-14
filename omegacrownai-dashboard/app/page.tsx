@@ -107,53 +107,54 @@ export default function HomePage() {
             Open Admin Console
           </a>
         </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/pricing" className="inline-flex rounded-xl bg-yellow-500 px-5 py-3 text-sm font-black text-black hover:bg-yellow-400">
-            View Pricing
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <a href="/customer-launch-readiness" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
+            Customer Launch Readiness
           </a>
-          <a href="/docs" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
-            Read Docs
+          <a href="/trust-center" className="inline-flex rounded-xl bg-cyan-500 px-5 py-3 text-sm font-black text-black hover:bg-cyan-400">
+            Trust Center
+          </a>
+          <a href="/payments/providers" className="inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-black text-black hover:bg-green-400">
+            Payment Providers
           </a>
         </div>
+
               <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/launch" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
-            Launch Readiness
+          <a href="/platform/limitations" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+            Platform Limitations
           </a>
+          <a href="/platform/source-reliability" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+            Source Reliability
+          </a>
+          <a href="/production-completion/ledger" className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
+            Completion Ledger
+          </a>
+          <a href="/final-verification/routes" className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
+            Final Route Audit
+          </a>
+        </div>
+
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
           <a href="/legal/terms" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
             Terms
           </a>
           <a href="/legal/privacy" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
             Privacy
           </a>
+          <a href="/legal/provider-disclosure" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
+            Provider Disclosure
+          </a>
         </div>
+
               <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <a href="/admin/external-payments" className="inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-black text-black hover:bg-green-400">
+            External Payments Admin
+          </a>
           <a href="/admin/provider-secrets" className="inline-flex rounded-xl bg-purple-500 px-5 py-3 text-sm font-black text-white hover:bg-purple-400">
             Provider Secrets Vault
           </a>
-        </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/admin/stripe-billing" className="inline-flex rounded-xl bg-indigo-500 px-5 py-3 text-sm font-black text-white hover:bg-indigo-400">
-            Stripe Billing Control
-          </a>
-        </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/admin/external-payments" className="inline-flex rounded-xl bg-green-500 px-5 py-3 text-sm font-black text-black hover:bg-green-400">
-            External Payments
-          </a>
-        </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/admin/oauth-publishing" className="inline-flex rounded-xl bg-fuchsia-500 px-5 py-3 text-sm font-black text-white hover:bg-fuchsia-400">
-            OAuth Publishing
-          </a>
-        </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
-          <a href="/admin/publishing-execution" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
-            Publishing Execution
-          </a>
-        </div>
-              <div className="mt-3 flex flex-wrap justify-center gap-3">
           <a href="/admin/premium-providers" className="inline-flex rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-black hover:bg-orange-400">
-            Premium Providers
+            Premium Providers Admin
           </a>
         </div>
       </section>
