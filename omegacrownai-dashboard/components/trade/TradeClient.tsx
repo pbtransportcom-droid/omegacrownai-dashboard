@@ -1571,6 +1571,98 @@ export default function TradeClient() {
             </div>
           </div>
 
+          <div className="mt-5 rounded-xl border border-cyan-400/20 bg-black/30 p-4">
+            <h3 className="text-sm font-black text-cyan-100">Factual Sources</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(cryptoIntel.factualSources || [cryptoIntel.provider || "provider unavailable"]).map((source: string) => (
+                <span
+                  key={source}
+                  className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-100"
+                >
+                  {source}
+                </span>
+              ))}
+            </div>
+
+            {cryptoIntel.providerErrors?.length ? (
+              <div className="mt-4 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-3">
+                <p className="text-xs font-black uppercase tracking-wide text-yellow-100">
+                  Provider fallback notes
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-yellow-50">
+                  {cryptoIntel.providerErrors.map((item: string) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Market Cap</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.marketCapUsd
+                  ? `$${Number(cryptoIntel.marketSnapshot.marketCapUsd).toLocaleString()}`
+                  : "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">24h Volume</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.totalVolumeUsd
+                  ? `$${Number(cryptoIntel.marketSnapshot.totalVolumeUsd).toLocaleString()}`
+                  : "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Circulating Supply</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.circulatingSupply
+                  ? Number(cryptoIntel.marketSnapshot.circulatingSupply).toLocaleString()
+                  : "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Market Rank</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.marketCapRank
+                  ? `#${cryptoIntel.marketSnapshot.marketCapRank}`
+                  : "N/A"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">24h Change</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.priceChange24hPercent ?? "N/A"}%
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">7d Change</p>
+              <p className="mt-1 text-lg font-black text-white">
+                {cryptoIntel.marketSnapshot?.priceChange7dPercent ?? "N/A"}%
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Official Site</p>
+              {cryptoIntel.profile?.homepage ? (
+                <a
+                  href={cryptoIntel.profile.homepage}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block truncate text-lg font-black text-cyan-200 hover:underline"
+                >
+                  {cryptoIntel.profile.homepage}
+                </a>
+              ) : (
+                <p className="mt-1 text-lg font-black text-white">N/A</p>
+              )}
+            </div>
+          </div>
+
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
               <h3 className="text-sm font-black text-emerald-200">Bullish Factors</h3>
