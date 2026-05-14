@@ -31,7 +31,7 @@ export function ProjectsTable() {
                 <td className="py-4 capitalize text-muted">{project.type}</td>
                 <td className="py-4 text-muted">{project.updated_at}</td>
                 <td className="py-4">
-                  <Link href={targetByType[project.type]} className="text-accent hover:underline">Open project</Link>
+                  <Link href={targetByType[project.type] as any} className="text-accent hover:underline">Open project</Link>
                 </td>
               </tr>
             ))}

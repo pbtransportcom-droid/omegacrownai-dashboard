@@ -1,24 +1,34 @@
 import { NextResponse } from "next/server";
-import { createStripeCheckoutSession } from "@/lib/sugent/stripe-billing/stripeBillingEngine";
+import { getStripeDisabledResponse } from "@/lib/payment-provider-cleanup/payment-provider-policy";
 
-export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
+export async function GET() {
+  return NextResponse.json(
+    {
+      phase: "v7.8 Phase 99",
+      service: "Stripe checkout",
+      ...getStripeDisabledResponse()
+    },
+    {
+      status: 503,
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
+}
 
-  if (!body.organizationId) {
-    return NextResponse.json({ ok: false, error: "organizationId is required" }, { status: 400 });
-  }
-
-  const result = await createStripeCheckoutSession({
-    organizationId: String(body.organizationId),
-    userId: body.userId ? String(body.userId) : null,
-    companyId: body.companyId ? String(body.companyId) : null,
-    email: body.email ? String(body.email) : null,
-    name: body.name ? String(body.name) : null,
-    planTier: body.planTier ? String(body.planTier) : "pro",
-    mode: body.mode ? String(body.mode) : "test",
-  });
-
-  return NextResponse.json(result, {
-    status: result.ok ? 200 : 400,
-  });
+export async function POST() {
+  return NextResponse.json(
+    {
+      phase: "v7.8 Phase 99",
+      service: "Stripe checkout",
+      ...getStripeDisabledResponse()
+    },
+    {
+      status: 503,
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
 }

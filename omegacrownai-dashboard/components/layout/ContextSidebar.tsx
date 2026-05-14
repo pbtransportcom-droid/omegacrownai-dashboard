@@ -78,7 +78,7 @@ export function ContextSidebar({ section }: { section: Section }) {
           {config.items.map((item) => (
             <Link
               key={item.label}
-              href={item.href}
+              href={item.href as any}
               className="block rounded-xl border border-border bg-white/3 px-3 py-2.5 text-sm text-muted transition hover:bg-white/5 hover:text-text"
             >
               {item.label}

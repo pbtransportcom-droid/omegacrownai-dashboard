@@ -33,7 +33,7 @@ export function TopNav({ pathname = '/' }: { pathname?: string }) {
         return (
           <Link
             key={href}
-            href={href}
+            href={href as any}
             className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition ${
               active
                 ? 'bg-white/8 text-text'
