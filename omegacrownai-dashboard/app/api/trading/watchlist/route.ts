@@ -4,8 +4,12 @@ import { authConfig } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 async function getEmail() {
+  try {
   const session = await getServerSession(authConfig);
   return session?.user?.email || "";
+  } catch {
+    return null;
+  }
 }
 
 export async function GET() {
