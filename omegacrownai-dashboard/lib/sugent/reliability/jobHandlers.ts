@@ -17,7 +17,12 @@ export async function handleJob(job: any) {
       });
 
       if (!result.ok) {
-        throw new PermanentLogicError(result.reason || "Render gate blocked");
+        const reason =
+          "reason" in result && typeof result.reason === "string"
+            ? result.reason
+            : "Render gate blocked";
+
+        throw new PermanentLogicError(reason);
       }
 
       return result;
