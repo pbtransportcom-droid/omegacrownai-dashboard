@@ -1564,7 +1564,7 @@ export default function TradeClient() {
             <div className="rounded-xl border border-cyan-400/25 bg-slate-950 p-5 shadow-lg shadow-cyan-950/20">
               
       {superForecast ? (
-        <section className="rounded-2xl border border-purple-400/30 bg-purple-500/10 p-5">
+        <section className="rounded-2xl border border-purple-400/30 bg-purple-500/10 p-5 md:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.22em] text-purple-300">

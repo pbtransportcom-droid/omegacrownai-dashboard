@@ -1,5 +1,7 @@
 import { analyzeSymbolV2 } from "@/lib/trading-v2/engine";
 import { fetchBinanceCryptoCandles } from "@/lib/trading/providers/binance-provider";
+import { fetchTwelveDataStockCandles } from "@/lib/trading/providers/twelve-data-provider";
+import { fetchFinnhubStockQuote } from "@/lib/trading/providers/finnhub-provider";
 
 export type LiveMarketDataStatus =
   | "live_data"
@@ -74,6 +76,59 @@ export async function getLiveMarketData({
       }
     }
 
+    const isStock =
+      cleanMarketType === "stock" ||
+      /^[A-Z.]{1,10}$/.test(cleanSymbol);
+
+    if (!isCrypto && isStock) {
+      try {
+        const twelveData = await fetchTwelveDataStockCandles({
+          symbol: cleanSymbol,
+          timeframe: cleanTimeframe,
+          outputsize: 300,
+        });
+
+        let quote: any = null;
+
+        try {
+          quote = await fetchFinnhubStockQuote(cleanSymbol);
+        } catch (error: any) {
+          providerErrors.push(error?.message || "Finnhub quote provider failed.");
+        }
+
+        if (twelveData.candles.length) {
+          return {
+            ok: true,
+            status: "live_data" as LiveMarketDataStatus,
+            symbol: cleanSymbol,
+            timeframe: cleanTimeframe,
+            marketType: cleanMarketType,
+            provider: twelveData.provider,
+            providerChain: [
+              "twelve-data",
+              quote?.provider || "finnhub-not-used",
+              "trading-v2-engine-fallback"
+            ],
+            providerErrors,
+            message: "Live stock candles loaded from Twelve Data.",
+            candles: twelveData.candles,
+            price: quote?.price || twelveData.candles[twelveData.candles.length - 1]?.close || null,
+            changePercent: quote?.changePercent ?? null,
+            profile: {
+              symbol: cleanSymbol,
+              type: "stock",
+              exchange: twelveData.exchange,
+              currency: twelveData.currency,
+            },
+          };
+        }
+
+        providerErrors.push("Twelve Data returned no stock candles.");
+      } catch (error: any) {
+        providerErrors.push(error?.message || "Twelve Data stock provider failed.");
+      }
+    }
+
     const result = await analyzeSymbolV2({
       symbol: cleanSymbol,
       timeframe: cleanTimeframe,
@@ -91,7 +146,12 @@ export async function getLiveMarketData({
       provider: safeResult?.provider || "trading-v2-engine",
       providerChain: isCrypto
         ? ["binance-public-market-data-attempted", safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"]
-        : [safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"],
+        : [
+            "twelve-data-attempted",
+            "finnhub-attempted",
+            safeResult?.provider || "trading-v2-engine",
+            "yahoo-chart-public-data-fallback"
+          ],
       providerErrors,
       message: "Live market data loaded from configured public/provider engine.",
       result,
