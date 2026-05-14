@@ -1,19 +1,22 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authConfig } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/db";
 
-async function getEmail() {
+async function getEmail(req: NextRequest) {
   try {
-  const session = await getServerSession(authConfig);
-  return session?.user?.email || "";
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET
+    });
+
+    return typeof token?.email === "string" ? token.email : "";
   } catch {
-    return null;
+    return "";
   }
 }
 
-export async function GET() {
-  const ownerEmail = await getEmail();
+export async function GET(req: NextRequest) {
+  const ownerEmail = await getEmail(req);
 
   if (!ownerEmail) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
@@ -29,8 +32,8 @@ export async function GET() {
   });
 }
 
-export async function POST(req: Request) {
-  const ownerEmail = await getEmail();
+export async function POST(req: NextRequest) {
+  const ownerEmail = await getEmail(req);
 
   if (!ownerEmail) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
@@ -62,8 +65,8 @@ export async function POST(req: Request) {
   });
 }
 
-export async function DELETE() {
-  const ownerEmail = await getEmail();
+export async function DELETE(req: NextRequest) {
+  const ownerEmail = await getEmail(req);
 
   if (!ownerEmail) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
