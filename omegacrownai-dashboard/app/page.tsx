@@ -132,6 +132,9 @@ export default function HomePage() {
           <a href="/final-verification/routes" className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
             Final Route Audit
           </a>
+          <a href="/customer-facing-polish" className="inline-flex rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
+            Customer Copy Alignment
+          </a>
         </div>
 
               <div className="mt-3 flex flex-wrap justify-center gap-3">
