@@ -464,7 +464,7 @@ export default async function SovereignDepartmentPage({
 
             <div className="mt-5 flex flex-wrap gap-3">
               <a
-                href={`Automatic route validation enabled?department=${key}&projectId=preview-project-id`}
+                href={`/api/sovereign/workspace-validation?department=${key}&projectId=preview-project-id`}
                 className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
               >
                 Open Workspace Check Preview

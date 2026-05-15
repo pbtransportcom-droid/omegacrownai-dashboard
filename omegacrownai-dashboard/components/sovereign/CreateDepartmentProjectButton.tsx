@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function StartDepartmentProjectButton({
+export function CreateDepartmentProjectButton({
   department,
   projectType,
   label = "Start Department Project",
