@@ -511,6 +511,8 @@ export default function TradeClient() {
   const [cryptoIntelLoading, setCryptoIntelLoading] = useState(false);
   const [superForecast, setSuperForecast] = useState<any>(null);
   const [superForecastLoading, setSuperForecastLoading] = useState(false);
+  const [forecastQuality, setForecastQuality] = useState<any>(null);
+  const [forecastQualityLoading, setForecastQualityLoading] = useState(false);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
   const [rankResult, setRankResult] = useState<RankResult | null>(null);
@@ -535,6 +537,56 @@ export default function TradeClient() {
     setChatAnswer("");
   }, [result?.symbol, result?.signal, result?.confidence]);
 
+
+  async function loadForecastQuality(symbolValue?: string) {
+    const nextSymbol = String(symbolValue || symbol || "").trim();
+
+    if (!nextSymbol) {
+      setForecastQuality(null);
+      return;
+    }
+
+    setForecastQualityLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/trading/forecast-quality?symbol=${encodeURIComponent(nextSymbol.toUpperCase())}&marketType=${encodeURIComponent(marketType || "auto")}&timeframe=${encodeURIComponent(timeframe || "1h")}`,
+        {
+          cache: "no-store"
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || "Forecast quality check failed.");
+      }
+
+      setForecastQuality(data);
+    } catch (error: any) {
+      setForecastQuality({
+        ok: false,
+        symbol: nextSymbol.toUpperCase(),
+        quality: {
+          status: "needs_review",
+          reviewRequired: true,
+          candleCount: 0,
+          confidenceDiscipline: "unknown"
+        },
+        checks: [
+          {
+            name: "Forecast quality unavailable",
+            passed: false,
+            detail: error?.message || "Quality check unavailable."
+          }
+        ],
+        providerChain: [],
+        providerErrors: [error?.message || "Quality check unavailable."]
+      });
+    } finally {
+      setForecastQualityLoading(false);
+    }
+  }
 
   async function loadSuperAgentForecast(symbolValue?: string) {
     const nextSymbol = String(symbolValue || symbol || "").trim();
@@ -968,6 +1020,7 @@ export default function TradeClient() {
       setResult(data);
       loadCryptoIntelligence(data?.symbol || symbol);
       loadSuperAgentForecast(data?.symbol || symbol);
+      loadForecastQuality(data?.symbol || symbol);
     } catch (error: any) {
       setResult({
         ok: false,
@@ -1688,6 +1741,110 @@ export default function TradeClient() {
 
           <p className="mt-5 text-xs leading-5 text-slate-400">
             {superForecast.disclaimer || "Educational market forecasting only. Not financial advice."}
+          </p>
+        </section>
+      ) : null}
+
+      {forecastQuality ? (
+        <section className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-5 md:col-span-2">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">
+                Forecast Quality Controls
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                {forecastQuality.symbol || result?.symbol}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Quality status: {forecastQuality.quality?.status || "N/A"} · Backtest window: {forecastQuality.quality?.backtestWindow || "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-amber-400/30 bg-black/30 px-4 py-3 text-right">
+              <p className="text-xs uppercase text-slate-400">Review Required</p>
+              <p className="text-xl font-black text-amber-100">
+                {forecastQuality.quality?.reviewRequired ? "YES" : "NO"}
+              </p>
+              <p className="mt-1 text-xs text-slate-300">
+                Discipline: {forecastQuality.quality?.confidenceDiscipline || "N/A"}
+              </p>
+            </div>
+          </div>
+
+          {forecastQualityLoading ? (
+            <p className="mt-4 text-sm text-amber-200">Loading forecast quality controls...</p>
+          ) : null}
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Candle Count</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {forecastQuality.quality?.candleCount ?? "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Realized Trend</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {forecastQuality.quality?.realizedTrendDirection || "N/A"}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Trend Change</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {forecastQuality.quality?.realizedTrendChangePercent ?? "N/A"}%
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Recent Volatility</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {forecastQuality.quality?.averageRecentVolatilityPercent ?? "N/A"}%
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-amber-400/20 bg-black/30 p-4">
+            <h3 className="text-sm font-black text-amber-100">Quality Checks</h3>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {(forecastQuality.checks || []).map((check: any) => (
+                <div key={check.name} className="rounded-xl border border-border bg-slate-950/70 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-black text-white">{check.name}</p>
+                    <p className={`rounded-full border px-2 py-1 text-xs font-bold ${
+                      check.passed
+                        ? "border-emerald-400/30 text-emerald-200"
+                        : "border-red-400/30 text-red-200"
+                    }`}>
+                      {check.passed ? "PASS" : "REVIEW"}
+                    </p>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-300">{check.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-border bg-black/30 p-4">
+            <h3 className="text-sm font-black text-white">Quality Provider Chain</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(forecastQuality.providerChain || [forecastQuality.provider || "provider unavailable"]).map((source: string) => (
+                <span
+                  key={source}
+                  className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-100"
+                >
+                  {source}
+                </span>
+              ))}
+            </div>
+            {forecastQuality.providerErrors?.length ? (
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs leading-5 text-yellow-100">
+                {forecastQuality.providerErrors.map((item: string) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+
+          <p className="mt-5 text-xs leading-5 text-slate-400">
+            {forecastQuality.disclaimer || "Forecast quality controls are educational and diagnostic only. Not financial advice."}
           </p>
         </section>
       ) : null}
