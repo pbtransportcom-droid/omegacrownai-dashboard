@@ -1,3 +1,6 @@
+import { prisma } from "@/lib/db";
+import AutomationWorkspace from "@/components/build/AutomationWorkspace";
+
 export default async function AutomationWorkspacePage({
   params,
   searchParams,

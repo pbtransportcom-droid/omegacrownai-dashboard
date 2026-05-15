@@ -1,3 +1,6 @@
+import { prisma } from "@/lib/db";
+import TradingWorkspace from "@/components/build/TradingWorkspace";
+
 export default async function TradingWorkspacePage({
   params,
   searchParams,
