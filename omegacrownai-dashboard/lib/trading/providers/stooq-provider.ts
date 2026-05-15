@@ -5,13 +5,17 @@ function normalizeStooqSymbol(symbol: string) {
     return clean;
   }
 
-  // Stooq US stocks usually use .us suffix.
   return `${clean}.us`;
 }
 
 function parseCsv(text: string) {
   const lines = text.trim().split(/\r?\n/);
+  const header = lines[0] || "";
   const rows = lines.slice(1);
+
+  if (!header.toLowerCase().includes("date") || !header.toLowerCase().includes("close")) {
+    throw new Error(`Stooq CSV header not recognized: ${header.slice(0, 120)}`);
+  }
 
   return rows
     .map((line) => {
@@ -29,19 +33,14 @@ function parseCsv(text: string) {
     .filter((row) => Number.isFinite(row.time) && Number.isFinite(row.close));
 }
 
-export async function fetchStooqStockCandles({
-  symbol,
-}: {
-  symbol: string;
-}) {
-  const stooqSymbol = normalizeStooqSymbol(symbol);
-
+async function fetchStooqCsv(stooqSymbol: string) {
   const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSymbol)}&i=d`;
 
   const response = await fetch(url, {
     cache: "no-store",
     headers: {
-      "User-Agent": "OmegaCrownAI-Trading/1.0",
+      "User-Agent": "Mozilla/5.0 OmegaCrownAI-Trading/1.0",
+      "Accept": "text/csv,text/plain,*/*",
     },
   });
 
@@ -49,23 +48,54 @@ export async function fetchStooqStockCandles({
     throw new Error(`Stooq provider failed: ${response.status}`);
   }
 
-  const text = await response.text();
+  return response.text();
+}
 
-  if (!text.includes("Date,Open,High,Low,Close,Volume")) {
-    throw new Error("Stooq returned no usable CSV candles.");
+export async function fetchStooqStockCandles({
+  symbol,
+}: {
+  symbol: string;
+}) {
+  const primary = normalizeStooqSymbol(symbol);
+  const alternatives = Array.from(
+    new Set([
+      primary,
+      String(symbol || "").trim().toLowerCase(),
+    ])
+  ).filter(Boolean);
+
+  const errors: string[] = [];
+
+  for (const stooqSymbol of alternatives) {
+    try {
+      const text = await fetchStooqCsv(stooqSymbol);
+      const preview = text.trim().slice(0, 160);
+
+      if (!text.trim()) {
+        throw new Error("Stooq returned empty response.");
+      }
+
+      if (preview.toLowerCase().includes("no data")) {
+        throw new Error(`Stooq returned no data for ${stooqSymbol}.`);
+      }
+
+      const candles = parseCsv(text).slice(-300);
+
+      if (!candles.length) {
+        throw new Error(`Stooq returned no candles. Preview: ${preview}`);
+      }
+
+      return {
+        provider: "stooq-free-market-data",
+        symbol: symbol.toUpperCase(),
+        stooqSymbol,
+        timeframe: "1d",
+        candles,
+      };
+    } catch (error: any) {
+      errors.push(`${stooqSymbol}: ${error?.message || "Stooq failed."}`);
+    }
   }
 
-  const candles = parseCsv(text).slice(-300);
-
-  if (!candles.length) {
-    throw new Error("Stooq returned no candles.");
-  }
-
-  return {
-    provider: "stooq-free-market-data",
-    symbol: symbol.toUpperCase(),
-    stooqSymbol,
-    timeframe: "1d",
-    candles,
-  };
+  throw new Error(`Stooq provider failed for all symbol formats: ${errors.join(" | ")}`);
 }
