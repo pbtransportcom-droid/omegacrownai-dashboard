@@ -306,6 +306,41 @@ export default async function SovereignDepartmentPage({
           </div>
         </div>
 
+        <div className="mt-8 rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-slate-900 via-slate-950 to-cyan-950/40 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+            Customer-Ready Department
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-white">
+            Designed to build real business outcomes
+          </h2>
+          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+            This workspace is not just a page. It is a department inside the Sovereign AI Company OS,
+            built to help turn ideas into structured projects, organized workspaces, launch checks,
+            and operational systems that can keep improving over time.
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+              <p className="text-sm font-black text-cyan-100">Clear Start</p>
+              <p className="mt-2 text-xs leading-6 text-slate-300">
+                Start a department project with the correct builder and workspace routing.
+              </p>
+            </div>
+            <div className="rounded-xl border border-purple-400/20 bg-purple-500/10 p-4">
+              <p className="text-sm font-black text-purple-100">Operational Workspace</p>
+              <p className="mt-2 text-xs leading-6 text-slate-300">
+                Open the right area for building, reviewing, improving, and launching.
+              </p>
+            </div>
+            <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+              <p className="text-sm font-black text-emerald-100">Launch Discipline</p>
+              <p className="mt-2 text-xs leading-6 text-slate-300">
+                Keep routing, validation, readiness, and governance connected from the start.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-6">
             <h2 className="text-2xl font-black">Department Systems</h2>
@@ -338,23 +373,22 @@ export default async function SovereignDepartmentPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
-                Department Dashboard
+                Department Command Center
               </p>
               <h2 className="mt-2 text-3xl font-black text-white">
-                Start, manage, and verify this department
+                Build, manage, and launch from this department
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-                These panels connect this department to project creation, execution readiness,
-                workspace routing, memory, build history, and governance systems.
+                Create real projects, open the correct workspace, review readiness, and keep each department connected to the larger Sovereign AI Company OS.
               </p>
             </div>
             <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 text-right">
               <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
-                Department Status
+                Status
               </p>
               <p className="mt-1 text-2xl font-black text-emerald-100">Online</p>
               <p className="mt-1 text-xs text-emerald-50/80">
-                Workspace route active
+                Workspace routing active
               </p>
             </div>
           </div>
@@ -374,7 +408,7 @@ export default async function SovereignDepartmentPage({
             </div>
             <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-400">Readiness</p>
-              <p className="mt-1 text-lg font-black text-white">Ready to build</p>
+              <p className="mt-1 text-lg font-black text-white">Launch-ready</p>
             </div>
           </div>
 
@@ -385,11 +419,10 @@ export default async function SovereignDepartmentPage({
                   Workspace Validation
                 </p>
                 <h3 className="mt-2 text-2xl font-black text-white">
-                  Department route is ready
+                  Workspace ready to launch
                 </h3>
                 <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
-                  New projects created from this department will be routed into the correct Sovereign workspace.
-                  The validation API can verify an actual project ID after creation.
+                  Start a project from this department and OmegaCrownAI will open the right workspace automatically. Each workspace is organized for real execution, validation, and launch readiness.
                 </p>
               </div>
               <div className="rounded-xl border border-emerald-300/20 bg-black/30 px-4 py-3 text-right">
@@ -421,26 +454,26 @@ export default async function SovereignDepartmentPage({
 
               <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-400">
-                  Validation API
+                  Workspace Check
                 </p>
                 <p className="mt-1 break-all text-xs font-bold text-slate-200">
-                  /api/sovereign/workspace-validation
+                  Automatic route validation enabled
                 </p>
               </div>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
               <a
-                href={`/api/sovereign/workspace-validation?department=${key}&projectId=preview-project-id`}
+                href={`Automatic route validation enabled?department=${key}&projectId=preview-project-id`}
                 className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
               >
-                Open Validation API Preview
+                Open Workspace Check Preview
               </a>
               <a
                 href={createHref}
                 className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
               >
-                Open Create Flow
+                Open Start Flow
               </a>
             </div>
           </div>
@@ -449,7 +482,7 @@ export default async function SovereignDepartmentPage({
             <CreateDepartmentProjectButton
               department={key}
               projectType={key}
-              label="Create Department Project"
+              label="Start Department Project"
             />
 
             <a
@@ -459,7 +492,7 @@ export default async function SovereignDepartmentPage({
               <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
                 Workspace
               </p>
-              <h3 className="mt-2 text-xl font-black text-white">Open Department Workspace</h3>
+              <h3 className="mt-2 text-xl font-black text-white">Open Workspace</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Jump into the active dashboard or operational workspace for this department.
               </p>
@@ -472,7 +505,7 @@ export default async function SovereignDepartmentPage({
               <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
                 Readiness
               </p>
-              <h3 className="mt-2 text-xl font-black text-white">Run Readiness Check</h3>
+              <h3 className="mt-2 text-xl font-black text-white">Run Launch Check</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Verify launch quality, blockers, risk, and go/no-go readiness.
               </p>
@@ -485,7 +518,7 @@ export default async function SovereignDepartmentPage({
               <p className="text-xs font-black uppercase tracking-wide text-purple-300">
                 Projects
               </p>
-              <h3 className="mt-2 text-xl font-black text-white">View Build History</h3>
+              <h3 className="mt-2 text-xl font-black text-white">View Project History</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Review department projects, previous builds, executions, and workspace history.
               </p>
@@ -498,7 +531,7 @@ export default async function SovereignDepartmentPage({
               <p className="text-xs font-black uppercase tracking-wide text-blue-300">
                 Memory
               </p>
-              <h3 className="mt-2 text-xl font-black text-white">View Department Memory</h3>
+              <h3 className="mt-2 text-xl font-black text-white">View Knowledge Base</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Open the knowledge, context, decisions, and persistent memory for this department.
               </p>
@@ -511,7 +544,7 @@ export default async function SovereignDepartmentPage({
               <p className="text-xs font-black uppercase tracking-wide text-yellow-300">
                 Governance
               </p>
-              <h3 className="mt-2 text-xl font-black text-white">Open Safety & Governance</h3>
+              <h3 className="mt-2 text-xl font-black text-white">Open Governance</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Review permissions, audit controls, policy checks, and operational guardrails.
               </p>
@@ -519,10 +552,10 @@ export default async function SovereignDepartmentPage({
           </div>
         <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900/80 p-6">
           <p className="text-xs font-black uppercase tracking-[0.24em] text-purple-300">
-            Sovereign Build Pipeline
+            Build Pipeline
           </p>
           <h2 className="mt-2 text-3xl font-black text-white">
-            Department execution flow
+            From idea to launch
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-5">
             {[
@@ -541,11 +574,11 @@ export default async function SovereignDepartmentPage({
                 </p>
                 <p className="mt-2 text-lg font-black text-white">{step}</p>
                 <p className="mt-2 text-xs leading-5 text-slate-400">
-                  {step === "Brief" && "Capture department goals, constraints, and required output."}
-                  {step === "Plan" && "Convert the brief into tasks, systems, and quality gates."}
-                  {step === "Build" && "Create the assets, code, workflows, dashboards, or systems."}
-                  {step === "Verify" && "Run readiness, safety, quality, and production checks."}
-                  {step === "Launch" && "Move the department output into customer-ready operation."}
+                  {step === "Brief" && "Capture goals, audience, requirements, and desired outcome."}
+                  {step === "Plan" && "Turn the brief into a practical build plan with quality gates."}
+                  {step === "Build" && "Build the website, app, workflow, dashboard, content, or operating system."}
+                  {step === "Verify" && "Verify quality, safety, routing, readiness, and production behavior."}
+                  {step === "Launch" && "Launch into a customer-ready workspace with next actions."}
                 </p>
               </div>
             ))}

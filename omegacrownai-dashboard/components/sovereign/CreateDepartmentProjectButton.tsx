@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-export function CreateDepartmentProjectButton({
+export function StartDepartmentProjectButton({
   department,
   projectType,
-  label = "Create Department Project",
+  label = "Start Department Project",
 }: {
   department: string;
   projectType: string;
@@ -28,7 +28,7 @@ export function CreateDepartmentProjectButton({
           department,
           type: projectType,
           name: `${department.charAt(0).toUpperCase()}${department.slice(1)} Department Project`,
-          prompt: `Create a Sovereign AI Company OS project for the ${department} department.`,
+          prompt: `Start a Sovereign AI Company OS project for the ${department} department.`,
         }),
       });
 
@@ -38,7 +38,7 @@ export function CreateDepartmentProjectButton({
         throw new Error(data?.error || "Could not create project.");
       }
 
-      setMessage("Project created. Opening department workspace...");
+      setMessage("Project created. Opening your workspace...");
       window.location.href = data.redirectTo || `/projects/${data.project?.id || ""}`;
     } catch (error: any) {
       setMessage(error?.message || "Project creation failed.");
@@ -56,13 +56,13 @@ export function CreateDepartmentProjectButton({
         className="w-full rounded-2xl border border-cyan-300/30 bg-cyan-400 p-5 text-left text-black shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-300 disabled:opacity-60"
       >
         <p className="text-xs font-black uppercase tracking-wide opacity-70">
-          Create
+          Start
         </p>
         <h3 className="mt-2 text-xl font-black">
-          {loading ? "Creating Project..." : label}
+          {loading ? "Creating Workspace..." : label}
         </h3>
         <p className="mt-2 text-sm font-semibold leading-6">
-          Create a real project record and route directly into the matching department workspace.
+          Start a real project and open the best workspace for this department.
         </p>
       </button>
 
