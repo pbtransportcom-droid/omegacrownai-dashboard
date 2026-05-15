@@ -414,6 +414,55 @@ export default function BuildPage() {
             Stability result from Phase 146: 4 builder departments checked, 4 passed.
           </p>
         </div>
+
+        <div className="mt-8 rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-fuchsia-300">
+                Real Project Smoke Test
+              </p>
+              <h2 className="mt-2 text-3xl font-black text-white">
+                Verify real created projects open real workspaces
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                This smoke test creates real project records for Website, App, Automation, and Trading,
+                then returns the exact workspace paths that should load with project-backed data panels.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/real-workspace-smoke"
+              className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
+            >
+              Run Smoke Test API
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {["Website", "App", "Automation", "Trading"].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-fuchsia-300">
+                  {item}
+                </p>
+                <h3 className="mt-2 text-lg font-black text-white">
+                  Real Workspace
+                </h3>
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  Creates a real project and validates the routed workspace path.
+                </p>
+                <span className="mt-4 inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
+                  Smoke-test ready
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs leading-6 text-slate-400">
+            Use this before major releases to verify the live project creation and workspace routing path.
+          </p>
+        </div>
       </section>
     </main>
   );
