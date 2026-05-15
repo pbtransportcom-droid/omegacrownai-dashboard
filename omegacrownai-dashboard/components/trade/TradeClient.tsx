@@ -1850,7 +1850,7 @@ export default function TradeClient() {
             </div>
             <button
               type="button"
-              onClick={loadWatchlistQuality}
+              onClick={() => loadWatchlistQuality()}
               className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
             >
               {watchlistQualityLoading ? "Scanning..." : "Refresh Batch Scan"}
