@@ -98,7 +98,6 @@ export async function POST(req: NextRequest) {
     const project = await prisma.project.create({
       data: {
         name,
-        type: projectType,
         status: "active",
         owner: {
           connectOrCreate: {
