@@ -2,6 +2,7 @@ import { analyzeSymbolV2 } from "@/lib/trading-v2/engine";
 import { fetchBinanceCryptoCandles } from "@/lib/trading/providers/binance-provider";
 import { fetchTwelveDataStockCandles } from "@/lib/trading/providers/twelve-data-provider";
 import { fetchFinnhubStockQuote } from "@/lib/trading/providers/finnhub-provider";
+import { fetchStooqStockCandles } from "@/lib/trading/providers/stooq-provider";
 
 export type LiveMarketDataStatus =
   | "live_data"
@@ -82,6 +83,43 @@ export async function getLiveMarketData({
 
     if (!isCrypto && isStock) {
       try {
+        const stooq = await fetchStooqStockCandles({
+          symbol: cleanSymbol,
+        });
+
+        if (stooq.candles.length) {
+          return {
+            ok: true,
+            status: "live_data" as LiveMarketDataStatus,
+            symbol: cleanSymbol,
+            timeframe: cleanTimeframe,
+            marketType: cleanMarketType,
+            provider: stooq.provider,
+            providerChain: [
+              "stooq-free-market-data",
+              "twelve-data-optional",
+              "finnhub-optional",
+              "trading-v2-engine-fallback"
+            ],
+            providerErrors,
+            message: "Daily stock candles loaded from Stooq free market data.",
+            candles: stooq.candles,
+            price: stooq.candles[stooq.candles.length - 1]?.close || null,
+            profile: {
+              symbol: cleanSymbol,
+              type: "stock",
+              exchange: "stooq",
+              currency: "provider_reported_or_usd",
+            },
+          };
+        }
+
+        providerErrors.push("Stooq returned no stock candles.");
+      } catch (error: any) {
+        providerErrors.push(error?.message || "Stooq stock provider failed.");
+      }
+
+      try {
         const twelveData = await fetchTwelveDataStockCandles({
           symbol: cleanSymbol,
           timeframe: cleanTimeframe,
@@ -147,8 +185,9 @@ export async function getLiveMarketData({
       providerChain: isCrypto
         ? ["binance-public-market-data-attempted", safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"]
         : [
-            "twelve-data-attempted",
-            "finnhub-attempted",
+            "stooq-free-market-data-attempted",
+            "twelve-data-optional",
+            "finnhub-optional",
             safeResult?.provider || "trading-v2-engine",
             "yahoo-chart-public-data-fallback"
           ],
