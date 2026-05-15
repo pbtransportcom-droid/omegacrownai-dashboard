@@ -51,6 +51,36 @@ function parseMaxPrice(query: string) {
   return match ? Number(match[1]) : null;
 }
 
+function parseRequestedCount(query: string) {
+  const clean = query.toLowerCase();
+
+  const digitMatch = clean.match(/(?:give me|show me|find|search)?\s*(\d+)\s+(?:powerful\s+)?(?:[a-z\- ]+)?\s*(?:stock|stocks|candidate|candidates|setup|setups)/i);
+  if (digitMatch) {
+    return Math.min(10, Math.max(1, Number(digitMatch[1])));
+  }
+
+  const words: Record<string, number> = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+  };
+
+  for (const [word, value] of Object.entries(words)) {
+    if (new RegExp(`\\b${word}\\b`, "i").test(clean)) {
+      return value;
+    }
+  }
+
+  return 4;
+}
+
 function inferSector(query: string) {
   const lower = query.toLowerCase();
 
@@ -111,6 +141,7 @@ export async function discoverTradingCandidates({
   const cleanQuery = String(query || "").trim();
   const detectedMaxPrice = maxPrice ?? parseMaxPrice(cleanQuery);
   const sector = inferSector(cleanQuery);
+  const requestedCount = parseRequestedCount(cleanQuery);
   const baseUniverse = universeForSector(sector);
 
   const candidates = [];
@@ -174,7 +205,7 @@ export async function discoverTradingCandidates({
     ? candidates
         .filter((candidate) => candidate.price && candidate.price > detectedMaxPrice)
         .sort((a, b) => Number(a.price || 999999) - Number(b.price || 999999))
-        .slice(0, 6)
+        .slice(0, requestedCount)
     : [];
 
   return {
@@ -184,7 +215,9 @@ export async function discoverTradingCandidates({
     query: cleanQuery,
     sector,
     maxPrice: detectedMaxPrice,
-    ranked,
+    requestedCount,
+    exactMatchCount: ranked.length,
+    ranked: ranked.slice(0, requestedCount),
     nearMisses,
     searchedUniverse: baseUniverse.length,
     warning:

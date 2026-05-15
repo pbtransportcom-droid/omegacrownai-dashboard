@@ -1244,7 +1244,7 @@ export default function TradeClient() {
             : "the requested price";
 
           const rows = discovery.ranked
-            .slice(0, 4)
+            .slice(0, Number(discovery.requestedCount || 4))
             .map(
               (item: any, index: number) =>
                 `${index + 1}. ${item.symbol} — ${item.name}\n` +
@@ -1257,7 +1257,7 @@ export default function TradeClient() {
             .join("\n\n");
 
           setChatAnswer(
-            `I expanded beyond the current watchlist and searched the market discovery layer for ${discovery.sector || "requested-sector"} candidates under ${priceLabel}.\n\n` +
+            `I expanded beyond the current watchlist and searched the market discovery layer for ${discovery.sector || "requested-sector"} candidates under ${priceLabel}. Requested count: ${discovery.requestedCount || 4}. Verified exact matches: ${discovery.exactMatchCount ?? discovery.ranked?.length ?? 0}.\n\n` +
               `${rows}\n\n` +
               `${discovery.warning || "Low-priced stocks can be highly speculative, illiquid, volatile, and risky."}\n\n` +
               "These are not buy recommendations. Before touching any penny stock, verify current price, volume, spread, dilution risk, filings, news, and trend confirmation."
@@ -1272,7 +1272,7 @@ export default function TradeClient() {
               : "the requested price";
 
             const nearRows = discovery.nearMisses
-              .slice(0, 6)
+              .slice(0, Number(discovery.requestedCount || 4))
               .map(
                 (item: any, index: number) =>
                   `${index + 1}. ${item.symbol} — ${item.name}\n` +
@@ -1285,7 +1285,7 @@ export default function TradeClient() {
 
             setChatAnswer(
               `I expanded beyond the current watchlist and searched the ${discovery.sector || "requested"} sector.\n\n` +
-                `I could not verify candidates under ${priceLabel} with the current free data providers.\n\n` +
+                `I found 0 verified ${discovery.sector || "requested-sector"} candidates under ${priceLabel} with the current free data providers. Requested count: ${discovery.requestedCount || 4}.\n\n` +
                 `Closest verified candidates above that price:\n\n${nearRows}\n\n` +
                 `${discovery.warning || "Low-priced stocks can be highly speculative, illiquid, volatile, and risky."}\n\n` +
                 "This is educational discovery only, not financial advice."
