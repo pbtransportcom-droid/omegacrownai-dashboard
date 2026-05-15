@@ -108,6 +108,12 @@ export default function HomePage() {
           </a>
         </div>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a href="/login" className="inline-flex rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/20">
+              Login
+            </a>
+            <a href="/signup" className="inline-flex rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300">
+              Sign Up
+            </a>
             <a href="/build" className="inline-flex rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300">
               Builder Hub
             </a>

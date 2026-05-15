@@ -104,6 +104,18 @@ export default function BuildPage() {
 
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <a
+              href="/login"
+              className="rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/20"
+            >
+              Login
+            </a>
+            <a
+              href="/signup"
+              className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300"
+            >
+              Sign Up
+            </a>
+            <a
               href="/create?type=website"
               className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300"
             >

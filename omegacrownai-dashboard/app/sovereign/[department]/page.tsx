@@ -228,12 +228,29 @@ export default async function SovereignDepartmentPage({
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
       <section className="mx-auto max-w-6xl">
-        <a
-          href="/build"
-          className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
-        >
-          ← Back to Sovereign AI Company OS
-        </a>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <a
+            href="/build"
+            className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+          >
+            ← Back to Sovereign AI Company OS
+          </a>
+
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="/login"
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/20"
+            >
+              Login
+            </a>
+            <a
+              href="/signup"
+              className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black hover:bg-emerald-300"
+            >
+              Sign Up
+            </a>
+          </div>
+        </div>
 
         <div className="mt-6 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-900 to-purple-500/10 p-8 shadow-2xl shadow-cyan-950/30">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
