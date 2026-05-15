@@ -75,6 +75,32 @@ function safeString(value: unknown, fallback: string) {
   return text || fallback;
 }
 
+function workspaceRedirectForDepartment(department: string, projectId: string) {
+  if (department === "website") return `/build/website/${projectId}`;
+  if (department === "app") return `/build/app/${projectId}`;
+  if (department === "automation") return `/build/automation/${projectId}`;
+  if (department === "trading") return `/build/trading/${projectId}`;
+  if (department === "coding") return `/projects/${projectId}`;
+
+  const companyDepartmentMap: Record<string, string> = {
+    creative: "creative-studio",
+    marketing: "marketing",
+    finance: "finance",
+    support: "support",
+    security: "governance",
+    reliability: "reliability",
+    workspaces: "workspaces",
+  };
+
+  const companyDepartment = companyDepartmentMap[department];
+
+  if (companyDepartment) {
+    return `/projects/${projectId}/company/${companyDepartment}`;
+  }
+
+  return `/projects/${projectId}`;
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const department = normalizeDepartment(body.department);
@@ -119,7 +145,7 @@ export async function POST(req: NextRequest) {
       service: "Sovereign Department Project Creation",
       department,
       project,
-      redirectTo: `/projects/${project.id}`,
+      redirectTo: workspaceRedirectForDepartment(department, project.id),
     });
   } catch (error: any) {
     return NextResponse.json(

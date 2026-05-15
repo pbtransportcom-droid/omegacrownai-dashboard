@@ -38,7 +38,7 @@ export function CreateDepartmentProjectButton({
         throw new Error(data?.error || "Could not create project.");
       }
 
-      setMessage("Project created. Opening workspace...");
+      setMessage("Project created. Opening department workspace...");
       window.location.href = data.redirectTo || `/projects/${data.project?.id || ""}`;
     } catch (error: any) {
       setMessage(error?.message || "Project creation failed.");
@@ -62,7 +62,7 @@ export function CreateDepartmentProjectButton({
           {loading ? "Creating Project..." : label}
         </h3>
         <p className="mt-2 text-sm font-semibold leading-6">
-          Create a real project record and open the matching department workspace.
+          Create a real project record and route directly into the matching department workspace.
         </p>
       </button>
 
