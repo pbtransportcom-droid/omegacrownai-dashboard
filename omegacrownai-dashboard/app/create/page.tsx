@@ -61,7 +61,7 @@ function normalizeType(value?: string) {
 export default async function CreatePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ type?: string }>;
+  searchParams?: Promise<{ type?: string; department?: string }>;
 }) {
   const params = await searchParams;
   const type = normalizeType(params?.type);
