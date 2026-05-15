@@ -1,4 +1,5 @@
 import { runSuperAgentTradingForecast } from "@/lib/trading/super-agent/super-agent-forecast";
+import { getLiveMarketData } from "@/lib/trading/live-market-data";
 
 type QualityStatus =
   | "forecast_supported"
@@ -98,21 +99,20 @@ export async function getForecastQualitySnapshot({
     timeframe,
   });
 
+  const live = await getLiveMarketData({
+    symbol,
+    marketType,
+    timeframe,
+  });
+
   const candles =
-    forecast?.sourceData?.marketSnapshot?.candles ||
+    live?.candles ||
     forecast?.sourceData?.candles ||
     forecast?.candles ||
     [];
 
-  const fallbackCandles =
-    forecast?.sourceData?.marketSnapshot?.candleCount && !candles.length
-      ? Array.from({ length: forecast.sourceData.marketSnapshot.candleCount })
-      : candles;
-
   const sourceCandles = Array.isArray(candles) ? candles : [];
-  const candleCount =
-    sourceCandles.length ||
-    Number(forecast?.sourceData?.marketSnapshot?.candleCount || 0);
+  const candleCount = sourceCandles.length;
 
   const realized = inferRealizedTrend(sourceCandles);
   const volatility = inferVolatility(sourceCandles);
@@ -138,8 +138,8 @@ export async function getForecastQualitySnapshot({
     marketType: forecast.marketType,
     timeframe: forecast.timeframe,
     provider: forecast.provider,
-    providerChain: forecast.providerChain || [],
-    providerErrors: forecast.providerErrors || [],
+    providerChain: Array.from(new Set([...(forecast.providerChain || []), ...(live.providerChain || [])])),
+    providerErrors: Array.from(new Set([...(forecast.providerErrors || []), ...(live.providerErrors || [])])),
     forecast: forecast.forecast,
     quality: {
       status,
