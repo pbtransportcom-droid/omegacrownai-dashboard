@@ -22,6 +22,25 @@ const phases = [
   "Full Observability Dashboard",
 ];
 
+
+const sovereignStartSteps = [
+  {
+    title: "Start",
+    detail: "Open the Sovereign AI Company OS onboarding flow.",
+    href: "/build",
+  },
+  {
+    title: "Choose",
+    detail: "Pick the department that matches what you want to build.",
+    href: "/build",
+  },
+  {
+    title: "Launch",
+    detail: "Create a project and continue inside the routed workspace.",
+    href: "/api/sovereign/release-readiness",
+  },
+];
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
@@ -194,6 +213,74 @@ export default function HomePage() {
           </a>
         </div>
       </section>
-    </main>
+          <section className="mx-auto mt-10 max-w-7xl px-6">
+        <div className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-6 text-white shadow-2xl shadow-cyan-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+                Sovereign AI Company OS
+              </p>
+              <h2 className="mt-3 text-4xl font-black md:text-5xl">
+                Start building your AI company workspace.
+              </h2>
+              <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300">
+                Begin with a guided onboarding flow: sign in, choose a department, create a real project,
+                open the routed workspace, and verify release readiness.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/login"
+                className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/20"
+              >
+                Login
+              </a>
+              <a
+                href="/signup"
+                className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
+              >
+                Sign Up
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="/build"
+              className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300"
+            >
+              Start with Sovereign AI Company OS
+            </a>
+            <a
+              href="/sovereign/website"
+              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Open Website Department
+            </a>
+            <a
+              href="/api/sovereign/release-readiness"
+              className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+            >
+              View Release Readiness
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {sovereignStartSteps.map((item) => (
+              <a
+                key={item.title}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+              >
+                <p className="text-sm font-black text-cyan-100">{item.title}</p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">{item.detail}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+</main>
   );
 }
