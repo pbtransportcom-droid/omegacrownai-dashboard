@@ -117,7 +117,7 @@ export default function HomePage() {
             <a href="/create?type=app" className="inline-flex rounded-xl border border-purple-400/30 bg-purple-500/10 px-5 py-3 text-sm font-black text-purple-100 hover:bg-purple-500/20">
               App Builder
             </a>
-            <a href="/projects" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
+            <a href="/create?type=coding" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
               Coding Workspace
             </a>
             <a href="/automate" className="inline-flex rounded-xl border border-blue-400/30 bg-blue-500/10 px-5 py-3 text-sm font-black text-blue-100 hover:bg-blue-500/20">

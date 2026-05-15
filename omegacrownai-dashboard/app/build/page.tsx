@@ -17,7 +17,7 @@ const builderCards = [
     title: "Coding Workspace",
     description:
       "Generate, edit, review, and ship code with OmegaCrownAI project workspaces.",
-    href: "/projects",
+    href: "/create?type=coding",
     badge: "Code",
   },
   {
@@ -66,10 +66,10 @@ export default function BuildPage() {
               Start App Builder
             </a>
             <a
-              href="/projects"
+              href="/create?type=coding"
               className="rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/20"
             >
-              Open Coding Workspace
+              Start Coding Workspace
             </a>
           </div>
         </div>
