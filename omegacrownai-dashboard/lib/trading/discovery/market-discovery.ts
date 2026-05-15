@@ -4,6 +4,8 @@ const AI_STOCK_CANDIDATES = [
   { symbol: "BBAI", name: "BigBear.ai Holdings", theme: "AI analytics / decision intelligence" },
   { symbol: "SOUN", name: "SoundHound AI", theme: "Voice AI" },
   { symbol: "REKR", name: "Rekor Systems", theme: "AI roadway intelligence" },
+  { symbol: "MVIS", name: "MicroVision", theme: "Lidar / AI perception for autonomy" },
+  { symbol: "INUV", name: "Inuvo", theme: "AI advertising / predictive consumer intelligence" },
   { symbol: "LIDR", name: "AEye", theme: "Autonomous systems / lidar perception" },
   { symbol: "MARK", name: "Remark Holdings", theme: "AI analytics / computer vision" },
   { symbol: "IDAI", name: "T Stamp", theme: "AI identity verification" },

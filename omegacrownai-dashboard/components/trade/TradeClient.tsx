@@ -1215,22 +1215,76 @@ export default function TradeClient() {
   }
 
   async function askTradingChat(questionOverride?: string) {
-    const activeQuestion = questionOverride || chatQuestion;
-    if (!activeQuestion.trim()) return;
+    const questionToAsk = questionOverride || chatQuestion;
+
+    if (!questionToAsk.trim()) return;
 
     setChatLoading(true);
     setChatAnswer("");
 
     try {
-      const res = await fetch("/api/ai/trading/chat", {
+      const needsDiscovery =
+        /under\s+\$?\d+|below\s+\$?\d+|less than\s+\$?\d+|cheap|penny|find|search|ai stock|ai stocks|artificial intelligence/i.test(
+          questionToAsk
+        );
+
+      if (needsDiscovery) {
+        const discoveryResponse = await fetch(
+          `/api/trading/discovery?query=${encodeURIComponent(questionToAsk)}`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        const discovery = await discoveryResponse.json();
+
+        if (discoveryResponse.ok && discovery?.ranked?.length) {
+          const priceLabel = discovery.maxPrice
+            ? `$${discovery.maxPrice}`
+            : "the requested price";
+
+          const rows = discovery.ranked
+            .slice(0, 4)
+            .map(
+              (item: any, index: number) =>
+                `${index + 1}. ${item.symbol} — ${item.name}\n` +
+                `Price: ${item.price ? `$${item.price}` : "unverified"}\n` +
+                `Theme: ${item.theme || "AI-related small-cap candidate"}\n` +
+                `Risk: ${item.risk || "high"}\n` +
+                `Source: ${item.provider || "provider unavailable"}\n` +
+                `Why matched: ${item.whyMatched || "Matched discovery query."}`
+            )
+            .join("\n\n");
+
+          setChatAnswer(
+            `I expanded beyond the current watchlist and searched the market discovery layer for AI-related candidates under ${priceLabel}.\n\n` +
+              `${rows}\n\n` +
+              `${discovery.warning || "Low-priced stocks can be highly speculative, illiquid, volatile, and risky."}\n\n` +
+              "These are not buy recommendations. Before touching any penny stock, verify current price, volume, spread, dilution risk, filings, news, and trend confirmation."
+          );
+          return;
+        }
+
+        if (discoveryResponse.ok && !discovery?.ranked?.length) {
+          setChatAnswer(
+            `I expanded beyond the current watchlist, but I could not verify matching candidates with the current free provider data.\n\n` +
+              `${discovery?.fallbackNote || "No verified candidates matched the requested filter."}\n\n` +
+              "This is educational discovery only, not financial advice."
+          );
+          return;
+        }
+      }
+
+      const res = await fetch("/api/trading/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question: activeQuestion,
-          ranking: rankResult?.ranked || [],
-          analysis: result || null,
+          question: questionToAsk,
+          rankings: (rankResult as any)?.rankings || (rankResult as any)?.ranked || (rankResult as any)?.items || [],
+          marketType,
+          timeframe,
         }),
       });
 
@@ -1243,9 +1297,9 @@ export default function TradeClient() {
       setChatAnswer(data.reply || "");
     } catch (error: any) {
       setChatAnswer(error?.message || "Trading chat failed.");
+    } finally {
+      setChatLoading(false);
     }
-
-    setChatLoading(false);
   }
 
   const signal = result?.signal || "WAITING";
