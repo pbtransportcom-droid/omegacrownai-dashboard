@@ -3,84 +3,84 @@ const departments = [
     title: "Website Department",
     description:
       "Build premium business websites, landing pages, service pages, funnels, SEO-ready pages, and launch-ready customer experiences.",
-    href: "/create?type=website",
+    href: "/sovereign/website",
     badge: "Website Builder",
   },
   {
     title: "App Department",
     description:
       "Build dashboards, SaaS apps, portals, business systems, customer apps, internal tools, and full-stack product workflows.",
-    href: "/create?type=app",
+    href: "/sovereign/app",
     badge: "App Builder",
   },
   {
     title: "Coding Department",
     description:
       "Generate, edit, debug, review, refactor, test, and ship production code through OmegaCrownAI project workspaces.",
-    href: "/create?type=coding",
+    href: "/sovereign/coding",
     badge: "Coding Workspace",
   },
   {
     title: "Automation Department",
     description:
       "Build AI agents, business workflows, scheduled jobs, execution pipelines, lead follow-ups, reporting systems, and operations automations.",
-    href: "/create?type=automation",
+    href: "/sovereign/automation",
     badge: "Automation Builder",
   },
   {
     title: "Trading Department",
     description:
       "Build King Trading System dashboards, market discovery, watchlists, forecast quality controls, alerts, and research tools.",
-    href: "/create?type=trading",
+    href: "/sovereign/trading",
     badge: "King Trading System",
   },
   {
     title: "Creative Department",
     description:
       "Build content systems, videos, image prompts, brand assets, campaigns, scripts, and production-ready creative pipelines.",
-    href: "/creative/directors-room",
+    href: "/sovereign/creative",
     badge: "Creative Studio",
   },
   {
     title: "Marketing Department",
     description:
       "Build campaigns, funnels, customer acquisition systems, copy, landing strategies, distribution plans, and growth workflows.",
-    href: "/distribution/campaigns",
+    href: "/sovereign/marketing",
     badge: "Marketing Engine",
   },
   {
     title: "Finance Department",
     description:
       "Build revenue tracking, payment flows, provider management, billing readiness, financial dashboards, and business controls.",
-    href: "/payments/providers",
+    href: "/sovereign/finance",
     badge: "Finance Ops",
   },
   {
     title: "Support Department",
     description:
       "Build customer support workflows, onboarding, help systems, customer operations, readiness checks, and response pipelines.",
-    href: "/customer",
+    href: "/sovereign/support",
     badge: "Customer Ops",
   },
   {
     title: "Security & Governance",
     description:
       "Build safety policies, audit trails, access controls, identity verification, compliance evidence, and governance workflows.",
-    href: "/security/admin-controls",
+    href: "/sovereign/security",
     badge: "Governance",
   },
   {
     title: "Reliability Department",
     description:
       "Build monitoring, incident response, replay systems, job reliability, cost controls, and production-grade operational checks.",
-    href: "/observability",
+    href: "/sovereign/reliability",
     badge: "Reliability",
   },
   {
     title: "Projects & Workspaces",
     description:
       "Open the full workspace layer where Sovereign AI Company projects, departments, memory, execution, and build history live.",
-    href: "/projects",
+    href: "/sovereign/workspaces",
     badge: "Workspace OS",
   },
 ];
