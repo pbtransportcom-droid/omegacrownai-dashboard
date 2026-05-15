@@ -58,12 +58,13 @@ function normalizeType(value?: string) {
   return "website";
 }
 
-export default function CreatePage({
+export default async function CreatePage({
   searchParams,
 }: {
-  searchParams?: { type?: string };
+  searchParams?: Promise<{ type?: string }>;
 }) {
-  const type = normalizeType(searchParams?.type);
+  const params = await searchParams;
+  const type = normalizeType(params?.type);
   const selected = builderTypes[type];
 
   return (
