@@ -170,20 +170,30 @@ export async function discoverTradingCandidates({
 
   const ranked = filtered.sort((a, b) => b.score - a.score);
 
+  const nearMisses = detectedMaxPrice
+    ? candidates
+        .filter((candidate) => candidate.price && candidate.price > detectedMaxPrice)
+        .sort((a, b) => Number(a.price || 999999) - Number(b.price || 999999))
+        .slice(0, 6)
+    : [];
+
   return {
     ok: true,
-    phase: "v10.6 Phase 126",
+    phase: "v10.7 Phase 127",
     service: "King Trading System Multi-Sector Discovery Search",
     query: cleanQuery,
     sector,
     maxPrice: detectedMaxPrice,
     ranked,
+    nearMisses,
     searchedUniverse: baseUniverse.length,
     warning:
       `Low-priced ${sector} stocks can be highly speculative, illiquid, volatile, and risky. This is educational discovery, not financial advice.`,
     fallbackNote:
       ranked.length
         ? `Candidates were discovered outside the current watchlist from the ${sector} universe and price-checked using available market data providers.`
-        : `No ${sector} candidates matched the requested price filter with current free provider verification.`,
+        : nearMisses.length
+          ? `No verified ${sector} candidates were found under $${detectedMaxPrice}, but near-miss candidates above that price were found.`
+          : `No ${sector} candidates matched the requested price filter with current free provider verification.`,
   };
 }

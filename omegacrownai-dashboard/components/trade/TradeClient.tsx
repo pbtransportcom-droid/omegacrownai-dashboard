@@ -1266,6 +1266,33 @@ export default function TradeClient() {
         }
 
         if (discoveryResponse.ok && !discovery?.ranked?.length) {
+          if (discovery?.nearMisses?.length) {
+            const priceLabel = discovery.maxPrice
+              ? `$${discovery.maxPrice}`
+              : "the requested price";
+
+            const nearRows = discovery.nearMisses
+              .slice(0, 6)
+              .map(
+                (item: any, index: number) =>
+                  `${index + 1}. ${item.symbol} — ${item.name}\n` +
+                  `Price: ${item.price ? `$${item.price}` : "unverified"}\n` +
+                  `Theme: ${item.theme || "sector-matched candidate"}\n` +
+                  `Risk: ${item.risk || "high"}\n` +
+                  `Source: ${item.provider || "provider unavailable"}`
+              )
+              .join("\n\n");
+
+            setChatAnswer(
+              `I expanded beyond the current watchlist and searched the ${discovery.sector || "requested"} sector.\n\n` +
+                `I could not verify candidates under ${priceLabel} with the current free data providers.\n\n` +
+                `Closest verified candidates above that price:\n\n${nearRows}\n\n` +
+                `${discovery.warning || "Low-priced stocks can be highly speculative, illiquid, volatile, and risky."}\n\n` +
+                "This is educational discovery only, not financial advice."
+            );
+            return;
+          }
+
           setChatAnswer(
             `I expanded beyond the current watchlist, but I could not verify matching candidates with the current free provider data.\n\n` +
               `${discovery?.fallbackNote || "No verified candidates matched the requested filter."}\n\n` +
