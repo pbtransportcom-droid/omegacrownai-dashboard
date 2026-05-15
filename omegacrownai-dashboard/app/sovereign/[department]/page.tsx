@@ -213,6 +213,32 @@ function normalizeDepartment(value?: string) {
   return "website";
 }
 
+function workspacePreviewForDepartment(department: string) {
+  if (department === "website") return "/build/website/[projectId]";
+  if (department === "app") return "/build/app/[projectId]";
+  if (department === "automation") return "/build/automation/[projectId]";
+  if (department === "trading") return "/build/trading/[projectId]";
+  if (department === "coding") return "/projects/[projectId]";
+
+  const companyDepartmentMap: Record<string, string> = {
+    creative: "creative-studio",
+    marketing: "marketing",
+    finance: "finance",
+    support: "support",
+    security: "governance",
+    reliability: "reliability",
+    workspaces: "workspaces",
+  };
+
+  const companyDepartment = companyDepartmentMap[department];
+
+  if (companyDepartment) {
+    return `/projects/[projectId]/company/${companyDepartment}`;
+  }
+
+  return "/projects/[projectId]";
+}
+
 export default async function SovereignDepartmentPage({
   params,
 }: {
@@ -224,6 +250,7 @@ export default async function SovereignDepartmentPage({
   const createHref = department.primaryHref.includes("?")
     ? `${department.primaryHref}&department=${key}`
     : `/create?type=${key}&department=${key}`;
+  const workspacePreview = workspacePreviewForDepartment(key);
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
@@ -348,6 +375,73 @@ export default async function SovereignDepartmentPage({
             <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-400">Readiness</p>
               <p className="mt-1 text-lg font-black text-white">Ready to build</p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-300">
+                  Workspace Validation
+                </p>
+                <h3 className="mt-2 text-2xl font-black text-white">
+                  Department route is ready
+                </h3>
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-300">
+                  New projects created from this department will be routed into the correct Sovereign workspace.
+                  The validation API can verify an actual project ID after creation.
+                </p>
+              </div>
+              <div className="rounded-xl border border-emerald-300/20 bg-black/30 px-4 py-3 text-right">
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                  Status
+                </p>
+                <p className="mt-1 text-xl font-black text-emerald-100">
+                  Route Ready
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Department
+                </p>
+                <p className="mt-1 text-lg font-black text-white">{key}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Expected Workspace
+                </p>
+                <p className="mt-1 break-all text-sm font-black text-emerald-100">
+                  {workspacePreview}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-400">
+                  Validation API
+                </p>
+                <p className="mt-1 break-all text-xs font-bold text-slate-200">
+                  /api/sovereign/workspace-validation
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a
+                href={`/api/sovereign/workspace-validation?department=${key}&projectId=preview-project-id`}
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Validation API Preview
+              </a>
+              <a
+                href={createHref}
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+              >
+                Open Create Flow
+              </a>
             </div>
           </div>
 
