@@ -513,6 +513,8 @@ export default function TradeClient() {
   const [superForecastLoading, setSuperForecastLoading] = useState(false);
   const [forecastQuality, setForecastQuality] = useState<any>(null);
   const [forecastQualityLoading, setForecastQualityLoading] = useState(false);
+  const [watchlistQuality, setWatchlistQuality] = useState<any>(null);
+  const [watchlistQualityLoading, setWatchlistQualityLoading] = useState(false);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
   const [rankResult, setRankResult] = useState<RankResult | null>(null);
@@ -537,6 +539,44 @@ export default function TradeClient() {
     setChatAnswer("");
   }, [result?.symbol, result?.signal, result?.confidence]);
 
+
+  async function loadWatchlistQuality() {
+    setWatchlistQualityLoading(true);
+
+    try {
+      const symbols = "AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT";
+      const response = await fetch(
+        `/api/trading/watchlist-quality?symbols=${encodeURIComponent(symbols)}&timeframe=${encodeURIComponent(timeframe || "1d")}`,
+        {
+          cache: "no-store"
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || data?.error || "Watchlist quality scan failed.");
+      }
+
+      setWatchlistQuality(data);
+    } catch (error: any) {
+      setWatchlistQuality({
+        ok: false,
+        status: "error",
+        summary: {
+          total: 0,
+          forecastSupported: 0,
+          reviewRequired: 0,
+          highRisk: 0,
+          providerErrors: 0
+        },
+        ranked: [],
+        notes: [error?.message || "Watchlist quality scan unavailable."]
+      });
+    } finally {
+      setWatchlistQualityLoading(false);
+    }
+  }
 
   async function loadForecastQuality(symbolValue?: string) {
     const nextSymbol = String(symbolValue || symbol || "").trim();
@@ -1021,6 +1061,7 @@ export default function TradeClient() {
       loadCryptoIntelligence(data?.symbol || symbol);
       loadSuperAgentForecast(data?.symbol || symbol);
       loadForecastQuality(data?.symbol || symbol);
+      loadWatchlistQuality();
     } catch (error: any) {
       setResult({
         ok: false,
@@ -1741,6 +1782,115 @@ export default function TradeClient() {
 
           <p className="mt-5 text-xs leading-5 text-slate-400">
             {superForecast.disclaimer || "Educational market forecasting only. Not financial advice."}
+          </p>
+        </section>
+      ) : null}
+
+      {watchlistQuality ? (
+        <section className="rounded-2xl border border-lime-400/30 bg-lime-500/10 p-5 md:col-span-2">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-lime-300">
+                Watchlist Quality Ranking
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                Super Agent Batch Scan
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Ranked forecast quality across the active OmegaCrownAI watchlist.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={loadWatchlistQuality}
+              className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+            >
+              {watchlistQualityLoading ? "Scanning..." : "Refresh Batch Scan"}
+            </button>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-5">
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Total</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {watchlistQuality.summary?.total ?? 0}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Supported</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {watchlistQuality.summary?.forecastSupported ?? 0}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Review Required</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {watchlistQuality.summary?.reviewRequired ?? 0}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">High Risk</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {watchlistQuality.summary?.highRisk ?? 0}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-black/30 p-4">
+              <p className="text-xs uppercase text-slate-400">Provider Warnings</p>
+              <p className="mt-1 text-xl font-black text-white">
+                {watchlistQuality.summary?.providerErrors ?? 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 overflow-hidden rounded-xl border border-lime-400/20 bg-black/30">
+            <div className="grid grid-cols-8 gap-2 border-b border-border px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-400">
+              <span>Rank</span>
+              <span>Symbol</span>
+              <span>Score</span>
+              <span>Status</span>
+              <span>Forecast</span>
+              <span>Confidence</span>
+              <span>Trend</span>
+              <span>Volatility</span>
+            </div>
+
+            {(watchlistQuality.ranked || []).map((item: any, index: number) => (
+              <div
+                key={item.symbol}
+                className="grid grid-cols-8 gap-2 border-b border-border/60 px-4 py-3 text-sm text-slate-200 last:border-b-0"
+              >
+                <span className="font-black text-lime-200">#{index + 1}</span>
+                <span className="font-black text-white">{item.symbol}</span>
+                <span>{item.score}</span>
+                <span className={item.reviewRequired ? "text-yellow-200" : "text-emerald-200"}>
+                  {item.qualityStatus}
+                </span>
+                <span>{item.forecastDirection}</span>
+                <span>{item.forecastConfidence}%</span>
+                <span>{item.realizedTrendDirection}</span>
+                <span>{item.averageRecentVolatilityPercent}%</span>
+              </div>
+            ))}
+          </div>
+
+          {(watchlistQuality.ranked || []).some((item: any) => item.providerErrors?.length) ? (
+            <div className="mt-5 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+              <h3 className="text-sm font-black text-yellow-100">Provider Warnings</h3>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-yellow-50">
+                {(watchlistQuality.ranked || [])
+                  .filter((item: any) => item.providerErrors?.length)
+                  .map((item: any) => (
+                    <li key={item.symbol}>
+                      <span className="font-black">{item.symbol}:</span>{" "}
+                      {item.providerErrors.join("; ")}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : null}
+
+          <p className="mt-5 text-xs leading-5 text-slate-400">
+            Watchlist ranking is educational and diagnostic only. It is not financial advice and does not guarantee future performance.
           </p>
         </section>
       ) : null}
