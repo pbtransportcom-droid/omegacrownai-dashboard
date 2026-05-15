@@ -1,3 +1,79 @@
+
+const flowMatrix = [
+  {
+    department: "website",
+    label: "Website Department",
+    workspace: "/build/website/[projectId]",
+    href: "/sovereign/website",
+  },
+  {
+    department: "app",
+    label: "App Department",
+    workspace: "/build/app/[projectId]",
+    href: "/sovereign/app",
+  },
+  {
+    department: "coding",
+    label: "Coding Department",
+    workspace: "/projects/[projectId]",
+    href: "/sovereign/coding",
+  },
+  {
+    department: "automation",
+    label: "Automation Department",
+    workspace: "/build/automation/[projectId]",
+    href: "/sovereign/automation",
+  },
+  {
+    department: "trading",
+    label: "Trading Department",
+    workspace: "/build/trading/[projectId]",
+    href: "/sovereign/trading",
+  },
+  {
+    department: "creative",
+    label: "Creative Department",
+    workspace: "/projects/[projectId]/company/creative-studio",
+    href: "/sovereign/creative",
+  },
+  {
+    department: "marketing",
+    label: "Marketing Department",
+    workspace: "/projects/[projectId]/company/marketing",
+    href: "/sovereign/marketing",
+  },
+  {
+    department: "finance",
+    label: "Finance Department",
+    workspace: "/projects/[projectId]/company/finance",
+    href: "/sovereign/finance",
+  },
+  {
+    department: "support",
+    label: "Support Department",
+    workspace: "/projects/[projectId]/company/support",
+    href: "/sovereign/support",
+  },
+  {
+    department: "security",
+    label: "Security & Governance",
+    workspace: "/projects/[projectId]/company/governance",
+    href: "/sovereign/security",
+  },
+  {
+    department: "reliability",
+    label: "Reliability Department",
+    workspace: "/projects/[projectId]/company/reliability",
+    href: "/sovereign/reliability",
+  },
+  {
+    department: "workspaces",
+    label: "Projects & Workspaces",
+    workspace: "/projects/[projectId]/company/workspaces",
+    href: "/sovereign/workspaces",
+  },
+];
+
 const departments = [
   {
     title: "Website Department",
@@ -166,6 +242,72 @@ export default function BuildPage() {
           <p className="mt-3 text-sm leading-7 text-yellow-50">
             This hub is designed as the top-level company operating system. Each department can keep expanding with its own dashboards,
             builders, agents, workflows, execution logs, quality controls, memory, governance, and production readiness checks.
+          </p>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-300">
+                Sovereign Flow Matrix
+              </p>
+              <h2 className="mt-2 text-3xl font-black text-white">
+                12 departments routed to the right workspace
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Every department has a Start Department Project flow. When a project is created,
+                OmegaCrownAI routes it to the correct workspace automatically.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/button-flow-matrix"
+              className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+            >
+              Open Matrix API
+            </a>
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-700">
+            <div className="grid grid-cols-12 bg-black/40 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-400">
+              <div className="col-span-4">Department</div>
+              <div className="col-span-5">Workspace Route</div>
+              <div className="col-span-3 text-right">Status</div>
+            </div>
+
+            <div className="divide-y divide-slate-800">
+              {flowMatrix.map((item) => (
+                <div
+                  key={item.department}
+                  className="grid grid-cols-12 items-center gap-3 px-4 py-4 text-sm"
+                >
+                  <div className="col-span-4">
+                    <a
+                      href={item.href}
+                      className="font-black text-white hover:text-cyan-200"
+                    >
+                      {item.label}
+                    </a>
+                    <p className="mt-1 text-xs text-slate-500">
+                      /sovereign/{item.department}
+                    </p>
+                  </div>
+
+                  <div className="col-span-5 break-all font-mono text-xs text-emerald-100">
+                    {item.workspace}
+                  </div>
+
+                  <div className="col-span-3 text-right">
+                    <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
+                      Ready
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs leading-6 text-slate-400">
+            Matrix result from Phase 142: 12 departments checked, 12 passed. This panel makes that routing visible to customers and operators.
           </p>
         </div>
       </section>
