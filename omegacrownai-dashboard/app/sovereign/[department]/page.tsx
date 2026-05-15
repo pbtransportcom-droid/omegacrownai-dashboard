@@ -1,3 +1,5 @@
+import { CreateDepartmentProjectButton } from "@/components/sovereign/CreateDepartmentProjectButton";
+
 const departments = {
   website: {
     title: "Website Department",
@@ -333,18 +335,11 @@ export default async function SovereignDepartmentPage({
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <a
-              href={createHref}
-              className="rounded-2xl border border-cyan-300/30 bg-cyan-400 p-5 text-black shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-300"
-            >
-              <p className="text-xs font-black uppercase tracking-wide opacity-70">
-                Create
-              </p>
-              <h3 className="mt-2 text-xl font-black">Create Department Project</h3>
-              <p className="mt-2 text-sm font-semibold leading-6">
-                Start a new project already aligned to this department and builder type.
-              </p>
-            </a>
+            <CreateDepartmentProjectButton
+              department={key}
+              projectType={key}
+              label="Create Department Project"
+            />
 
             <a
               href={department.secondaryHref}
