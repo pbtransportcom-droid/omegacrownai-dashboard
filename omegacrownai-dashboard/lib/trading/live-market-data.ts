@@ -82,88 +82,94 @@ export async function getLiveMarketData({
       /^[A-Z.]{1,10}$/.test(cleanSymbol);
 
     if (!isCrypto && isStock) {
-      try {
-        const stooq = await fetchStooqStockCandles({
-          symbol: cleanSymbol,
-        });
-
-        if (stooq.candles.length) {
-          return {
-            ok: true,
-            status: "live_data" as LiveMarketDataStatus,
+      if (process.env.ENABLE_STOOQ_PROVIDER === "true") {
+        try {
+          const stooq = await fetchStooqStockCandles({
             symbol: cleanSymbol,
-            timeframe: cleanTimeframe,
-            marketType: cleanMarketType,
-            provider: stooq.provider,
-            providerChain: [
-              "stooq-free-market-data",
-              "twelve-data-optional",
-              "finnhub-optional",
-              "trading-v2-engine-fallback"
-            ],
-            providerErrors,
-            message: "Daily stock candles loaded from Stooq free market data.",
-            candles: stooq.candles,
-            price: stooq.candles[stooq.candles.length - 1]?.close || null,
-            profile: {
-              symbol: cleanSymbol,
-              type: "stock",
-              exchange: "stooq",
-              currency: "provider_reported_or_usd",
-            },
-          };
-        }
+          });
 
-        providerErrors.push("Stooq returned no stock candles.");
-      } catch (error: any) {
-        providerErrors.push(error?.message || "Stooq stock provider failed.");
+          if (stooq.candles.length) {
+            return {
+              ok: true,
+              status: "live_data" as LiveMarketDataStatus,
+              symbol: cleanSymbol,
+              timeframe: cleanTimeframe,
+              marketType: cleanMarketType,
+              provider: stooq.provider,
+              providerChain: [
+                "stooq-free-market-data",
+                "twelve-data-optional",
+                "finnhub-optional",
+                "trading-v2-engine-fallback"
+              ],
+              providerErrors,
+              message: "Daily stock candles loaded from Stooq free market data.",
+              candles: stooq.candles,
+              price: stooq.candles[stooq.candles.length - 1]?.close || null,
+              profile: {
+                symbol: cleanSymbol,
+                type: "stock",
+                exchange: "stooq",
+                currency: "provider_reported_or_usd",
+              },
+            };
+          }
+
+          providerErrors.push("Stooq returned no stock candles.");
+        } catch (error: any) {
+          providerErrors.push(error?.message || "Stooq stock provider failed.");
+        }
       }
 
-      try {
-        const twelveData = await fetchTwelveDataStockCandles({
-          symbol: cleanSymbol,
-          timeframe: cleanTimeframe,
-          outputsize: 300,
-        });
-
-        let quote: any = null;
-
+      if (process.env.TWELVE_DATA_API_KEY && process.env.TWELVE_DATA_API_KEY !== "real_active_twelve_data_key") {
         try {
-          quote = await fetchFinnhubStockQuote(cleanSymbol);
-        } catch (error: any) {
-          providerErrors.push(error?.message || "Finnhub quote provider failed.");
-        }
-
-        if (twelveData.candles.length) {
-          return {
-            ok: true,
-            status: "live_data" as LiveMarketDataStatus,
+          const twelveData = await fetchTwelveDataStockCandles({
             symbol: cleanSymbol,
             timeframe: cleanTimeframe,
-            marketType: cleanMarketType,
-            provider: twelveData.provider,
-            providerChain: [
-              "twelve-data",
-              quote?.provider || "finnhub-not-used",
-              "trading-v2-engine-fallback"
-            ],
-            providerErrors,
-            message: "Live stock candles loaded from Twelve Data.",
-            candles: twelveData.candles,
-            price: quote?.price || twelveData.candles[twelveData.candles.length - 1]?.close || null,
-            changePercent: quote?.changePercent ?? null,
-            profile: {
-              symbol: cleanSymbol,
-              type: "stock",
-              exchange: twelveData.exchange,
-              currency: twelveData.currency,
-            },
-          };
-        }
+            outputsize: 300,
+          });
 
-        providerErrors.push("Twelve Data returned no stock candles.");
-      } catch (error: any) {
-        providerErrors.push(error?.message || "Twelve Data stock provider failed.");
+          let quote: any = null;
+
+          if (process.env.FINNHUB_API_KEY && process.env.FINNHUB_API_KEY !== "real_active_finnhub_key") {
+            try {
+              quote = await fetchFinnhubStockQuote(cleanSymbol);
+            } catch (error: any) {
+              providerErrors.push(error?.message || "Finnhub quote provider failed.");
+            }
+          }
+
+          if (twelveData.candles.length) {
+            return {
+              ok: true,
+              status: "live_data" as LiveMarketDataStatus,
+              symbol: cleanSymbol,
+              timeframe: cleanTimeframe,
+              marketType: cleanMarketType,
+              provider: twelveData.provider,
+              providerChain: [
+                "twelve-data",
+                quote?.provider || "finnhub-not-used",
+                "trading-v2-engine-fallback"
+              ],
+              providerErrors,
+              message: "Live stock candles loaded from Twelve Data.",
+              candles: twelveData.candles,
+              price: quote?.price || twelveData.candles[twelveData.candles.length - 1]?.close || null,
+              changePercent: quote?.changePercent ?? null,
+              profile: {
+                symbol: cleanSymbol,
+                type: "stock",
+                exchange: twelveData.exchange,
+                currency: twelveData.currency,
+              },
+            };
+          }
+
+          providerErrors.push("Twelve Data returned no stock candles.");
+        } catch (error: any) {
+          providerErrors.push(error?.message || "Twelve Data stock provider failed.");
+        }
       }
     }
 
@@ -185,9 +191,9 @@ export async function getLiveMarketData({
       providerChain: isCrypto
         ? ["binance-public-market-data-attempted", safeResult?.provider || "trading-v2-engine", "yahoo-chart-public-data-fallback"]
         : [
-            "stooq-free-market-data-attempted",
-            "twelve-data-optional",
-            "finnhub-optional",
+            process.env.ENABLE_STOOQ_PROVIDER === "true" ? "stooq-free-market-data-attempted" : "stooq-disabled-optional",
+            process.env.TWELVE_DATA_API_KEY ? "twelve-data-attempted" : "twelve-data-not-configured",
+            process.env.FINNHUB_API_KEY ? "finnhub-attempted" : "finnhub-not-configured",
             safeResult?.provider || "trading-v2-engine",
             "yahoo-chart-public-data-fallback"
           ],
