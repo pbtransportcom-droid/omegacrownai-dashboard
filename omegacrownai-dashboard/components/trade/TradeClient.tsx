@@ -517,6 +517,7 @@ export default function TradeClient() {
   const [watchlistQualityLoading, setWatchlistQualityLoading] = useState(false);
   const [watchlistSymbols, setWatchlistSymbols] = useState("AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT");
   const [watchlistSaveStatus, setWatchlistSaveStatus] = useState("");
+  const [watchlistLoadStatus, setWatchlistLoadStatus] = useState("");
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
   const [rankResult, setRankResult] = useState<RankResult | null>(null);
@@ -541,6 +542,37 @@ export default function TradeClient() {
     setChatAnswer("");
   }, [result?.symbol, result?.signal, result?.confidence]);
 
+
+  async function loadSavedWatchlist() {
+    setWatchlistLoadStatus("Loading saved watchlist...");
+
+    try {
+      const response = await fetch("/api/trading/watchlist", {
+        cache: "no-store"
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setWatchlistLoadStatus("Using default watchlist. Sign in to save symbols.");
+        return;
+      }
+
+      const savedSymbols = Array.isArray(data?.symbols)
+        ? data.symbols.join(",")
+        : "";
+
+      if (savedSymbols) {
+        setWatchlistSymbols(savedSymbols);
+        setWatchlistLoadStatus("Saved watchlist loaded.");
+        loadWatchlistQuality(savedSymbols);
+      } else {
+        setWatchlistLoadStatus("No saved watchlist yet. Using defaults.");
+      }
+    } catch {
+      setWatchlistLoadStatus("Using default watchlist.");
+    }
+  }
 
   async function loadWatchlistQuality(symbolsOverride?: string) {
     setWatchlistQualityLoading(true);
@@ -625,6 +657,11 @@ export default function TradeClient() {
       setWatchlistSaveStatus(error?.message || "Watchlist save failed.");
     }
   }
+
+  useEffect(() => {
+    loadSavedWatchlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadForecastQuality(symbolValue?: string) {
     const nextSymbol = String(symbolValue || symbol || "").trim();
@@ -1883,9 +1920,14 @@ export default function TradeClient() {
                 Save Watchlist
               </button>
             </div>
-            {watchlistSaveStatus ? (
-              <p className="mt-3 text-xs text-slate-300">{watchlistSaveStatus}</p>
-            ) : null}
+            <div className="mt-3 space-y-1">
+              {watchlistSaveStatus ? (
+                <p className="text-xs text-slate-300">{watchlistSaveStatus}</p>
+              ) : null}
+              {watchlistLoadStatus ? (
+                <p className="text-xs text-slate-400">{watchlistLoadStatus}</p>
+              ) : null}
+            </div>
             <p className="mt-3 text-xs leading-5 text-slate-400">
               Enter up to 25 comma-separated symbols. Examples: AAPL, TSLA, BTCUSDT, ETHUSDT.
             </p>
