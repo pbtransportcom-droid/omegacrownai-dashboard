@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
             create: {
               email: ownerEmail,
               name: "Benjamin Tagoe",
+              passwordHash: "sovereign-company-owner-managed-account",
             },
           },
         },
