@@ -1249,7 +1249,7 @@ export default function TradeClient() {
               (item: any, index: number) =>
                 `${index + 1}. ${item.symbol} — ${item.name}\n` +
                 `Price: ${item.price ? `$${item.price}` : "unverified"}\n` +
-                `Theme: ${item.theme || "AI-related small-cap candidate"}\n` +
+                `Theme: ${item.theme || "sector-matched small-cap candidate"}\n` +
                 `Risk: ${item.risk || "high"}\n` +
                 `Source: ${item.provider || "provider unavailable"}\n` +
                 `Why matched: ${item.whyMatched || "Matched discovery query."}`
@@ -1257,7 +1257,7 @@ export default function TradeClient() {
             .join("\n\n");
 
           setChatAnswer(
-            `I expanded beyond the current watchlist and searched the market discovery layer for AI-related candidates under ${priceLabel}.\n\n` +
+            `I expanded beyond the current watchlist and searched the market discovery layer for ${discovery.sector || "requested-sector"} candidates under ${priceLabel}.\n\n` +
               `${rows}\n\n` +
               `${discovery.warning || "Low-priced stocks can be highly speculative, illiquid, volatile, and risky."}\n\n` +
               "These are not buy recommendations. Before touching any penny stock, verify current price, volume, spread, dilution risk, filings, news, and trend confirmation."
