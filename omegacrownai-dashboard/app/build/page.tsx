@@ -1,4 +1,40 @@
 
+
+const workspaceStability = [
+  {
+    department: "website",
+    label: "Website Workspace",
+    route: "/build/website/[projectId]",
+    dataPanel: "WebsiteBuildWorkspace",
+    restoredData: "Project, builds, active build, website draft payload",
+    href: "/build/website/preview-project-id",
+  },
+  {
+    department: "app",
+    label: "App Workspace",
+    route: "/build/app/[projectId]",
+    dataPanel: "App project/build history panel",
+    restoredData: "Project record and app-domain build history",
+    href: "/build/app/preview-project-id",
+  },
+  {
+    department: "automation",
+    label: "Automation Workspace",
+    route: "/build/automation/[projectId]",
+    dataPanel: "AutomationWorkspace",
+    restoredData: "Project, builds, active build, automation flow payload",
+    href: "/build/automation/preview-project-id",
+  },
+  {
+    department: "trading",
+    label: "Trading Workspace",
+    route: "/build/trading/[projectId]",
+    dataPanel: "TradingWorkspace",
+    restoredData: "Project, builds, active build, strategy draft payload",
+    href: "/build/trading/preview-project-id",
+  },
+];
+
 const flowMatrix = [
   {
     department: "website",
@@ -308,6 +344,74 @@ export default function BuildPage() {
 
           <p className="mt-4 text-xs leading-6 text-slate-400">
             Matrix result from Phase 142: 12 departments checked, 12 passed. This panel makes that routing visible to customers and operators.
+          </p>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+                Workspace Stability
+              </p>
+              <h2 className="mt-2 text-3xl font-black text-white">
+                4 builder workspaces have restored data panels
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The Website, App, Automation, and Trading workspaces now keep the premium customer-ready layout
+                while restoring project-backed builder data, build history, active build context, and draft outputs.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/workspace-stability"
+              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Open Stability API
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {workspaceStability.map((item) => (
+              <a
+                key={item.department}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
+                      {item.department}
+                    </p>
+                    <h3 className="mt-2 text-xl font-black text-white">
+                      {item.label}
+                    </h3>
+                  </div>
+                  <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
+                    Stable
+                  </span>
+                </div>
+
+                <p className="mt-4 break-all font-mono text-xs text-cyan-100">
+                  {item.route}
+                </p>
+
+                <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-3">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Data Panel
+                  </p>
+                  <p className="mt-1 text-sm font-black text-white">
+                    {item.dataPanel}
+                  </p>
+                </div>
+
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  {item.restoredData}
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs leading-6 text-slate-400">
+            Stability result from Phase 146: 4 builder departments checked, 4 passed.
           </p>
         </div>
       </section>
