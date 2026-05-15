@@ -219,6 +219,9 @@ export default async function SovereignDepartmentPage({
   const resolvedParams = await params;
   const key = normalizeDepartment(resolvedParams.department);
   const department = departments[key];
+  const createHref = department.primaryHref.includes("?")
+    ? `${department.primaryHref}&department=${key}`
+    : `/create?type=${key}&department=${key}`;
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
@@ -282,6 +285,103 @@ export default async function SovereignDepartmentPage({
               project history, permissions, and production readiness systems without limiting
               the larger OmegaCrownAI architecture.
             </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
+                Department Action Center
+              </p>
+              <h2 className="mt-2 text-3xl font-black text-white">
+                Start, manage, and verify this department
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+                These action panels connect each department to the project creation flow,
+                dashboards, readiness checks, memory, build history, and governance systems.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <a
+              href={createHref}
+              className="rounded-2xl border border-cyan-300/30 bg-cyan-400 p-5 text-black shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-300"
+            >
+              <p className="text-xs font-black uppercase tracking-wide opacity-70">
+                Create
+              </p>
+              <h3 className="mt-2 text-xl font-black">Create Department Project</h3>
+              <p className="mt-2 text-sm font-semibold leading-6">
+                Start a new project already aligned to this department and builder type.
+              </p>
+            </a>
+
+            <a
+              href={department.secondaryHref}
+              className="rounded-2xl border border-slate-700 bg-slate-900/90 p-5 shadow-lg shadow-black/20 transition hover:border-cyan-300/60"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
+                Workspace
+              </p>
+              <h3 className="mt-2 text-xl font-black text-white">Open Department Workspace</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Jump into the active dashboard or operational workspace for this department.
+              </p>
+            </a>
+
+            <a
+              href={`/launch-validation/go-no-go?department=${key}`}
+              className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5 shadow-lg shadow-black/20 transition hover:border-emerald-300/60"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                Readiness
+              </p>
+              <h3 className="mt-2 text-xl font-black text-white">Run Readiness Check</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Verify launch quality, blockers, risk, and go/no-go readiness.
+              </p>
+            </a>
+
+            <a
+              href={`/projects?department=${key}`}
+              className="rounded-2xl border border-purple-400/20 bg-purple-500/10 p-5 shadow-lg shadow-black/20 transition hover:border-purple-300/60"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-purple-300">
+                Projects
+              </p>
+              <h3 className="mt-2 text-xl font-black text-white">View Build History</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Review department projects, previous builds, executions, and workspace history.
+              </p>
+            </a>
+
+            <a
+              href={`/projects?department=${key}&view=memory`}
+              className="rounded-2xl border border-blue-400/20 bg-blue-500/10 p-5 shadow-lg shadow-black/20 transition hover:border-blue-300/60"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-blue-300">
+                Memory
+              </p>
+              <h3 className="mt-2 text-xl font-black text-white">View Department Memory</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Open the knowledge, context, decisions, and persistent memory for this department.
+              </p>
+            </a>
+
+            <a
+              href={`/security/admin-controls?department=${key}`}
+              className="rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-5 shadow-lg shadow-black/20 transition hover:border-yellow-300/60"
+            >
+              <p className="text-xs font-black uppercase tracking-wide text-yellow-300">
+                Governance
+              </p>
+              <h3 className="mt-2 text-xl font-black text-white">Open Safety & Governance</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Review permissions, audit controls, policy checks, and operational guardrails.
+              </p>
+            </a>
           </div>
         </div>
       </section>

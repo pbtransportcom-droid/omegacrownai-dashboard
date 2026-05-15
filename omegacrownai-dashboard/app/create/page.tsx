@@ -66,6 +66,7 @@ export default async function CreatePage({
   const params = await searchParams;
   const type = normalizeType(params?.type);
   const selected = builderTypes[type];
+  const department = params?.department || type;
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
@@ -110,6 +111,7 @@ export default async function CreatePage({
 
             <form action="/projects" className="mt-5 space-y-4">
               <input type="hidden" name="type" value={type} />
+              <input type="hidden" name="department" value={department} />
 
               <label className="block">
                 <span className="text-xs font-black uppercase tracking-wide text-slate-300">
