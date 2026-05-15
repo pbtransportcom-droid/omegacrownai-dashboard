@@ -108,6 +108,27 @@ export default function HomePage() {
           </a>
         </div>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a href="/build" className="inline-flex rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300">
+              Builder Hub
+            </a>
+            <a href="/create?type=website" className="inline-flex rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
+              Website Builder
+            </a>
+            <a href="/create?type=app" className="inline-flex rounded-xl border border-purple-400/30 bg-purple-500/10 px-5 py-3 text-sm font-black text-purple-100 hover:bg-purple-500/20">
+              App Builder
+            </a>
+            <a href="/projects" className="inline-flex rounded-xl border border-slate-400/30 bg-slate-500/10 px-5 py-3 text-sm font-black text-slate-100 hover:bg-slate-500/20">
+              Coding Workspace
+            </a>
+            <a href="/automate" className="inline-flex rounded-xl border border-blue-400/30 bg-blue-500/10 px-5 py-3 text-sm font-black text-blue-100 hover:bg-blue-500/20">
+              Automation Builder
+            </a>
+            <a href="/trade" className="inline-flex rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20">
+              Trading Builder
+            </a>
+          </div>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a href="/customer-launch-readiness" className="inline-flex rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-black hover:bg-emerald-400">
             Customer Launch Readiness
           </a>
