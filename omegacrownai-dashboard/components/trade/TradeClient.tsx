@@ -515,6 +515,8 @@ export default function TradeClient() {
   const [forecastQualityLoading, setForecastQualityLoading] = useState(false);
   const [watchlistQuality, setWatchlistQuality] = useState<any>(null);
   const [watchlistQualityLoading, setWatchlistQualityLoading] = useState(false);
+  const [watchlistSymbols, setWatchlistSymbols] = useState("AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT");
+  const [watchlistSaveStatus, setWatchlistSaveStatus] = useState("");
   const [rankingLoading, setRankingLoading] = useState(false);
   const [result, setResult] = useState<TradeResult | null>(null);
   const [rankResult, setRankResult] = useState<RankResult | null>(null);
@@ -540,11 +542,21 @@ export default function TradeClient() {
   }, [result?.symbol, result?.signal, result?.confidence]);
 
 
-  async function loadWatchlistQuality() {
+  async function loadWatchlistQuality(symbolsOverride?: string) {
     setWatchlistQualityLoading(true);
 
     try {
-      const symbols = "AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT";
+      const symbols = String(symbolsOverride || watchlistSymbols || "AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT")
+        .split(",")
+        .map((item) => item.trim().toUpperCase())
+        .filter(Boolean)
+        .slice(0, 25)
+        .join(",");
+
+      if (!symbols) {
+        throw new Error("Enter at least one watchlist symbol.");
+      }
+
       const response = await fetch(
         `/api/trading/watchlist-quality?symbols=${encodeURIComponent(symbols)}&timeframe=${encodeURIComponent(timeframe || "1d")}`,
         {
@@ -558,6 +570,7 @@ export default function TradeClient() {
         throw new Error(data?.message || data?.error || "Watchlist quality scan failed.");
       }
 
+      setWatchlistSymbols(symbols);
       setWatchlistQuality(data);
     } catch (error: any) {
       setWatchlistQuality({
@@ -575,6 +588,41 @@ export default function TradeClient() {
       });
     } finally {
       setWatchlistQualityLoading(false);
+    }
+  }
+
+  async function saveWatchlistSymbols() {
+    setWatchlistSaveStatus("Saving...");
+
+    try {
+      const symbols = String(watchlistSymbols || "")
+        .split(",")
+        .map((item) => item.trim().toUpperCase())
+        .filter(Boolean)
+        .slice(0, 25);
+
+      if (!symbols.length) {
+        throw new Error("Enter at least one symbol before saving.");
+      }
+
+      const response = await fetch("/api/trading/watchlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ symbols })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || "Watchlist save requires sign in.");
+      }
+
+      setWatchlistSaveStatus("Saved");
+      loadWatchlistQuality(symbols.join(","));
+    } catch (error: any) {
+      setWatchlistSaveStatus(error?.message || "Watchlist save failed.");
     }
   }
 
@@ -1807,6 +1855,40 @@ export default function TradeClient() {
             >
               {watchlistQualityLoading ? "Scanning..." : "Refresh Batch Scan"}
             </button>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-lime-400/20 bg-black/30 p-4">
+            <label className="text-xs font-black uppercase tracking-wide text-lime-200">
+              Custom Watchlist Symbols
+            </label>
+            <div className="mt-3 flex flex-col gap-3 md:flex-row">
+              <input
+                value={watchlistSymbols}
+                onChange={(event) => setWatchlistSymbols(event.target.value)}
+                placeholder="AAPL,MSFT,TSLA,BTCUSDT,ETHUSDT"
+                className="min-w-0 flex-1 rounded-xl border border-lime-400/20 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-lime-300"
+              />
+              <button
+                type="button"
+                onClick={() => loadWatchlistQuality(watchlistSymbols)}
+                className="rounded-xl bg-lime-500 px-4 py-3 text-sm font-black text-black hover:bg-lime-400"
+              >
+                Scan Symbols
+              </button>
+              <button
+                type="button"
+                onClick={saveWatchlistSymbols}
+                className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-3 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+              >
+                Save Watchlist
+              </button>
+            </div>
+            {watchlistSaveStatus ? (
+              <p className="mt-3 text-xs text-slate-300">{watchlistSaveStatus}</p>
+            ) : null}
+            <p className="mt-3 text-xs leading-5 text-slate-400">
+              Enter up to 25 comma-separated symbols. Examples: AAPL, TSLA, BTCUSDT, ETHUSDT.
+            </p>
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-5">

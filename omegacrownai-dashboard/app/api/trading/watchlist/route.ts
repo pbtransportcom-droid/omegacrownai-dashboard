@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 async function getEmail(req: NextRequest) {
   try {
@@ -15,6 +15,21 @@ async function getEmail(req: NextRequest) {
   }
 }
 
+function normalizeSymbols(input: any) {
+  const raw = Array.isArray(input)
+    ? input
+    : String(input || "")
+        .split(",");
+
+  return Array.from(
+    new Set(
+      raw
+        .map((symbol: any) => String(symbol || "").trim().toUpperCase())
+        .filter(Boolean)
+    )
+  ).slice(0, 25);
+}
+
 export async function GET(req: NextRequest) {
   const ownerEmail = await getEmail(req);
 
@@ -22,13 +37,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const watchlist = await prisma.tradingWatchlist.findUnique({
+  const rows = await prisma.tradingWatchlistItem.findMany({
     where: { ownerEmail },
+    orderBy: { createdAt: "asc" },
   });
 
   return NextResponse.json({
     ok: true,
-    watchlist,
+    symbols: rows.map((row: any) => row.symbol),
+    items: rows,
   });
 }
 
@@ -39,33 +56,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const symbols = String(body.symbols || "")
-    .split(",")
-    .map((s) => s.trim().toUpperCase())
-    .filter(Boolean)
-    .join(", ");
+  const body = await req.json().catch(() => ({}));
+  const symbols = normalizeSymbols(body.symbols || body.symbol || body.watchlist);
 
-  if (!symbols) {
-    return NextResponse.json({ ok: false, error: "Symbols are required." }, { status: 400 });
+  if (!symbols.length) {
+    return NextResponse.json({ ok: false, error: "No symbols provided." }, { status: 400 });
   }
 
-  const watchlist = await prisma.tradingWatchlist.upsert({
+  await prisma.tradingWatchlistItem.deleteMany({
     where: { ownerEmail },
-    update: {
-      symbols,
-      name: body.name || "Default Watchlist",
-    },
-    create: {
+  });
+
+  await prisma.tradingWatchlistItem.createMany({
+    data: symbols.map((symbol) => ({
       ownerEmail,
-      symbols,
-      name: body.name || "Default Watchlist",
-    },
+      symbol,
+    })),
+    skipDuplicates: true,
   });
 
   return NextResponse.json({
     ok: true,
-    watchlist,
+    symbols,
   });
 }
 
@@ -76,7 +88,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  await prisma.tradingWatchlist.deleteMany({
+  await prisma.tradingWatchlistItem.deleteMany({
     where: { ownerEmail },
   });
 
