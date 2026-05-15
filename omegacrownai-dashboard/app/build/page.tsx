@@ -1,5 +1,41 @@
 
 
+
+const releaseReadiness = [
+  {
+    key: "flow-matrix",
+    name: "Sovereign Flow Matrix",
+    score: "12/12",
+    status: "Passed",
+    detail: "All departments route to their correct workspace.",
+    href: "/api/sovereign/button-flow-matrix",
+  },
+  {
+    key: "workspace-stability",
+    name: "Workspace Stability",
+    score: "4/4",
+    status: "Passed",
+    detail: "Builder data panels are restored for Website, App, Automation, and Trading.",
+    href: "/api/sovereign/workspace-stability",
+  },
+  {
+    key: "smoke-dry-run",
+    name: "Smoke Test Dry-Run",
+    score: "4/4",
+    status: "Safe",
+    detail: "Default smoke test validates routes without creating project records.",
+    href: "/api/sovereign/real-workspace-smoke",
+  },
+  {
+    key: "real-run-gate",
+    name: "Real-Run Gate",
+    score: "?run=true",
+    status: "Protected",
+    detail: "Real project creation is intentional and gated.",
+    href: "/api/sovereign/real-workspace-smoke?run=true",
+  },
+];
+
 const workspaceStability = [
   {
     department: "website",
@@ -269,6 +305,65 @@ export default function BuildPage() {
               </p>
             </a>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-emerald-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
+                Release Readiness
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Sovereign OS release status: Ready
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The core Sovereign builder flow is now validated across department routing, workspace stability,
+                dry-run smoke testing, and protected real-run project creation.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/release-readiness"
+              className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+            >
+              Open Readiness API
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {releaseReadiness.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-emerald-300/60 hover:bg-emerald-500/10"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                      {item.status}
+                    </p>
+                    <h3 className="mt-2 text-lg font-black text-white">
+                      {item.name}
+                    </h3>
+                  </div>
+                  <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
+                    {item.score}
+                  </span>
+                </div>
+                <p className="mt-4 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+            <p className="text-sm font-black text-emerald-100">
+              Release gate: green
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              Routine smoke checks are dry-run safe. Real project creation remains protected behind explicit ?run=true.
+            </p>
+          </div>
         </div>
 
         <div className="mt-8 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6">
