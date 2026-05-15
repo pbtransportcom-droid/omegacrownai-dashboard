@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/db";
 
 const departmentDefaults: Record<string, any> = {
@@ -83,6 +84,16 @@ export async function POST(req: NextRequest) {
   const prompt = safeString(body.prompt, defaults.description);
   const projectType = safeString(body.type, defaults.type);
 
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const ownerEmail =
+    typeof token?.email === "string" && token.email
+      ? token.email
+      : "sovereign-builder@omegacrownai.local";
+
   try {
     const project = await prisma.project.create({
       data: {
@@ -90,12 +101,24 @@ export async function POST(req: NextRequest) {
         description: prompt,
         type: projectType,
         status: "active",
+        owner: {
+          connectOrCreate: {
+            where: {
+              email: ownerEmail,
+            },
+            create: {
+              email: ownerEmail,
+              name: "Sovereign Builder",
+            },
+          },
+        },
         metadata: {
           source: "sovereign-department",
           department,
           projectType,
           phase: "v11.5 Phase 135",
           prompt,
+          ownerEmail,
         } as any,
       } as any,
     });
