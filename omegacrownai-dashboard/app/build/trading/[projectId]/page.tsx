@@ -1,9 +1,40 @@
 export default async function TradingWorkspacePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ buildId?: string }>;
 }) {
   const { projectId } = await params;
+  const { buildId } = await searchParams;
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  const builds = await prisma.projectBuild.findMany({
+    where: {
+      projectId,
+      domain: "trading",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const activeBuildId = buildId || builds[0]?.id || "";
+
+  const artifact = activeBuildId
+    ? await prisma.projectBuildArtifact.findFirst({
+        where: {
+          projectId,
+          buildId: activeBuildId,
+          kind: "strategy_draft_v1",
+        },
+      })
+    : null;
+
+  const activeBuild = builds.find((build) => build.id === activeBuildId) || null;
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
@@ -43,6 +74,27 @@ export default async function TradingWorkspacePage({
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-lime-400/20 bg-lime-500/10 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-lime-300">
+            Builder Data Panel
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-white">
+            Trading build history and strategy draft
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            This restores the real trading builder workspace data: saved builds, active strategy draft,
+            project-backed trading research context, and generated strategy payload.
+          </p>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-700 bg-slate-950">
+            <TradingWorkspace
+              project={project}
+              builds={builds}
+              activeBuild={activeBuild}
+              draft={artifact?.payload || null}
+            />
+          </div>
         </div>
 
         <div className="mt-8 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6">
