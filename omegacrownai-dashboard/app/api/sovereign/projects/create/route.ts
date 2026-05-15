@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   const ownerEmail =
     typeof token?.email === "string" && token.email
       ? token.email
-      : "benjamin.tagoe@princessbenjamintransportation.local";
+      : "owner@princessbenjamintransportation.local";
 
   try {
     const project = await prisma.project.create({
@@ -105,21 +105,11 @@ export async function POST(req: NextRequest) {
             },
             create: {
               email: ownerEmail,
-              name: "Benjamin Tagoe",
+              name: "Princess Benjamin Transportation Company",
               passwordHash: "sovereign-company-owner-managed-account",
             },
           },
         },
-        metadata: {
-          source: "sovereign-department",
-          department,
-          projectType,
-          phase: "v11.5 Phase 135",
-          prompt,
-          ownerEmail,
-          ownerName: "Benjamin Tagoe",
-          company: "Princess Benjamin Transportation Company",
-        } as any,
       } as any,
     });
 
