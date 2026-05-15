@@ -292,15 +292,43 @@ export default async function SovereignDepartmentPage({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">
-                Department Action Center
+                Department Dashboard
               </p>
               <h2 className="mt-2 text-3xl font-black text-white">
                 Start, manage, and verify this department
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-                These action panels connect each department to the project creation flow,
-                dashboards, readiness checks, memory, build history, and governance systems.
+                These panels connect this department to project creation, execution readiness,
+                workspace routing, memory, build history, and governance systems.
               </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 text-right">
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                Department Status
+              </p>
+              <p className="mt-1 text-2xl font-black text-emerald-100">Online</p>
+              <p className="mt-1 text-xs text-emerald-50/80">
+                Workspace route active
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Mode</p>
+              <p className="mt-1 text-lg font-black text-white">Sovereign</p>
+            </div>
+            <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Department</p>
+              <p className="mt-1 text-lg font-black text-white">{key}</p>
+            </div>
+            <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Systems</p>
+              <p className="mt-1 text-lg font-black text-white">{department.systems.length}</p>
+            </div>
+            <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Readiness</p>
+              <p className="mt-1 text-lg font-black text-white">Ready to build</p>
             </div>
           </div>
 
@@ -383,6 +411,41 @@ export default async function SovereignDepartmentPage({
               </p>
             </a>
           </div>
+        <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900/80 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-purple-300">
+            Sovereign Build Pipeline
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-white">
+            Department execution flow
+          </h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-5">
+            {[
+              "Brief",
+              "Plan",
+              "Build",
+              "Verify",
+              "Launch"
+            ].map((step, index) => (
+              <div
+                key={step}
+                className="rounded-xl border border-purple-400/20 bg-purple-500/10 p-4"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-purple-300">
+                  Step {index + 1}
+                </p>
+                <p className="mt-2 text-lg font-black text-white">{step}</p>
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  {step === "Brief" && "Capture department goals, constraints, and required output."}
+                  {step === "Plan" && "Convert the brief into tasks, systems, and quality gates."}
+                  {step === "Build" && "Create the assets, code, workflows, dashboards, or systems."}
+                  {step === "Verify" && "Run readiness, safety, quality, and production checks."}
+                  {step === "Launch" && "Move the department output into customer-ready operation."}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         </div>
       </section>
     </main>
