@@ -1,6 +1,45 @@
 
 
 
+
+const onboardingSteps = [
+  {
+    step: "01",
+    title: "Login or create your account",
+    detail: "Start with a secure account so projects, workspaces, memory, and release checks stay connected.",
+    href: "/login",
+    cta: "Login",
+  },
+  {
+    step: "02",
+    title: "Choose a department",
+    detail: "Pick the business area you want to build: Website, App, Automation, Trading, Marketing, Finance, Support, and more.",
+    href: "/build",
+    cta: "View Departments",
+  },
+  {
+    step: "03",
+    title: "Start a department project",
+    detail: "Use Start Department Project to create a real project record under the company workspace.",
+    href: "/sovereign/website",
+    cta: "Start Website Project",
+  },
+  {
+    step: "04",
+    title: "Open the routed workspace",
+    detail: "OmegaCrownAI automatically sends each project to the correct workspace for building and execution.",
+    href: "/api/sovereign/button-flow-matrix",
+    cta: "View Routing Matrix",
+  },
+  {
+    step: "05",
+    title: "Check release readiness",
+    detail: "Use the readiness dashboard to confirm routing, stability, smoke tests, and protected real-run gates.",
+    href: "/api/sovereign/release-readiness",
+    cta: "Open Readiness API",
+  },
+];
+
 const releaseReadiness = [
   {
     key: "flow-matrix",
@@ -305,6 +344,71 @@ export default function BuildPage() {
               </p>
             </a>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-6 shadow-2xl shadow-cyan-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+                Customer Onboarding
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Start building with Sovereign AI Company OS
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Follow this flow to move from account access to department selection, project creation,
+                routed workspace execution, and release readiness validation.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/login"
+                className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/20"
+              >
+                Login
+              </a>
+              <a
+                href="/signup"
+                className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
+              >
+                Sign Up
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-5">
+            {onboardingSteps.map((item) => (
+              <a
+                key={item.step}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+              >
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-black text-cyan-100">
+                  {item.step}
+                </span>
+                <h3 className="mt-4 text-lg font-black text-white">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+                <p className="mt-4 text-xs font-black uppercase tracking-wide text-cyan-300">
+                  {item.cta} →
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+            <p className="text-sm font-black text-cyan-100">
+              Recommended first path
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              Sign up, open the Website Department, start a department project, then follow the routed workspace.
+              After that, use the Release Readiness dashboard to confirm the system is ready.
+            </p>
+          </div>
         </div>
 
         <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-emerald-950/20">
