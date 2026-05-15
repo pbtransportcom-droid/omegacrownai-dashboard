@@ -425,15 +425,14 @@ export default function BuildPage() {
                 Verify real created projects open real workspaces
               </h2>
               <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
-                This smoke test creates real project records for Website, App, Automation, and Trading,
-                then returns the exact workspace paths that should load with project-backed data panels.
+                This smoke test now opens in safe dry-run mode by default. It verifies route shape without creating records. Add ?run=true only when you intentionally want to create real smoke-test projects.
               </p>
             </div>
             <a
               href="/api/sovereign/real-workspace-smoke"
               className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
             >
-              Run Smoke Test API
+              Open Dry-Run Smoke Test
             </a>
           </div>
 
@@ -450,7 +449,7 @@ export default function BuildPage() {
                   Real Workspace
                 </h3>
                 <p className="mt-3 text-xs leading-6 text-slate-400">
-                  Creates a real project and validates the routed workspace path.
+                  Dry-run checks route shape by default. Real project creation requires ?run=true.
                 </p>
                 <span className="mt-4 inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
                   Smoke-test ready
@@ -460,7 +459,7 @@ export default function BuildPage() {
           </div>
 
           <p className="mt-4 text-xs leading-6 text-slate-400">
-            Use this before major releases to verify the live project creation and workspace routing path.
+            Use dry-run mode for routine checks. Use /api/sovereign/real-workspace-smoke?run=true only before major releases when real test project creation is intentional.
           </p>
         </div>
       </section>
