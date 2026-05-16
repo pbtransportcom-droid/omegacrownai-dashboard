@@ -214,22 +214,37 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto mt-10 max-w-7xl px-6">
-        <div className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-6 text-white shadow-2xl shadow-cyan-950/20">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+        <div className="relative overflow-hidden rounded-3xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/20 via-slate-950 to-purple-500/20 p-7 text-white shadow-2xl shadow-cyan-950/30">
+          <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-cyan-400/20 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-purple-500/20 blur-3xl" />
+
+          <div className="relative flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-4xl">
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-100">
+                  Release Ready
+                </span>
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-100">
+                  12 Departments
+                </span>
+                <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-purple-100">
+                  4 Stable Builder Workspaces
+                </span>
+              </div>
+
+              <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
                 Sovereign AI Company OS
               </p>
-              <h2 className="mt-3 text-4xl font-black md:text-5xl">
-                Start building your AI company workspace.
+              <h2 className="mt-3 text-4xl font-black leading-tight md:text-6xl">
+                Start, build, and launch from one company command center.
               </h2>
-              <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300">
+              <p className="mt-5 max-w-4xl text-base leading-8 text-slate-300">
                 Begin with a guided onboarding flow: sign in, choose a department, create a real project,
-                open the routed workspace, and verify release readiness.
+                open the routed workspace, and verify release readiness before moving forward.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="relative flex flex-wrap gap-2">
               <a
                 href="/login"
                 className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/20"
@@ -245,10 +260,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="relative mt-7 flex flex-wrap gap-3">
             <a
               href="/build"
-              className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300"
+              className="rounded-xl bg-emerald-400 px-6 py-3 text-sm font-black text-black shadow-lg shadow-emerald-950/30 hover:bg-emerald-300"
             >
               Start with Sovereign AI Company OS
             </a>
@@ -266,17 +281,26 @@ export default function HomePage() {
             </a>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="relative mt-7 grid gap-4 md:grid-cols-3">
             {sovereignStartSteps.map((item) => (
               <a
                 key={item.title}
                 href={item.href}
-                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+                className="rounded-2xl border border-slate-700 bg-black/35 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
               >
                 <p className="text-sm font-black text-cyan-100">{item.title}</p>
                 <p className="mt-2 text-xs leading-6 text-slate-400">{item.detail}</p>
               </a>
             ))}
+          </div>
+
+          <div className="relative mt-7 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-sm font-black text-white">
+              Recommended first move
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              Open the Sovereign OS hub, choose the Website Department, start a project, and follow the routed workspace into release readiness.
+            </p>
           </div>
         </div>
       </section>
