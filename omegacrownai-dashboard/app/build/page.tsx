@@ -661,12 +661,20 @@ export default function BuildPage() {
                   After downloading saits-v1.zip, unzip it and run the starter system locally in paper-trading mode.
                 </p>
               </div>
-              <a
-                href="/api/sovereign/trading-code-bundle"
-                className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
-              >
-                Download ZIP
-              </a>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/api/sovereign/trading-code-bundle"
+                  className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
+                >
+                  Download ZIP
+                </a>
+                <a
+                  href="/api/sovereign/trading-readme-smoke-check"
+                  className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+                >
+                  Check README
+                </a>
+              </div>
             </div>
 
             <div className="mt-5 grid gap-3 lg:grid-cols-3">
