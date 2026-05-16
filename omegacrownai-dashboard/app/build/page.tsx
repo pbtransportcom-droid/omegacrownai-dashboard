@@ -651,6 +651,57 @@ export default function BuildPage() {
             </div>
           </div>
 
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-cyan-100">
+                  How to run the generated repo
+                </p>
+                <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                  After downloading saits-v1.zip, unzip it and run the starter system locally in paper-trading mode.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/trading-code-bundle"
+                className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
+              >
+                Download ZIP
+              </a>
+            </div>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+              <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
+                  Setup
+                </p>
+                <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs leading-6 text-slate-200">{`unzip saits-v1.zip
+cd saits-v1
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt`}</pre>
+              </div>
+
+              <div className="rounded-xl border border-slate-700 bg-black/30 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
+                  Run
+                </p>
+                <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs leading-6 text-slate-200">{`python main.py
+streamlit run dashboard.py
+pytest`}</pre>
+              </div>
+
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                  Safety
+                </p>
+                <p className="mt-3 text-xs leading-6 text-slate-300">
+                  The generated repository is paper-trading only. Live trading is disabled by default.
+                  Do not add real broker keys until code review, paper testing, risk review, and manual approval are complete.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
