@@ -614,6 +614,57 @@ export default function BuildPage() {
           </p>
         </div>
 
+        <div className="mt-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-blue-500/10 p-6 shadow-2xl shadow-cyan-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+                Website Builder Artifact Depth
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Website Builder now produces real launch artifacts
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The Website Builder output now includes page tree, homepage sections, starter copy,
+                SEO metadata, brand direction, conversion plan, deployment checklist, and next actions.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/website-builder-artifact"
+              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Open Website Artifact
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {[
+              "Page tree",
+              "Starter copy",
+              "SEO metadata",
+              "Deployment checklist",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-sm font-black text-cyan-100">{item}</p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  Included in the Website Builder artifact package.
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
+            <p className="text-sm font-black text-cyan-100">
+              Customer-ready website path
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              Prompt → Website artifact → page copy → preview layout → SEO/readiness check → deployment.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-8 rounded-3xl border border-lime-400/20 bg-gradient-to-br from-lime-500/15 via-slate-950 to-emerald-500/10 p-6 shadow-2xl shadow-lime-950/20">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
