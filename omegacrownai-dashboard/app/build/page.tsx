@@ -2,6 +2,40 @@
 
 
 
+
+const builderOutputDepth = [
+  {
+    department: "Website",
+    mode: "Website pages + copy",
+    artifacts: "Page tree, homepage sections, service copy, SEO, deployment checklist",
+    href: "/api/sovereign/builder-output-depth?department=website",
+  },
+  {
+    department: "App",
+    mode: "Product build spec",
+    artifacts: "Screens, user flows, data model, API plan, release checklist",
+    href: "/api/sovereign/builder-output-depth?department=app",
+  },
+  {
+    department: "Automation",
+    mode: "Workflow execution plan",
+    artifacts: "Triggers, actions, approvals, logs, replay, failure handling",
+    href: "/api/sovereign/builder-output-depth?department=automation",
+  },
+  {
+    department: "Trading",
+    mode: "Paper-trading system package",
+    artifacts: "Agents, risk rules, repo plan, backtest plan, live safety gate",
+    href: "/api/sovereign/builder-output-depth?department=trading",
+  },
+  {
+    department: "Coding",
+    mode: "Implementation repo plan",
+    artifacts: "File tree, implementation steps, tests, validation, deployment plan",
+    href: "/api/sovereign/builder-output-depth?department=coding",
+  },
+];
+
 const onboardingSteps = [
   {
     step: "01",
@@ -468,6 +502,53 @@ export default function BuildPage() {
               Routine smoke checks are dry-run safe. Real project creation remains protected behind explicit ?run=true.
             </p>
           </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-purple-400/20 bg-gradient-to-br from-purple-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-purple-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-purple-300">
+                Builder Output Depth
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Move from blueprint-only to real build artifacts
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Each Sovereign builder department should produce structured outputs that can become real websites,
+                apps, automations, code repositories, or paper-trading systems — not only planning text.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/builder-output-depth"
+              className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-500/20"
+            >
+              Open Output Depth API
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {builderOutputDepth.map((item) => (
+              <a
+                key={item.department}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-purple-300/60 hover:bg-purple-500/10"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-purple-300">
+                  {item.department}
+                </p>
+                <h3 className="mt-2 text-lg font-black text-white">
+                  {item.mode}
+                </h3>
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  {item.artifacts}
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs leading-6 text-slate-400">
+            Phase 158 upgrade target: every builder should create artifacts, next actions, and readiness checks.
+          </p>
         </div>
 
         <div className="mt-8 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6">
