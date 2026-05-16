@@ -22,6 +22,35 @@ const phases = [
   "Full Observability Dashboard",
 ];
 
+
+const sovereignQuickLaunch = [
+  {
+    label: "Website",
+    href: "/sovereign/website",
+    detail: "Launch a customer-ready website workspace.",
+  },
+  {
+    label: "App",
+    href: "/sovereign/app",
+    detail: "Start an app, dashboard, portal, or SaaS workspace.",
+  },
+  {
+    label: "Automation",
+    href: "/sovereign/automation",
+    detail: "Build workflows, agents, and repeatable operations.",
+  },
+  {
+    label: "Trading",
+    href: "/sovereign/trading",
+    detail: "Open King Trading System workspace routing.",
+  },
+  {
+    label: "Full OS Hub",
+    href: "/build",
+    detail: "View all Sovereign departments and readiness panels.",
+  },
+];
+
 const sovereignStartSteps = [
   {
     title: "Start",
@@ -282,6 +311,40 @@ export default function HomePage() {
             >
               View Release Readiness
             </a>
+          </div>
+
+          <div className="relative mt-7 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-cyan-100">
+                  Quick launch departments
+                </p>
+                <p className="mt-1 text-xs leading-6 text-slate-400">
+                  Jump directly into the most important builder departments.
+                </p>
+              </div>
+              <a
+                href="/build"
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/20"
+              >
+                View all departments
+              </a>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-5">
+              {sovereignQuickLaunch.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-xl border border-slate-700 bg-black/30 p-4 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+                >
+                  <p className="text-sm font-black text-white">{item.label}</p>
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    {item.detail}
+                  </p>
+                </a>
+              ))}
+            </div>
           </div>
 
           <div className="relative mt-7 grid gap-4 md:grid-cols-3">
