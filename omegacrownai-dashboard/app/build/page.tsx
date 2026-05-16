@@ -518,23 +518,55 @@ export default function BuildPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {startHereActions.map((item) => (
+            {startHereActions.map((item, index) => (
               <a
                 key={item.label}
                 href={item.href}
-                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-emerald-300/60 hover:bg-emerald-500/10"
+                className={[
+                  "rounded-2xl border p-5 transition",
+                  "min-h-44 flex flex-col justify-between",
+                  index === 0
+                    ? "border-emerald-300/50 bg-emerald-500/15 shadow-xl shadow-emerald-950/20 hover:bg-emerald-500/20"
+                    : "border-slate-700 bg-black/30 hover:border-emerald-300/60 hover:bg-emerald-500/10",
+                ].join(" ")}
               >
-                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
-                  {item.cta}
-                </p>
-                <h3 className="mt-2 text-lg font-black text-white">
-                  {item.label}
-                </h3>
-                <p className="mt-3 text-xs leading-6 text-slate-400">
-                  {item.detail}
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-100">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {index === 0 ? (
+                      <span className="rounded-full bg-emerald-400 px-3 py-1 text-xs font-black text-black">
+                        Recommended
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-4 text-xs font-black uppercase tracking-wide text-emerald-300">
+                    {item.cta}
+                  </p>
+                  <h3 className="mt-2 text-lg font-black text-white">
+                    {item.label}
+                  </h3>
+                  <p className="mt-3 text-xs leading-6 text-slate-400">
+                    {item.detail}
+                  </p>
+                </div>
+
+                <p className="mt-4 text-xs font-black uppercase tracking-wide text-emerald-300">
+                  Open →
                 </p>
               </a>
             ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+            <p className="text-xs font-black uppercase tracking-wide text-cyan-300">
+              Customer journey
+            </p>
+            <p className="mt-2 text-sm font-black text-white">
+              Choose department → Generate artifact → Download starter → Validate checks → Launch or continue building
+            </p>
           </div>
 
           <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
