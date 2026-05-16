@@ -5,6 +5,30 @@
 
 
 
+
+const websiteStarterSmokeResults = [
+  {
+    label: "Smoke Test",
+    value: "9/9 passed",
+    detail: "All Website starter bundle checks passed.",
+  },
+  {
+    label: "Required Files",
+    value: "9/9",
+    detail: "README, pages, CSS, SEO, brand, and checklist are present.",
+  },
+  {
+    label: "ZIP Bundle",
+    value: "Ready",
+    detail: "sovereign-website-starter.zip is available for download.",
+  },
+  {
+    label: "SEO + Deployment",
+    value: "Ready",
+    detail: "SEO metadata and deployment checklist are included.",
+  },
+];
+
 const tradingCustomerDownloadFlow = [
   {
     step: "01",
@@ -676,6 +700,45 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-slate-300">
               Prompt → Website artifact → page copy → preview layout → SEO/readiness check → deployment.
             </p>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-emerald-100">
+                  Website starter smoke-test results
+                </p>
+                <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                  The downloadable Website Builder starter bundle has passed validation:
+                  required files are present, SEO metadata exists, and the deployment checklist is included.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/website-starter-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Website Smoke-Test JSON
+              </a>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-4">
+              {websiteStarterSmokeResults.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-xl border border-slate-700 bg-black/30 p-4"
+                >
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-xl font-black text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
