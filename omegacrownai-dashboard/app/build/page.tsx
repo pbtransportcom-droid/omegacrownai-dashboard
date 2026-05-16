@@ -619,12 +619,20 @@ export default function BuildPage() {
                 and safer upgrade discipline.
               </p>
             </div>
-            <a
-              href="/api/sovereign/self-improvement-engine"
-              className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
-            >
-              Open Engine API
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/self-improvement-engine"
+                className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
+              >
+                Open Engine API
+              </a>
+              <a
+                href="/api/sovereign/self-improvement-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Engine Smoke Test
+              </a>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
