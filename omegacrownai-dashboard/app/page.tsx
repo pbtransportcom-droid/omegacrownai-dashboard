@@ -221,9 +221,12 @@ export default function HomePage() {
           <div className="relative flex flex-wrap items-start justify-between gap-5">
             <div className="max-w-4xl">
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-100">
+                <a
+                  href="/api/sovereign/release-readiness"
+                  className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-emerald-100 hover:bg-emerald-500/20"
+                >
                   Release Ready
-                </span>
+                </a>
                 <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-100">
                   12 Departments
                 </span>
@@ -295,12 +298,22 @@ export default function HomePage() {
           </div>
 
           <div className="relative mt-7 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm font-black text-white">
-              Recommended first move
-            </p>
-            <p className="mt-2 text-xs leading-6 text-slate-300">
-              Open the Sovereign OS hub, choose the Website Department, start a project, and follow the routed workspace into release readiness.
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-black text-white">
+                  Recommended first move
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-300">
+                  Open the Sovereign OS hub, choose the Website Department, start a project, and follow the routed workspace into release readiness.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/release-readiness"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-xs font-black uppercase tracking-wide text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Release status verified
+              </a>
+            </div>
           </div>
         </div>
       </section>
