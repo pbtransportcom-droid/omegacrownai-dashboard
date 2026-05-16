@@ -6,6 +6,34 @@
 
 
 
+
+const startHereActions = [
+  {
+    label: "Start Website Builder",
+    detail: "Best first step for most customers. Generate website structure, copy, SEO, and deployment checklist.",
+    href: "/sovereign/website",
+    cta: "Start Website",
+  },
+  {
+    label: "Download Website Starter",
+    detail: "Get sovereign-website-starter.zip with HTML pages, CSS, SEO, brand direction, and checklist.",
+    href: "/api/sovereign/website-starter-bundle",
+    cta: "Download ZIP",
+  },
+  {
+    label: "Open Trading Bundle",
+    detail: "Download the paper-trading starter repository. Live trading remains disabled.",
+    href: "/api/sovereign/trading-code-bundle",
+    cta: "Download Trading",
+  },
+  {
+    label: "Check Readiness",
+    detail: "Verify release status, workspace stability, smoke tests, and safety gates.",
+    href: "/api/sovereign/release-readiness",
+    cta: "Check Status",
+  },
+];
+
 const websiteStarterSmokeResults = [
   {
     label: "Smoke Test",
@@ -465,6 +493,59 @@ export default function BuildPage() {
               </p>
             </a>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-emerald-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
+                Start Here
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                New customer? Start with this path.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The Sovereign OS now has many departments, artifacts, downloads, and validation checks.
+                Use this simple path first: build a website, download a starter, then verify readiness.
+              </p>
+            </div>
+            <a
+              href="/sovereign/website"
+              className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black shadow-lg shadow-emerald-950/30 hover:bg-emerald-300"
+            >
+              Start Website Builder
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {startHereActions.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5 transition hover:border-emerald-300/60 hover:bg-emerald-500/10"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                  {item.cta}
+                </p>
+                <h3 className="mt-2 text-lg font-black text-white">
+                  {item.label}
+                </h3>
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+            <p className="text-sm font-black text-emerald-100">
+              Recommended first move
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              Start with the Website Builder first. It is the easiest customer-facing artifact to understand,
+              download, inspect, and deploy. Then use the Trading Builder only when paper-trading safety is understood.
+            </p>
+          </div>
         </div>
 
         <div className="mt-8 rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-6 shadow-2xl shadow-cyan-950/20">
