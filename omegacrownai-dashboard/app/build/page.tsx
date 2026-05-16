@@ -7,6 +7,30 @@
 
 
 
+
+const selfImprovementPanels = [
+  {
+    label: "Self-Repair",
+    value: "Build-safe",
+    detail: "Detect syntax, build, route, 404, 502, and deployment failures.",
+  },
+  {
+    label: "Evaluation",
+    value: "Benchmarked",
+    detail: "Score builders for depth, accuracy, syntax, safety, and usefulness.",
+  },
+  {
+    label: "Accuracy",
+    value: "Evidence-aware",
+    detail: "Separate verified facts, memory, inference, and live-check needs.",
+  },
+  {
+    label: "Guardrails",
+    value: "Protected",
+    detail: "No PM2 restart before build, no git add ., no unsafe live trading.",
+  },
+];
+
 const startHereActions = [
   {
     label: "Start Website Builder",
@@ -576,6 +600,58 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-slate-300">
               Start with the Website Builder first. It is the easiest customer-facing artifact to understand,
               download, inspect, and deploy. Then use the Trading Builder only when paper-trading safety is understood.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-fuchsia-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-fuchsia-300">
+                Self-Improvement Engine
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI learns safely, repairs syntax, and validates before release.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                This control layer turns lessons from build errors, broken routes, shallow outputs,
+                and unsafe workflows into stronger validation rules, better builder prompts,
+                and safer upgrade discipline.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/self-improvement-engine"
+              className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
+            >
+              Open Engine API
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {selfImprovementPanels.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-fuchsia-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+            <p className="text-xs font-black uppercase tracking-wide text-yellow-200">
+              Production rule
+            </p>
+            <p className="mt-2 text-sm font-black text-white">
+              Build first → smoke test → restart PM2 → verify production → commit targeted files.
             </p>
           </div>
         </div>
