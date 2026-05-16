@@ -22,7 +22,6 @@ const phases = [
   "Full Observability Dashboard",
 ];
 
-
 const sovereignStartSteps = [
   {
     title: "Start",
@@ -213,7 +212,8 @@ export default function HomePage() {
           </a>
         </div>
       </section>
-          <section className="mx-auto mt-10 max-w-7xl px-6">
+
+      <section className="mx-auto mt-10 max-w-7xl px-6">
         <div className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-6 text-white shadow-2xl shadow-cyan-950/20">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
@@ -280,7 +280,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-</main>
+    </main>
   );
 }
