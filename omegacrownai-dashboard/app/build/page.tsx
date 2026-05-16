@@ -641,6 +641,12 @@ export default function BuildPage() {
               >
                 Open Website Artifact
               </a>
+              <a
+                href="/api/sovereign/website-starter-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Website Smoke Test
+              </a>
             </div>
           </div>
 
