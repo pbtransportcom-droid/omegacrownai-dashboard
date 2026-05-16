@@ -590,7 +590,7 @@ Before live mode:
 
 This generated repository is a starting point. It is intentionally conservative and incomplete for live execution. The safest next step is to keep improving paper-mode testing, backtesting, monitoring, and risk validation.
 `,
-    } },
+    },
   ];
 
   return {
