@@ -592,6 +592,26 @@ export default function BuildPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-6 rounded-2xl border border-lime-400/20 bg-lime-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-lime-100">
+                  Actual starter file contents are ready
+                </p>
+                <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                  The next generator returns real starter code for main.py, agents, risk engine,
+                  dashboard, backtest engine, Docker files, tests, config, and README.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/trading-file-content"
+                className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+              >
+                Open File Content Generator
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6">
