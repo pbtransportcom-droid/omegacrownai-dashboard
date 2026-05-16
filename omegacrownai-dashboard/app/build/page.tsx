@@ -4,6 +4,45 @@
 
 
 
+
+const tradingCustomerDownloadFlow = [
+  {
+    step: "01",
+    title: "Download ZIP",
+    detail: "Get saits-v1.zip with the generated paper-trading starter repository.",
+    href: "/api/sovereign/trading-code-bundle",
+    cta: "Download",
+  },
+  {
+    step: "02",
+    title: "Check README",
+    detail: "Verify setup, run, test, dashboard, and safety instructions.",
+    href: "/api/sovereign/trading-readme-smoke-check",
+    cta: "Check",
+  },
+  {
+    step: "03",
+    title: "Smoke Test",
+    detail: "Confirm 17/17 generated files, paper mode, and live trading disabled.",
+    href: "/api/sovereign/trading-bundle-smoke-test",
+    cta: "Validate",
+  },
+  {
+    step: "04",
+    title: "Run Locally",
+    detail: "Unzip the repo, install dependencies, run main.py, dashboard, and pytest.",
+    href: "/api/sovereign/trading-file-content",
+    cta: "Inspect",
+  },
+  {
+    step: "05",
+    title: "Stay Safe",
+    detail: "Keep paper trading only until review, testing, and manual approval are complete.",
+    href: "/api/sovereign/release-readiness",
+    cta: "Review",
+  },
+];
+
 const tradingBundleSmokeResults = [
   {
     label: "Smoke Test",
@@ -707,6 +746,59 @@ pytest`}</pre>
                   Do not add real broker keys until code review, paper testing, risk review, and manual approval are complete.
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-lime-400/20 bg-gradient-to-br from-lime-500/10 via-black/30 to-cyan-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-lime-100">
+                  Customer download flow
+                </p>
+                <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                  Follow this simple path after generating the Trading Builder repository. Download first,
+                  validate the README and smoke test, then run locally in paper-trading mode.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/trading-code-bundle"
+                className="rounded-xl bg-lime-400 px-5 py-3 text-sm font-black text-black shadow-lg shadow-lime-950/30 hover:bg-lime-300"
+              >
+                Download saits-v1.zip
+              </a>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-5">
+              {tradingCustomerDownloadFlow.map((item) => (
+                <a
+                  key={item.step}
+                  href={item.href}
+                  className="rounded-xl border border-slate-700 bg-black/30 p-4 transition hover:border-lime-300/60 hover:bg-lime-500/10"
+                >
+                  <span className="rounded-full border border-lime-400/30 bg-lime-500/10 px-3 py-1 text-xs font-black text-lime-100">
+                    {item.step}
+                  </span>
+                  <h3 className="mt-4 text-sm font-black text-white">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    {item.detail}
+                  </p>
+                  <p className="mt-4 text-xs font-black uppercase tracking-wide text-lime-300">
+                    {item.cta} →
+                  </p>
+                </a>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+              <p className="text-xs font-black uppercase tracking-wide text-yellow-200">
+                Safety reminder
+              </p>
+              <p className="mt-2 text-xs leading-6 text-yellow-50">
+                This generated bundle is for paper trading only. Live trading is disabled by default.
+                Do not add real broker keys until paper testing, code review, risk review, and manual approval are complete.
+              </p>
             </div>
           </div>
 
