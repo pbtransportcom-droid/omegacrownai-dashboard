@@ -239,6 +239,43 @@ function workspacePreviewForDepartment(department: string) {
   return "/projects/[projectId]";
 }
 
+
+const tradingBuilderArtifactActions = [
+  {
+    label: "Download saits-v1.zip",
+    detail: "Download the generated paper-trading starter repository.",
+    href: "/api/sovereign/trading-code-bundle",
+    tone: "primary",
+  },
+  {
+    label: "View 8/8 Smoke Test",
+    detail: "Validate generated files, risk agent, dashboard, backtest engine, and safety mode.",
+    href: "/api/sovereign/trading-bundle-smoke-test",
+    tone: "success",
+  },
+  {
+    label: "Check README",
+    detail: "Confirm setup, run, dashboard, tests, and live-trading warnings.",
+    href: "/api/sovereign/trading-readme-smoke-check",
+    tone: "info",
+  },
+  {
+    label: "Inspect File JSON",
+    detail: "View the generated starter file contents directly.",
+    href: "/api/sovereign/trading-file-content",
+    tone: "muted",
+  },
+];
+
+const tradingRunCommands = `unzip saits-v1.zip
+cd saits-v1
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+streamlit run dashboard.py
+pytest`;
+
 export default async function SovereignDepartmentPage({
   params,
 }: {
