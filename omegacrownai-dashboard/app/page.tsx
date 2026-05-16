@@ -331,16 +331,27 @@ export default function HomePage() {
               </a>
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-5">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               {sovereignQuickLaunch.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  className="rounded-xl border border-slate-700 bg-black/30 p-4 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+                  className={[
+                    "min-h-32 rounded-xl border p-4 transition",
+                    "flex flex-col justify-between",
+                    item.label === "Full OS Hub"
+                      ? "border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/20"
+                      : "border-slate-700 bg-black/30 hover:border-cyan-300/60 hover:bg-cyan-500/10",
+                  ].join(" ")}
                 >
-                  <p className="text-sm font-black text-white">{item.label}</p>
-                  <p className="mt-2 text-xs leading-5 text-slate-400">
-                    {item.detail}
+                  <div>
+                    <p className="text-base font-black text-white">{item.label}</p>
+                    <p className="mt-2 text-xs leading-6 text-slate-400">
+                      {item.detail}
+                    </p>
+                  </div>
+                  <p className="mt-4 text-xs font-black uppercase tracking-wide text-cyan-300">
+                    Open →
                   </p>
                 </a>
               ))}
