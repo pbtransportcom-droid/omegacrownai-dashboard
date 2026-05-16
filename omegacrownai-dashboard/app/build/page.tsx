@@ -628,12 +628,20 @@ export default function BuildPage() {
                 SEO metadata, brand direction, conversion plan, deployment checklist, and next actions.
               </p>
             </div>
-            <a
-              href="/api/sovereign/website-builder-artifact"
-              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
-            >
-              Open Website Artifact
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/website-starter-bundle"
+                className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
+              >
+                Download Website Starter
+              </a>
+              <a
+                href="/api/sovereign/website-builder-artifact"
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+              >
+                Open Website Artifact
+              </a>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
