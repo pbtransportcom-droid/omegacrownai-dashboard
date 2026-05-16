@@ -604,12 +604,20 @@ export default function BuildPage() {
                   dashboard, backtest engine, Docker files, tests, config, and README.
                 </p>
               </div>
-              <a
-                href="/api/sovereign/trading-file-content"
-                className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
-              >
-                Open File Content Generator
-              </a>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/api/sovereign/trading-file-content"
+                  className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+                >
+                  Open File Content Generator
+                </a>
+                <a
+                  href="/api/sovereign/trading-code-bundle"
+                  className="rounded-xl bg-lime-400 px-4 py-2 text-sm font-black text-black hover:bg-lime-300"
+                >
+                  Download Code Bundle
+                </a>
+              </div>
             </div>
           </div>
         </div>
