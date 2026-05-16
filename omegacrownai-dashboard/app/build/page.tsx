@@ -551,6 +551,49 @@ export default function BuildPage() {
           </p>
         </div>
 
+        <div className="mt-8 rounded-3xl border border-lime-400/20 bg-gradient-to-br from-lime-500/15 via-slate-950 to-emerald-500/10 p-6 shadow-2xl shadow-lime-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-300">
+                Trading Code Artifact
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Generate the paper-trading repository plan
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The Trading Builder now has a concrete code-repository artifact plan with agents,
+                config, risk engine, backtest engine, dashboard starter, Docker files, and README.
+                Live trading remains locked behind explicit safety review.
+              </p>
+            </div>
+            <a
+              href="/api/sovereign/trading-repo-artifact"
+              className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+            >
+              Open Trading Repo Artifact
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {[
+              "Agent files",
+              "Risk engine",
+              "Backtest engine",
+              "Paper-trading lock",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-sm font-black text-lime-100">{item}</p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  Included in the Trading Builder repository artifact plan.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-8 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-6">
           <h2 className="text-2xl font-black text-yellow-100">
             Built for full capacity
