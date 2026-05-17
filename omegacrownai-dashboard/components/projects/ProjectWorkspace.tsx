@@ -9,6 +9,42 @@ import { getBuilderPath } from "@/lib/sugent/builder/registry";
 
 
 
+
+const projectArtifactCards = [
+  {
+    label: "Website / App",
+    status: "Full-stack output",
+    detail:
+      "Should include frontend pages, backend/API routes, forms, data model, preview, review panel, download bundle, and deployment checklist.",
+    href: "#website-builder",
+    badges: ["Frontend", "Backend", "Preview", "Download"],
+  },
+  {
+    label: "Trading",
+    status: "Paper-trading only",
+    detail:
+      "Should include strategy logic, risk rules, README, smoke tests, downloadable starter repo, and live-trading safety lock.",
+    href: "#trading-builder",
+    badges: ["Risk", "Smoke test", "README", "Download"],
+  },
+  {
+    label: "Automation",
+    status: "Workflow output",
+    detail:
+      "Should include trigger, actions, approvals, logs, retry/failure handling, and review before activation.",
+    href: "#automation-builder",
+    badges: ["Trigger", "Actions", "Logs", "Review"],
+  },
+  {
+    label: "Review",
+    status: "Customer preview",
+    detail:
+      "Every project should have a place to inspect the working output before launch or export.",
+    href: "#project-activity",
+    badges: ["Preview", "QA", "History", "Next action"],
+  },
+];
+
 const projectChatPromptExamples = [
   "Build my company website with homepage, services, about, contact, SEO, and launch checklist.",
   "Create a customer-ready trading workspace with paper-trading safety, dashboard, README, and smoke test.",
@@ -588,6 +624,54 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
             Prompt → Artifact → Validation → Download/export → Next action.
           </p>
         </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-black text-white">
+                Project artifact cards
+              </p>
+              <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                A project should not stop at a homepage or a text answer. Each builder should produce a real artifact:
+                frontend, backend, preview/review path, validation, download/export, and next action.
+              </p>
+            </div>
+            <a
+              href="#website-builder"
+              className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+            >
+              Start Website/App
+            </a>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {projectArtifactCards.map((card) => (
+              <a
+                key={card.label}
+                href={card.href}
+                className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5 transition hover:border-cyan-300/60 hover:bg-cyan-500/10"
+              >
+                <p className="text-sm font-black text-white">{card.label}</p>
+                <p className="mt-2 text-xs font-black uppercase tracking-wide text-cyan-300">
+                  {card.status}
+                </p>
+                <p className="mt-3 text-xs leading-6 text-slate-400">
+                  {card.detail}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {card.badges.map((badge) => (
+                    <span
+                      key={badge}
+                      className="rounded-full border border-slate-700 bg-black/40 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-slate-300"
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
       </section>
 
       <div className="space-y-6">
@@ -608,7 +692,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
           <ul className="text-gray-400 text-sm space-y-1">
             <li>• Ask OmegaCrownAI</li>
             <li>• Multi-Agent Execution</li>
-            <li>• Website Builder</li>
+            <li>• Website / App Builder</li>
             <li>• Saved Build Results</li>
             <li>• Trading Analysis Engine</li>
           </ul>
@@ -619,10 +703,10 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
-              Sugent Website Builder
+              Sugent Website / App Builder
             </p>
             <h2 className="mt-2 text-xl font-semibold text-white">
-              {latestWebsiteBuild ? latestWebsiteBuild.label : "No website draft yet"}
+              {latestWebsiteBuild ? latestWebsiteBuild.label : "No full website/app artifact yet"}
             </h2>
             <p className="mt-2 text-sm text-gray-400">
               {latestWebsiteBuild
@@ -636,7 +720,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
               href={latestWebsiteBuilderUrl}
               className="inline-flex rounded-xl bg-cyan-600 px-5 py-3 text-sm font-bold text-white hover:bg-cyan-500"
             >
-              Open Website Builder
+              Open Website / App Builder
             </a>
           ) : (
             <button
