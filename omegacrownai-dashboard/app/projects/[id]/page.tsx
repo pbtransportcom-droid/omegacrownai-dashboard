@@ -5,6 +5,14 @@ import { authConfig } from "@/lib/auth";
 import ProjectWorkspace from "@/components/projects/ProjectWorkspace";
 
 
+
+const projectPromptSuggestions = [
+  "Build a modern website with homepage, services, about, contact, SEO, and launch checklist.",
+  "Create a safe paper-trading strategy with risk rules, backtest plan, and dashboard starter.",
+  "Design an automation workflow with trigger, actions, approvals, logs, and failure handling.",
+  "Review this project and tell me the next best action to make it customer-ready.",
+];
+
 const simplifiedWorkspaceActions = [
   {
     label: "Ask OmegaCrownAI",
