@@ -4,6 +4,34 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
 import ProjectWorkspace from "@/components/projects/ProjectWorkspace";
 
+
+const simplifiedWorkspaceActions = [
+  {
+    label: "Ask OmegaCrownAI",
+    detail: "Describe what you want built, fixed, researched, or improved inside this project.",
+    anchor: "#project-ai-chat",
+    tone: "primary",
+  },
+  {
+    label: "Build Website",
+    detail: "Generate a structured website draft, copy, sections, and launch-ready starter output.",
+    anchor: "#build-website",
+    tone: "cyan",
+  },
+  {
+    label: "Trading Builder",
+    detail: "Create or inspect a paper-trading strategy and safe starter bundle.",
+    anchor: "#trading-builder",
+    tone: "emerald",
+  },
+  {
+    label: "Project Activity",
+    detail: "Review saved runs, drafts, audits, and project history.",
+    anchor: "#project-activity",
+    tone: "purple",
+  },
+];
+
 export default async function ProjectPage({
   params,
   searchParams,
