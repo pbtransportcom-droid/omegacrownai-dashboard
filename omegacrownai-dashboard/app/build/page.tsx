@@ -19,6 +19,30 @@
 
 
 
+
+const connectorPermissionGateResults = [
+  {
+    label: "Decisions",
+    value: "3",
+    detail: "Allow, require approval, or block before connector execution.",
+  },
+  {
+    label: "Permissions",
+    value: "5",
+    detail: "Read, draft write, external write, financial action, secret management.",
+  },
+  {
+    label: "Blocked rules",
+    value: "7",
+    detail: "Financial, secrets, unknown scopes, unsafe gates, high-risk actions.",
+  },
+  {
+    label: "Audit fields",
+    value: "10",
+    detail: "Connector, action, permission, gate, risk, decision, actor, approval, input, rollback.",
+  },
+];
+
 const connectorInstallReviewResults = [
   {
     label: "Review sections",
@@ -1563,6 +1587,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-purple-50">
               No connector should be silently installed. Users/admins must review permission scope,
               credential safety, approval gates, external-write risk, and disconnect policy first.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-purple-500/10 p-6 shadow-2xl shadow-emerald-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
+                Connector Permission Gate API
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now gates connector actions before execution.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Runtime connector actions are evaluated before they run: allow, require approval,
+                or block based on permission, approval gate, risk level, audit context, and blocked-by-default rules.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/connector-permission-gate"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Permission Gate API
+              </a>
+              <a
+                href="/api/sovereign/connector-permission-gate-smoke-test"
+                className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-500/20"
+              >
+                Run Gate Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {connectorPermissionGateResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+            <p className="text-sm font-black text-emerald-100">
+              Runtime gate rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-emerald-50">
+              Connector review is not enough. Every connector action must pass a runtime
+              permission gate before execution, especially external writes, secrets, and financial actions.
             </p>
           </div>
         </div>
