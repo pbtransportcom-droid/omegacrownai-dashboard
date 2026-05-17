@@ -17,6 +17,30 @@
 
 
 
+
+const connectorManifestValidatorResults = [
+  {
+    label: "Manifest fields",
+    value: "11",
+    detail: "Connector id, name, category, version, auth, permissions, actions, healthcheck, policies.",
+  },
+  {
+    label: "Action fields",
+    value: "6",
+    detail: "Action id, name, input schema, output schema, approval gate, audit required.",
+  },
+  {
+    label: "Validation",
+    value: "Required",
+    detail: "Connectors must pass validation before install, approval, execution, or marketplace listing.",
+  },
+  {
+    label: "Unsafe actions",
+    value: "Blocked",
+    detail: "Financial, external write, high-risk, unknown permission, and unaudited actions are blocked.",
+  },
+];
+
 const connectorMarketplaceResults = [
   {
     label: "Connector categories",
@@ -1395,6 +1419,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-indigo-50">
               No connector should execute external writes, expose secrets, publish public content,
               or perform financial actions without scoped permissions, approval gates, and audit evidence.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-500/15 via-slate-950 to-indigo-500/10 p-6 shadow-2xl shadow-fuchsia-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-fuchsia-300">
+                Sovereign Connector Manifest Validator
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now validates connector manifests before install.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Every connector must define safe auth, scoped permissions, actions, schemas,
+                approval gates, audit requirements, healthchecks, disconnect policy, and data retention.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/connector-manifest-validator"
+                className="rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-sm font-black text-fuchsia-100 hover:bg-fuchsia-500/20"
+              >
+                Open Validator API
+              </a>
+              <a
+                href="/api/sovereign/connector-manifest-validator-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Validator Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {connectorManifestValidatorResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-fuchsia-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/10 p-4">
+            <p className="text-sm font-black text-fuchsia-100">
+              Validator rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-fuchsia-50">
+              No connector should be installed, approved, listed, or executed unless its manifest passes
+              permissions, auth, action, approval-gate, audit, and safety validation.
             </p>
           </div>
         </div>
