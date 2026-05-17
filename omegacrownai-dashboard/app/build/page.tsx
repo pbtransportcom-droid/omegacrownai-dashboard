@@ -13,6 +13,30 @@
 
 
 
+
+const governancePermissionsResults = [
+  {
+    label: "Roles",
+    value: "6",
+    detail: "Owner, Admin, Builder Agent, Execution Agent, Governance Agent, Viewer.",
+  },
+  {
+    label: "Approval gates",
+    value: "6",
+    detail: "Read-only, artifact generation, workspace write, production, external write, blocked.",
+  },
+  {
+    label: "Audit trail",
+    value: "Required",
+    detail: "Every high-value action needs actor, role, permission, risk, evidence, status, and rollback.",
+  },
+  {
+    label: "Blocked actions",
+    value: "Protected",
+    detail: "Secrets, live trading, destructive deletes, failed-build restarts, and git add . are blocked.",
+  },
+];
+
 const multiAgentMemoryRegistryResults = [
   {
     label: "Memory partitions",
@@ -1059,6 +1083,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-violet-50">
               OmegaCrownAI memory must be scoped, source-labeled, auditable, correctable,
               and never used to present inferred information as verified truth.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-rose-400/20 bg-gradient-to-br from-rose-500/15 via-slate-950 to-orange-500/10 p-6 shadow-2xl shadow-rose-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-rose-300">
+                Governance, Permissions & Audit
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now has the blueprint for accountable sovereign control.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Every high-value action should pass through role permissions, approval gates,
+                blocked-action rules, compliance hooks, audit evidence, and rollback-aware records.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/governance-permissions-audit"
+                className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-black text-rose-100 hover:bg-rose-500/20"
+              >
+                Open Governance API
+              </a>
+              <a
+                href="/api/sovereign/governance-permissions-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Governance Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {governancePermissionsResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-rose-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4">
+            <p className="text-sm font-black text-rose-100">
+              Governance rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-rose-50">
+              No sovereign execution without permissions, approval gates, audit trail,
+              compliance review, and rollback-aware accountability.
             </p>
           </div>
         </div>
