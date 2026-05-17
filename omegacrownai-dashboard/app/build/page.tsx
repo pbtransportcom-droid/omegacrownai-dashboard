@@ -20,6 +20,30 @@
 
 
 
+
+const connectorAuditTrailResults = [
+  {
+    label: "Audit fields",
+    value: "16",
+    detail: "Actor, role, connector, action, permission, gate, risk, decision, evidence, rollback.",
+  },
+  {
+    label: "Policies",
+    value: "7",
+    detail: "Read-only, external writes, blocked actions, financial, secrets, high-risk, no raw secrets.",
+  },
+  {
+    label: "Decisions",
+    value: "Audited",
+    detail: "Allow, require approval, and block decisions produce audit-ready records.",
+  },
+  {
+    label: "Recovery",
+    value: "Required",
+    detail: "High-risk, external-write, and blocked actions need rollback/recovery context.",
+  },
+];
+
 const connectorPermissionGateResults = [
   {
     label: "Decisions",
@@ -1647,6 +1671,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-emerald-50">
               Connector review is not enough. Every connector action must pass a runtime
               permission gate before execution, especially external writes, secrets, and financial actions.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-lime-400/20 bg-gradient-to-br from-lime-500/15 via-slate-950 to-emerald-500/10 p-6 shadow-2xl shadow-lime-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-300">
+                Connector Audit Trail Integration
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now records connector permission decisions.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Every connector action decision should leave an audit record with actor, role,
+                connector, action, permission, risk, decision, evidence, and rollback/recovery context.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/connector-audit-trail"
+                className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+              >
+                Open Audit API
+              </a>
+              <a
+                href="/api/sovereign/connector-audit-trail-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Audit Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {connectorAuditTrailResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-lime-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-lime-400/20 bg-lime-500/10 p-4">
+            <p className="text-sm font-black text-lime-100">
+              Audit trail rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-lime-50">
+              Every connector decision should be audit-ready. No secrets in records,
+              no untraceable external writes, and no high-risk execution without recovery context.
             </p>
           </div>
         </div>
