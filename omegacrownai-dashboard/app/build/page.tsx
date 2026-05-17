@@ -18,6 +18,30 @@
 
 
 
+
+const connectorInstallReviewResults = [
+  {
+    label: "Review sections",
+    value: "7",
+    detail: "Identity, permissions, risk, actions, credentials, healthcheck, blocked actions.",
+  },
+  {
+    label: "Install states",
+    value: "7",
+    detail: "Ready, failed, approval required, approved, limited, active, blocked.",
+  },
+  {
+    label: "Admin checklist",
+    value: "10",
+    detail: "Scope, auth, actions, audit, secrets, validator, healthcheck, disconnect, retention.",
+  },
+  {
+    label: "Install safety",
+    value: "Required",
+    detail: "No silent install. External writes, publishing, and financial actions require gates.",
+  },
+];
+
 const connectorManifestValidatorResults = [
   {
     label: "Manifest fields",
@@ -1479,6 +1503,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-fuchsia-50">
               No connector should be installed, approved, listed, or executed unless its manifest passes
               permissions, auth, action, approval-gate, audit, and safety validation.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-purple-400/20 bg-gradient-to-br from-purple-500/15 via-slate-950 to-indigo-500/10 p-6 shadow-2xl shadow-purple-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-purple-300">
+                Connector Install Review UI
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now reviews connectors before install.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Every connector must show permissions, risk, auth type, actions, approval gates,
+                credential safety, validation score, healthcheck, disconnect, and blocked action warnings.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/connector-install-review"
+                className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-500/20"
+              >
+                Open Install Review API
+              </a>
+              <a
+                href="/api/sovereign/connector-install-review-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Install Review Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {connectorInstallReviewResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-purple-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-purple-400/20 bg-purple-500/10 p-4">
+            <p className="text-sm font-black text-purple-100">
+              Install review rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-purple-50">
+              No connector should be silently installed. Users/admins must review permission scope,
+              credential safety, approval gates, external-write risk, and disconnect policy first.
             </p>
           </div>
         </div>
