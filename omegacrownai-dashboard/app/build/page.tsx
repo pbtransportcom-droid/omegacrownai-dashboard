@@ -16,6 +16,30 @@
 
 
 
+
+const connectorMarketplaceResults = [
+  {
+    label: "Connector categories",
+    value: "8",
+    detail: "Communication, CRM, storage, development, payments, marketing, models, webhooks.",
+  },
+  {
+    label: "Permissions",
+    value: "5",
+    detail: "Read, draft write, external write, financial action, secret management.",
+  },
+  {
+    label: "Credential safety",
+    value: "Required",
+    detail: "No secrets in code, logs, UI, artifacts, commits, or client-side bundles.",
+  },
+  {
+    label: "Marketplace flow",
+    value: "Governed",
+    detail: "Install review, scoped permissions, healthcheck, audit, and disconnect policy.",
+  },
+];
+
 const enterpriseReliabilityResults = [
   {
     label: "Health categories",
@@ -1311,6 +1335,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-teal-50">
               Every enterprise-grade system needs visible health, classified errors,
               measurable reliability, alerting, recovery paths, and audit-ready operational evidence.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-indigo-400/20 bg-gradient-to-br from-indigo-500/15 via-slate-950 to-fuchsia-500/10 p-6 shadow-2xl shadow-indigo-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-indigo-300">
+                Connector / Integration Marketplace
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now has the foundation for governed integrations.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Connectors must use scoped permissions, credential safety, approval gates,
+                manifest validation, install review, webhook rules, audit logs, and disconnect policies.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/connector-marketplace-foundation"
+                className="rounded-xl border border-indigo-400/30 bg-indigo-500/10 px-4 py-2 text-sm font-black text-indigo-100 hover:bg-indigo-500/20"
+              >
+                Open Connector API
+              </a>
+              <a
+                href="/api/sovereign/connector-marketplace-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Connector Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {connectorMarketplaceResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-indigo-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-indigo-400/20 bg-indigo-500/10 p-4">
+            <p className="text-sm font-black text-indigo-100">
+              Connector rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-indigo-50">
+              No connector should execute external writes, expose secrets, publish public content,
+              or perform financial actions without scoped permissions, approval gates, and audit evidence.
             </p>
           </div>
         </div>
