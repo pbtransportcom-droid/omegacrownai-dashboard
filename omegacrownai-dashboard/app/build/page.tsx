@@ -11,6 +11,30 @@
 
 
 
+
+const sovereignExecutionLayerResults = [
+  {
+    label: "Execution categories",
+    value: "6",
+    detail: "Software, Website/App, Trading, Automation, API/tool, Production deployment.",
+  },
+  {
+    label: "Approval gates",
+    value: "4",
+    detail: "Low risk, medium risk, high risk, and blocked-by-default actions.",
+  },
+  {
+    label: "Replayable actions",
+    value: "Required",
+    detail: "Every action should record id, inputs, outputs, status, error class, and rollback.",
+  },
+  {
+    label: "Production safety",
+    value: "Enforced",
+    detail: "Build before restart, no git add ., smoke checks, clean PM2 logs.",
+  },
+];
+
 const builderDepthStandardResults = [
   {
     label: "Website/App",
@@ -891,6 +915,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-lime-50">
               Builder output depth now means full-function delivery, not just longer text.
               The score checks functionality, files, preview, export, tests, deployment, and customer next action.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-orange-400/20 bg-gradient-to-br from-orange-500/15 via-slate-950 to-red-500/10 p-6 shadow-2xl shadow-orange-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-300">
+                Sovereign Execution Layer
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now has the blueprint for safe execution.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                This is the next step after reasoning: registered actions, approval gates,
+                sandbox rules, replayable audit logs, rollback requirements, and production safety.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/execution-layer-blueprint"
+                className="rounded-xl border border-orange-400/30 bg-orange-500/10 px-4 py-2 text-sm font-black text-orange-100 hover:bg-orange-500/20"
+              >
+                Open Execution API
+              </a>
+              <a
+                href="/api/sovereign/execution-layer-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Execution Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {sovereignExecutionLayerResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-orange-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-orange-400/20 bg-orange-500/10 p-4">
+            <p className="text-sm font-black text-orange-100">
+              Execution rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-orange-50">
+              OmegaCrownAI should execute only through registered actions, scoped permissions,
+              approval gates, sandbox rules, audit logs, and rollback-aware workflows.
             </p>
           </div>
         </div>
