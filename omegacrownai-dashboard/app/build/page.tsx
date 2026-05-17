@@ -12,6 +12,30 @@
 
 
 
+
+const multiAgentMemoryRegistryResults = [
+  {
+    label: "Memory partitions",
+    value: "6",
+    detail: "Customer, project, artifact, execution, governance, and learning ledger memory.",
+  },
+  {
+    label: "Confidence labels",
+    value: "6",
+    detail: "Verified, user-declared, project memory, inferred, needs verification, unsafe/blocked.",
+  },
+  {
+    label: "Governed writes",
+    value: "Required",
+    detail: "No hidden memory, no secrets, no inferred claims stored as verified facts.",
+  },
+  {
+    label: "Replay review",
+    value: "Auditable",
+    detail: "Phase, deployment, artifact, and failure memory must be reviewable.",
+  },
+];
+
 const sovereignExecutionLayerResults = [
   {
     label: "Execution categories",
@@ -975,6 +999,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-orange-50">
               OmegaCrownAI should execute only through registered actions, scoped permissions,
               approval gates, sandbox rules, audit logs, and rollback-aware workflows.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-violet-400/20 bg-gradient-to-br from-violet-500/15 via-slate-950 to-blue-500/10 p-6 shadow-2xl shadow-violet-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-violet-300">
+                Multi-Agent Memory Registry
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now has the blueprint for governed long-term memory.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Memory is partitioned by role, source-labeled, auditable, correctable,
+                and governed so agents can remember project truth without hiding uncertainty.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/multi-agent-memory-registry"
+                className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-100 hover:bg-violet-500/20"
+              >
+                Open Memory API
+              </a>
+              <a
+                href="/api/sovereign/multi-agent-memory-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Memory Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {multiAgentMemoryRegistryResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-violet-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4">
+            <p className="text-sm font-black text-violet-100">
+              Memory rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-violet-50">
+              OmegaCrownAI memory must be scoped, source-labeled, auditable, correctable,
+              and never used to present inferred information as verified truth.
             </p>
           </div>
         </div>
