@@ -7,6 +7,41 @@ import Link from "next/link";
 import WebsitePreview from "@/components/projects/WebsitePreview";
 import { getBuilderPath } from "@/lib/sugent/builder/registry";
 
+
+const workspacePromptSuggestions = [
+  "Build a modern website with homepage, services, about, contact, SEO, and launch checklist.",
+  "Create a safe paper-trading strategy with risk rules, backtest plan, dashboard starter, and paper-mode safety.",
+  "Design an automation workflow with trigger, actions, approvals, logs, replay plan, and failure handling.",
+  "Review this project and tell me the next best action to make it customer-ready.",
+];
+
+const workspaceArtifactShortcuts = [
+  {
+    label: "Website",
+    detail: "Generate website copy, page structure, SEO, and launch checklist.",
+    href: "#website-builder",
+    tone: "cyan",
+  },
+  {
+    label: "Trading",
+    detail: "Generate paper-trading strategy, risk rules, and safe starter artifacts.",
+    href: "#trading-builder",
+    tone: "emerald",
+  },
+  {
+    label: "Automation",
+    detail: "Map workflow trigger, actions, approvals, logs, and failure handling.",
+    href: "#automation-builder",
+    tone: "purple",
+  },
+  {
+    label: "Activity",
+    detail: "Review saved drafts, runs, artifacts, and project history.",
+    href: "#project-activity",
+    tone: "slate",
+  },
+];
+
 type ProjectWorkspaceProps = {
   project: {
     id: string;
@@ -472,7 +507,82 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     : "";
 
   return (
-    <div className="space-y-6">
+    <section className="rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-emerald-950/20">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
+              Ask OmegaCrownAI
+            </p>
+            <h2 className="mt-2 text-3xl font-black text-white">
+              What do you want to build inside this project?
+            </h2>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+              Start with one clear prompt. OmegaCrownAI should turn your request into a useful artifact,
+              validation checks, a download/export path, and the next recommended action.
+            </p>
+          </div>
+          <a
+            href="#project-ai-chat"
+            className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black shadow-lg shadow-emerald-950/30 hover:bg-emerald-300"
+          >
+            Open Project Chat
+          </a>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
+          <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+            Try a prompt
+          </p>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {workspacePromptSuggestions.map((prompt) => (
+              <div
+                key={prompt}
+                className="rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-xs leading-6 text-slate-300"
+              >
+                “{prompt}”
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {workspaceArtifactShortcuts.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className={[
+                "rounded-2xl border p-5 transition",
+                item.tone === "cyan"
+                  ? "border-cyan-400/30 bg-cyan-500/10 hover:bg-cyan-500/20"
+                  : item.tone === "emerald"
+                    ? "border-lime-400/30 bg-lime-500/10 hover:bg-lime-500/20"
+                    : item.tone === "purple"
+                      ? "border-purple-400/30 bg-purple-500/10 hover:bg-purple-500/20"
+                      : "border-slate-700 bg-black/30 hover:border-slate-400/60 hover:bg-slate-800/40",
+              ].join(" ")}
+            >
+              <p className="text-sm font-black text-white">{item.label}</p>
+              <p className="mt-3 text-xs leading-6 text-slate-400">
+                {item.detail}
+              </p>
+              <p className="mt-4 text-xs font-black uppercase tracking-wide text-emerald-300">
+                Open →
+              </p>
+            </a>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+          <p className="text-sm font-black text-cyan-100">
+            Prompt-first workspace flow
+          </p>
+          <p className="mt-2 text-xs leading-6 text-slate-300">
+            Prompt → Artifact → Validation → Download/export → Next action.
+          </p>
+        </div>
+      </section>
+
+      <div className="space-y-6">
       <h1 className="text-2xl font-semibold">{project.name}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
