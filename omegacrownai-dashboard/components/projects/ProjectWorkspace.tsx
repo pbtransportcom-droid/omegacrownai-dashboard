@@ -8,6 +8,13 @@ import WebsitePreview from "@/components/projects/WebsitePreview";
 import { getBuilderPath } from "@/lib/sugent/builder/registry";
 
 
+
+const projectChatPromptExamples = [
+  "Build my company website with homepage, services, about, contact, SEO, and launch checklist.",
+  "Create a customer-ready trading workspace with paper-trading safety, dashboard, README, and smoke test.",
+  "Review this project and tell me the next 3 actions to make it production-ready.",
+];
+
 const workspacePromptSuggestions = [
   "Build a modern website with homepage, services, about, contact, SEO, and launch checklist.",
   "Create a safe paper-trading strategy with risk rules, backtest plan, dashboard starter, and paper-mode safety.",
@@ -599,7 +606,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
         <div className="bg-[#0f0f12] p-4 rounded-md border border-[#1c1c20]">
           <h2 className="text-lg mb-2">Project Tools</h2>
           <ul className="text-gray-400 text-sm space-y-1">
-            <li>• Project AI Chat</li>
+            <li>• Ask OmegaCrownAI</li>
             <li>• Multi-Agent Execution</li>
             <li>• Website Builder</li>
             <li>• Saved Build Results</li>
@@ -828,9 +835,29 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
           </div>
         )}
 
-        <textarea
+        <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+            <p className="text-sm font-black text-emerald-100">
+              Start with one clear request
+            </p>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              OmegaCrownAI works best when you ask for a specific deliverable: website, trading plan,
+              automation workflow, code repair, launch checklist, or production review.
+            </p>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              {projectChatPromptExamples.map((example) => (
+                <div
+                  key={example}
+                  className="rounded-xl border border-slate-700 bg-black/30 p-3 text-xs leading-5 text-slate-300"
+                >
+                  “{example}”
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <textarea
           className="min-h-32 w-full bg-[#1c1c20] p-3 rounded text-gray-200"
-          placeholder="Example: build me a biscuit shop website with warm colors, menu, about section, and order CTA"
+          placeholder="Example: Build a luxury transportation website with homepage, services, airport transfer page, booking CTA, SEO, and launch checklist."
           value={websitePrompt}
           onChange={(e) => setWebsitePrompt(e.target.value)}
         />
@@ -1294,7 +1321,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
       </div>
 
       <div className="bg-[#0f0f12] p-4 rounded-md border border-[#1c1c20] space-y-4">
-        <h2 className="text-lg">Run Multi-Agent Execution</h2>
+        <h2 className="text-lg">Generate Project Output</h2>
 
         <p className="text-sm text-gray-500">
           Ask OmegaCrownAI to build, analyze, automate, or plan inside this project.
@@ -1454,7 +1481,7 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
       </div>
 
       <div className="bg-[#0f0f12] p-4 rounded-md border border-[#1c1c20] space-y-4">
-        <h2 className="text-lg">Project AI Chat</h2>
+        <h2 className="text-lg">Ask OmegaCrownAI</h2>
 
         <div className="space-y-3 max-h-[420px] overflow-auto">
           {messages.length === 0 && (
