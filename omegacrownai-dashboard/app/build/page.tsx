@@ -10,6 +10,30 @@
 
 
 
+
+const builderDepthStandardResults = [
+  {
+    label: "Website/App",
+    value: "110%",
+    detail: "Frontend, backend/API, review panel, download, validation, deployment.",
+  },
+  {
+    label: "Trading",
+    value: "110%",
+    detail: "Paper-trading repo, risk safety, README, smoke test, download.",
+  },
+  {
+    label: "Automation",
+    value: "110%",
+    detail: "Trigger, actions, approvals, logs, retry/failure handling, review.",
+  },
+  {
+    label: "All builders",
+    value: "Scored",
+    detail: "Builder output depth now uses the Full-Function Artifact Standard.",
+  },
+];
+
 const fullFunctionStandardResults = [
   {
     label: "Customer-ready target",
@@ -807,6 +831,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-amber-50">
               Every paid/customer project should target 90–110% customer-ready output:
               real artifact, functionality, validation, review, export, and next action.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-lime-400/20 bg-gradient-to-br from-lime-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-lime-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-lime-300">
+                Builder Output Depth Scoring
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Every builder output is now scored against the full-function standard.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Website/App, Trading, Automation, Coding, and Creative outputs are checked for
+                real functionality, preview/review, download/export, validation, missing-info, deployment, and next action.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/builder-output-depth?department=website"
+                className="rounded-xl border border-lime-400/30 bg-lime-500/10 px-4 py-2 text-sm font-black text-lime-100 hover:bg-lime-500/20"
+              >
+                Open Website Score
+              </a>
+              <a
+                href="/api/sovereign/builder-output-depth-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Depth Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {builderDepthStandardResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-lime-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-lime-400/20 bg-lime-500/10 p-4">
+            <p className="text-sm font-black text-lime-100">
+              Depth rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-lime-50">
+              Builder output depth now means full-function delivery, not just longer text.
+              The score checks functionality, files, preview, export, tests, deployment, and customer next action.
             </p>
           </div>
         </div>

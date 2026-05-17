@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBuilderOutputDepth } from "@/lib/sovereign/builder-output-depth";
+import { getBuilderOutputDepthScore } from "@/lib/sovereign/builder-output-depth-score";
 
-const departments = ["website", "app", "automation", "trading", "coding"];
+export async function GET(request: NextRequest) {
+  const department =
+    request.nextUrl.searchParams.get("department") ||
+    request.nextUrl.searchParams.get("builder") ||
+    "general";
 
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const department = url.searchParams.get("department");
-
-  if (department) {
-    return NextResponse.json({
-      ok: true,
-      phase: "v13.8 Phase 158",
-      service: "Sovereign Builder Output Depth Upgrade",
-      outputDepth: getBuilderOutputDepth(department),
-    });
-  }
-
-  const matrix = departments.map((item) => getBuilderOutputDepth(item));
+  const depth = getBuilderOutputDepthScore(department);
 
   return NextResponse.json({
     ok: true,
-    phase: "v13.8 Phase 158",
-    service: "Sovereign Builder Output Depth Upgrade",
-    totalDepartments: matrix.length,
-    matrix,
+    phase: "v16.8 Phase 188",
+    service: "Builder Output Depth + Full-Function Standard",
+    department,
+    depth,
   });
 }
