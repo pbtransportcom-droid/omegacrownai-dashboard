@@ -14,6 +14,30 @@
 
 
 
+
+const deploymentSelfHostingResults = [
+  {
+    label: "Deployment modes",
+    value: "5",
+    detail: "Managed SaaS, VPS, Docker Compose, Kubernetes/private cloud, offline future.",
+  },
+  {
+    label: "Environment registry",
+    value: "6+",
+    detail: "Documents runtime variables, app URL, database, model keys, and storage provider.",
+  },
+  {
+    label: "Backup / restore",
+    value: "Required",
+    detail: "Database, uploads, env, code, and PM2/runtime recovery plans.",
+  },
+  {
+    label: "Self-hosting",
+    value: "Planned",
+    detail: "Docker, compose, env example, healthcheck, backup scripts, and README.",
+  },
+];
+
 const governancePermissionsResults = [
   {
     label: "Roles",
@@ -1143,6 +1167,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-rose-50">
               No sovereign execution without permissions, approval gates, audit trail,
               compliance review, and rollback-aware accountability.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-sky-400/20 bg-gradient-to-br from-sky-500/15 via-slate-950 to-emerald-500/10 p-6 shadow-2xl shadow-sky-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-sky-300">
+                Deployment / Self-Hosting Readiness
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now tracks deployment sovereignty.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                Sovereignty means portability, recoverability, environment documentation,
+                health checks, backup/restore, and future Docker/Kubernetes/self-hosting paths.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/deployment-self-hosting-readiness"
+                className="rounded-xl border border-sky-400/30 bg-sky-500/10 px-4 py-2 text-sm font-black text-sky-100 hover:bg-sky-500/20"
+              >
+                Open Deployment API
+              </a>
+              <a
+                href="/api/sovereign/deployment-self-hosting-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Deployment Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {deploymentSelfHostingResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-sky-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-sky-400/20 bg-sky-500/10 p-4">
+            <p className="text-sm font-black text-sky-100">
+              Deployment rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-sky-50">
+              OmegaCrownAI should be recoverable, portable, documented, smoke-tested,
+              and eventually self-hostable through Docker, private cloud, or on-prem modes.
             </p>
           </div>
         </div>
