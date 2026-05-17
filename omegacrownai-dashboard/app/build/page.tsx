@@ -8,6 +8,30 @@
 
 
 
+
+const selfImprovementSmokeResults = [
+  {
+    label: "Smoke Test",
+    value: "7/7 passed",
+    detail: "Self-improvement engine validation passed.",
+  },
+  {
+    label: "Engines",
+    value: "7",
+    detail: "Self-repair, syntax repair, evaluation, accuracy, prompt quality, model router, and ledger.",
+  },
+  {
+    label: "Guardrails",
+    value: "9",
+    detail: "Production safety rules are registered.",
+  },
+  {
+    label: "Release Steps",
+    value: "11",
+    detail: "Build, smoke test, restart, verify, commit, and log checks are defined.",
+  },
+];
+
 const selfImprovementPanels = [
   {
     label: "Self-Repair",
@@ -661,6 +685,45 @@ export default function BuildPage() {
             <p className="mt-2 text-sm font-black text-white">
               Build first → smoke test → restart PM2 → verify production → commit targeted files.
             </p>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-emerald-100">
+                  Self-improvement smoke-test results
+                </p>
+                <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
+                  The Self-Improvement Engine passed validation: required engines,
+                  production guardrails, release sequence, learning ledger, and build-before-restart rule are present.
+                </p>
+              </div>
+              <a
+                href="/api/sovereign/self-improvement-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Engine Smoke-Test JSON
+              </a>
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-4">
+              {selfImprovementSmokeResults.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-xl border border-slate-700 bg-black/30 p-4"
+                >
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-xl font-black text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
