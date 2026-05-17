@@ -8,10 +8,15 @@ const requiredFiles = [
   "about.html",
   "services.html",
   "contact.html",
+  "admin-review.html",
   "styles.css",
+  "data/menu.json",
+  "api/contact.js",
+  "api/order.js",
   "seo.json",
   "brand-direction.json",
   "deployment-checklist.md",
+  "smoke-test-checklist.md",
 ];
 
 export async function GET() {
@@ -29,11 +34,11 @@ export async function GET() {
     },
     {
       name: "Website starter bundle exists",
-      passed: starter.artifactType === "downloadable_website_starter_bundle",
+      passed: starter.artifactType === "downloadable_full_stack_website_app_bundle",
       detail: starter.artifactType,
     },
     {
-      name: "Required files present",
+      name: "Required full-stack files present",
       passed: missingFiles.length === 0,
       detail: missingFiles.length ? `Missing: ${missingFiles.join(", ")}` : "All required files present.",
     },

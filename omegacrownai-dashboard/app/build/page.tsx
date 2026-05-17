@@ -63,7 +63,7 @@ const startHereActions = [
     cta: "Start Website",
   },
   {
-    label: "Download Website Starter",
+    label: "Download Full-Stack Website/App",
     detail: "Get sovereign-website-starter.zip with HTML pages, CSS, SEO, brand direction, and checklist.",
     href: "/api/sovereign/website-starter-bundle",
     cta: "Download ZIP",
@@ -905,7 +905,7 @@ export default function BuildPage() {
                 Website Builder Artifact Depth
               </p>
               <h2 className="mt-2 text-4xl font-black text-white">
-                Website Builder now produces real launch artifacts
+                Website Builder now produces full-stack website/app artifacts
               </h2>
               <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
                 The Website Builder output now includes page tree, homepage sections, starter copy,
@@ -917,7 +917,7 @@ export default function BuildPage() {
                 href="/api/sovereign/website-starter-bundle"
                 className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-black text-black hover:bg-cyan-300"
               >
-                Download Website Starter
+                Download Full-Stack Website/App
               </a>
               <a
                 href="/api/sovereign/website-builder-artifact"
@@ -966,11 +966,11 @@ export default function BuildPage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-black text-emerald-100">
-                  Website starter smoke-test results
+                  Full-stack Website/App smoke-test results
                 </p>
                 <p className="mt-2 max-w-3xl text-xs leading-6 text-slate-300">
                   The downloadable Website Builder starter bundle has passed validation:
-                  required files are present, SEO metadata exists, and the deployment checklist is included.
+                  frontend, backend/API starters, review panel, SEO metadata, deployment checklist, and smoke-test files are included.
                 </p>
               </div>
               <a
