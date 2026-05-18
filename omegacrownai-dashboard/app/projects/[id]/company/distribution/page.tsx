@@ -1,3 +1,4 @@
+import { DistributionLiveArtifactPanel } from "@/components/sovereign/DistributionLiveArtifactPanel";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
@@ -199,7 +200,9 @@ export default async function DistributionPage({
           No company exists for this project yet.
         </section>
       )}
-    </main>
+    
+        <DistributionLiveArtifactPanel />
+</main>
   );
 }
 
