@@ -132,6 +132,7 @@ export function getGeneratedArtifactFileSystemWriter() {
 
     safePathRules: [
       "Normalize projectId and artifactId to safe characters only.",
+      "Write generated artifacts only inside the project-scoped artifact root.",
       "Normalize generated file paths as relative POSIX paths.",
       "Block ../ path traversal.",
       "Block absolute paths.",
