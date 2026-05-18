@@ -3,13 +3,13 @@ import { getCustomerDownloadPackageRoute } from "@/lib/sovereign/customer-downlo
 
 type RouteContext = {
   params: Promise<{
-    projectId: string;
+    id: string;
     artifactId: string;
   }>;
 };
 
 export async function GET(_request: NextRequest, context: RouteContext) {
-  const { projectId, artifactId } = await context.params;
+  const { id, artifactId } = await context.params;
   const download = getCustomerDownloadPackageRoute();
 
   return NextResponse.json(
@@ -19,7 +19,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       service: "Customer Download Package Route Placeholder",
       message:
         "Download route shape is live. ZIP package writing will be implemented in the Download ZIP Writer phase.",
-      projectId,
+      projectId: id,
       artifactId,
       packageLabel: "draft_not_customer_ready",
       contentTypePlanned: download.routePlan.contentType,
