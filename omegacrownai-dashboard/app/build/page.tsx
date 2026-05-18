@@ -21,6 +21,30 @@
 
 
 
+
+const githubConnectorResults = [
+  {
+    label: "Connector actions",
+    value: "5",
+    detail: "Read repo, read issues, branch plan, PR draft, release-note draft.",
+  },
+  {
+    label: "Default mode",
+    value: "Read/Draft",
+    detail: "No direct push, merge, deploy, release, or secret changes by default.",
+  },
+  {
+    label: "Validation",
+    value: "Required",
+    detail: "Manifest validation, permission gate, install review, and audit trail.",
+  },
+  {
+    label: "Blocked actions",
+    value: "8",
+    detail: "Main push, merge, delete, production release/deploy, secrets, branch rules.",
+  },
+];
+
 const connectorAuditTrailResults = [
   {
     label: "Audit fields",
@@ -1731,6 +1755,66 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-lime-50">
               Every connector decision should be audit-ready. No secrets in records,
               no untraceable external writes, and no high-risk execution without recovery context.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-slate-500/30 bg-gradient-to-br from-slate-500/20 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-slate-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-slate-300">
+                GitHub Connector Blueprint
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI now has its first governed development connector blueprint.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                GitHub starts as read-only and draft-only: repository reading, issue review,
+                branch planning, PR draft preparation, release-note drafting, permission gates, and audit records.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/github-connector-blueprint"
+                className="rounded-xl border border-slate-400/30 bg-slate-500/10 px-4 py-2 text-sm font-black text-slate-100 hover:bg-slate-500/20"
+              >
+                Open GitHub API
+              </a>
+              <a
+                href="/api/sovereign/github-connector-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run GitHub Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {githubConnectorResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-slate-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+            <p className="text-sm font-black text-cyan-100">
+              GitHub connector rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-cyan-50">
+              GitHub actions must remain read/draft by default. Direct push, merge, production release,
+              deployment, secret changes, and destructive repo actions require explicit approval and audit evidence.
             </p>
           </div>
         </div>
