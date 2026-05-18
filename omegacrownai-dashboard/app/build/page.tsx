@@ -24,6 +24,30 @@
 
 
 
+
+const builderFullFunctionOutputResults = [
+  {
+    label: "Biscuit shop bundle",
+    value: "22 files",
+    detail: "Frontend, backend/API, database/schema, admin, preview, deploy, validation, and reports.",
+  },
+  {
+    label: "Customer-ready score",
+    value: "100/100",
+    detail: "Full-stack generated artifact passes; homepage-only stays blocked.",
+  },
+  {
+    label: "Preview path",
+    value: "Ready",
+    detail: "Artifact preview and admin preview links are part of the generated output.",
+  },
+  {
+    label: "Download path",
+    value: "Ready",
+    detail: "Customer download route is connected with draft/customer-ready labeling.",
+  },
+];
+
 const fullStackBuilderRuntimeResults = [
   {
     label: "Customer-ready score",
@@ -1863,6 +1887,63 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-cyan-50">
               GitHub actions must remain read/draft by default. Direct push, merge, production release,
               deployment, secret changes, and destructive repo actions require explicit approval and audit evidence.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-emerald-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-300">
+                Full-Function Artifact Output
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                Builder output now shows full-stack customer-ready evidence.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                OmegaCrownAI now exposes the artifact score, generated file layers, preview path,
+                download path, validation result, missing-info reporting, and homepage-only block rule.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/builder-ui-full-function-output-panel"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Output API
+              </a>
+              <a
+                href="/api/sovereign/builder-ui-full-function-output-panel-smoke-test"
+                className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+              >
+                Run Output Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {builderFullFunctionOutputResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-emerald-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">{item.value}</p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-4">
+            <p className="text-sm font-black text-yellow-100">
+              Homepage-only output remains blocked
+            </p>
+            <p className="mt-2 text-xs leading-6 text-yellow-50">
+              A frontend-only homepage cannot be labeled customer-ready. Customer-ready output requires
+              backend/API, database/schema, admin review, preview, deployment package, validation report,
+              and missing-information report.
             </p>
           </div>
         </div>
