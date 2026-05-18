@@ -23,6 +23,30 @@
 
 
 
+
+const fullStackBuilderRuntimeResults = [
+  {
+    label: "Customer-ready score",
+    value: "90+",
+    detail: "No artifact should be called customer-ready below 90 or with missing required layers.",
+  },
+  {
+    label: "Required layers",
+    value: "8",
+    detail: "Frontend, backend, data model, admin/review, preview, export, validation, deployment guide.",
+  },
+  {
+    label: "Current correction",
+    value: "Active",
+    detail: "OmegaCrownAI must stop front-page-only website builds.",
+  },
+  {
+    label: "Truth label",
+    value: "Not complete yet",
+    detail: "The builder runtime is being upgraded into a real full-stack artifact generator.",
+  },
+];
+
 const enterpriseFoundationCompletionResults = [
   {
     label: "Foundation layers",
@@ -1839,6 +1863,68 @@ export default function BuildPage() {
             <p className="mt-2 text-xs leading-6 text-cyan-50">
               GitHub actions must remain read/draft by default. Direct push, merge, production release,
               deployment, secret changes, and destructive repo actions require explicit approval and audit evidence.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-red-400/20 bg-gradient-to-br from-red-500/15 via-slate-950 to-cyan-500/10 p-6 shadow-2xl shadow-red-950/20">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-red-300">
+                Full-Stack Builder Runtime Correction
+              </p>
+              <h2 className="mt-2 text-4xl font-black text-white">
+                OmegaCrownAI is not fully complete yet — the customer artifact builder is being upgraded now.
+              </h2>
+              <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+                The system must not claim full completion while website/app outputs are still missing backend,
+                database/data model, admin review, preview, export, and validation. Phase 250 starts the real
+                full-stack builder runtime standard.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/api/sovereign/full-stack-builder-runtime"
+                className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm font-black text-red-100 hover:bg-red-500/20"
+              >
+                Open Runtime API
+              </a>
+              <a
+                href="/api/sovereign/full-stack-builder-runtime-smoke-test"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Run Runtime Smoke Test
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            {fullStackBuilderRuntimeResults.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-black/30 p-5"
+              >
+                <p className="text-xs font-black uppercase tracking-wide text-red-300">
+                  {item.label}
+                </p>
+                <p className="mt-2 text-xl font-black text-white">
+                  {item.value}
+                </p>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
+            <p className="text-sm font-black text-cyan-100">
+              Customer-ready artifact rule
+            </p>
+            <p className="mt-2 text-xs leading-6 text-cyan-50">
+              Homepage-only output is not enough. A customer-ready website/app must include frontend,
+              backend/API, database or data model, admin/review path, preview, downloadable export,
+              README/deployment guide, validation report, and missing-information report.
             </p>
           </div>
         </div>
