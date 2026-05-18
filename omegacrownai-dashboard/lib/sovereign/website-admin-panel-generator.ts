@@ -118,6 +118,7 @@ export function getWebsiteAdminPanelGenerator() {
     ],
 
     safeAdminRules: [
+      "Public users must not access admin submissions.",
       "Admin panel should not expose secrets.",
       "Admin panel should not expose raw tokens, API keys, passwords, authorization headers, or private keys.",
       "Admin data should be scoped to the generated website/app project.",
