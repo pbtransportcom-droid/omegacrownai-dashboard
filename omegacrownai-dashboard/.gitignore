@@ -31,3 +31,6 @@ out
 private/
 public/browser-artifacts/
 secrets/
+
+# Runtime generated project uploads
+/public/uploads/projects/
