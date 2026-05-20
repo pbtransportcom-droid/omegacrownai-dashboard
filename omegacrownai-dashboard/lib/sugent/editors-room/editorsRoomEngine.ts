@@ -277,7 +277,7 @@ export async function runEditorsRoomRound({
 }: {
   sessionId: string;
 }) {
-  const session = await prisma.editorsRoomSession.findUniqueOrThrow({
+  const session = await prisma.editorsRoomSession.findUnique({
     where: { id: sessionId },
     include: {
       rounds: {
@@ -287,6 +287,13 @@ export async function runEditorsRoomRound({
     },
   });
 
+if (!session) {
+  return {
+    ok: false,
+    success: false,
+    reason: "EDITORS_ROOM_SESSION_NOT_FOUND",
+  };
+}
   const project = await prisma.videoProject.findFirstOrThrow({
     where: {
       id: session.projectId,
