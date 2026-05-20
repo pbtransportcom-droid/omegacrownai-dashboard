@@ -290,7 +290,7 @@ export async function runSoundRoomRound({
 }: {
   sessionId: string;
 }) {
-  const session = await prisma.soundDesignRoomSession.findUniqueOrThrow({
+  const session = await prisma.soundDesignRoomSession.findUnique({
     where: { id: sessionId },
     include: {
       rounds: {
@@ -300,6 +300,13 @@ export async function runSoundRoomRound({
     },
   });
 
+if (!session) {
+  return {
+    ok: false,
+    success: false,
+    reason: "SOUND_ROOM_SESSION_NOT_FOUND",
+  };
+} 
   let snapshot: any = {
     project: {
       id: session.projectId,
