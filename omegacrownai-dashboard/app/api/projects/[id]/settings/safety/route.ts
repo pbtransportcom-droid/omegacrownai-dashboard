@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { AuditLogger } from "@/lib/sugent/core/auditLogger";
+import { getProjectSafetySettings } from "@/lib/sugent/brain/safetySettings";
 
 export async function GET(
   _req: Request,
@@ -8,13 +9,17 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const settings = await prisma.projectSafetySettings.upsert({
-    where: { projectId: id },
-    update: {},
-    create: {
-      projectId: id,
-    },
-  });
+  const settings = await getProjectSafetySettings(id);
+
+  if (!settings) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Project not found",
+      },
+      { status: 404 }
+    );
+  }
 
   return NextResponse.json({
     ok: true,
@@ -29,6 +34,18 @@ export async function POST(
   const { id } = await params;
   const form = await req.formData();
 
+  const existingSettings = await getProjectSafetySettings(id);
+
+  if (!existingSettings) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Project not found",
+      },
+      { status: 404 }
+    );
+  }
+
   const tradingMaxLeverage = Math.max(
     1,
     Math.min(100, Number(form.get("tradingMaxLeverage") || 5))
@@ -38,16 +55,9 @@ export async function POST(
   const websiteAllowCustomScripts = form.get("websiteAllowCustomScripts") === "on";
   const requireReviewBeforePublish = form.get("requireReviewBeforePublish") === "on";
 
-  const settings = await prisma.projectSafetySettings.upsert({
+  const settings = await prisma.projectSafetySettings.update({
     where: { projectId: id },
-    update: {
-      tradingMaxLeverage,
-      automationAllowExternal,
-      websiteAllowCustomScripts,
-      requireReviewBeforePublish,
-    },
-    create: {
-      projectId: id,
+    data: {
       tradingMaxLeverage,
       automationAllowExternal,
       websiteAllowCustomScripts,

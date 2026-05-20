@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { getProjectSafetySettings } from "@/lib/sugent/brain/safetySettings";
+
 
 export default async function SafetySettingsPage({
   params,
@@ -12,15 +14,33 @@ export default async function SafetySettingsPage({
     where: { id },
   });
 
-  const settings = await prisma.projectSafetySettings.upsert({
-    where: { projectId: id },
-    update: {},
-    create: {
-      projectId: id,
-    },
-  });
 
+
+  if (!project) {
+    return (
+      <main className="p-10 text-white">
+        <h1 className="text-3xl font-black">Project Not Found</h1>
+        <p className="mt-4 text-sm text-slate-400">
+          The requested project does not exist or was removed.
+        </p>
+      </main>
+    );
+  }
+
+const settings = await getProjectSafetySettings(id);
+
+if (!settings) {
   return (
+    <main className="p-10 text-white">
+      <h1 className="text-3xl font-black">Project Not Found</h1>
+      <p className="mt-4 text-sm text-slate-400">
+        Safety settings unavailable for this project.
+      </p>
+    </main>
+  );
+}
+
+ return (
     <main className="space-y-6">
       <div className="rounded-3xl border border-border bg-panel/70 p-6">
         <Link href={`/projects/${id}`} className="text-sm text-cyan-300 hover:underline">
@@ -32,7 +52,7 @@ export default async function SafetySettingsPage({
         </p>
 
         <h1 className="mt-3 text-4xl font-black text-white">
-          Safety Settings · {project?.name || "Project"}
+          Safety Settings · {project.name}
         </h1>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
