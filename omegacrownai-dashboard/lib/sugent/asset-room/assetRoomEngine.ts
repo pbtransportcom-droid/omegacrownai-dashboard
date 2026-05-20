@@ -343,7 +343,7 @@ export async function runAssetRoomRound({
 }: {
   sessionId: string;
 }) {
-  const session = await prisma.assetGeneratorRoomSession.findUniqueOrThrow({
+  const session = await prisma.assetGeneratorRoomSession.findUnique({
     where: { id: sessionId },
     include: {
       rounds: {
@@ -352,6 +352,15 @@ export async function runAssetRoomRound({
       },
     },
   });
+
+
+if (!session) {
+  return {
+    ok: false,
+    success: false,
+    reason: "ASSET_ROOM_SESSION_NOT_FOUND",
+  };
+}
 
   let source: any = {
     project: {
