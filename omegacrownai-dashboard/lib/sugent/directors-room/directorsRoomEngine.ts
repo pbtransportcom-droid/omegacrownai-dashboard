@@ -188,7 +188,7 @@ export async function runDirectorsRoomRound({
   draft?: string | null;
   roundIndex?: number | null;
 }) {
-  const session = await prisma.directorsRoomSession.findUniqueOrThrow({
+const session = await prisma.directorsRoomSession.findUnique({
     where: { id: sessionId },
     include: {
       rounds: {
@@ -198,6 +198,13 @@ export async function runDirectorsRoomRound({
     },
   });
 
+if (!session) {
+  return {
+    ok: false,
+    success: false,
+    reason: "DIRECTORS_ROOM_SESSION_NOT_FOUND",
+  };
+}
   const effectiveDraft =
     draft ||
     session.rounds[0]?.nextDraft ||
