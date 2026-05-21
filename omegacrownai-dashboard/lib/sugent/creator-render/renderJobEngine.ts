@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+JJJimport { prisma } from "@/lib/db";
 
 export async function createCreatorRenderJob({
   companyId,
@@ -80,8 +80,16 @@ export async function updateCreatorRenderJob({
   outputJson?: any;
   error?: string | null;
 }) {
-  const existing = await prisma.creatorRenderJob.findUniqueOrThrow({
-    where: { id: jobId },
+  const existing = await prisma.creatorRenderJob.findUnique({ 
+
+if (!job) {
+  return {
+    ok: false,
+    success: false,
+    reason: "RENDER_JOB_NOT_FOUND",
+  };
+}  
+ where: { id: jobId },
   });
 
   const nextProgress =
