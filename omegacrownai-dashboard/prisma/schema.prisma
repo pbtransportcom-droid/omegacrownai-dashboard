@@ -4772,3 +4772,66 @@ model PremiumProviderUsage {
   @@index([mode])
   @@index([period])
 }
+
+model SovereignAgent {
+  id           String   @id @default(cuid())
+  type         String
+  name         String
+  status       String   @default("idle")
+  capabilities Json
+  state        Json?
+  bindings     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks  SovereignTask[]
+  events SovereignRuntimeEvent[]
+}
+
+model SovereignWorkflow {
+  id        String   @id @default(cuid())
+  name      String
+  version   String   @default("1.0.0")
+  status    String   @default("pending")
+  graph     Json
+  ownerType String?
+  ownerId   String?
+  history   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks  SovereignTask[]
+  events SovereignRuntimeEvent[]
+}
+
+model SovereignTask {
+  id         String   @id @default(cuid())
+  source     String
+  context    Json
+  status     String   @default("pending")
+  sla        Json?
+  assignedTo String?
+  workflowId String?
+  agentId    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  workflow SovereignWorkflow?      @relation(fields: [workflowId], references: [id])
+  agent    SovereignAgent?         @relation(fields: [agentId], references: [id])
+  events   SovereignRuntimeEvent[]
+}
+
+model SovereignRuntimeEvent {
+  id         String   @id @default(cuid())
+  type       String
+  payload    Json
+  scope      String?
+  workflowId String?
+  taskId     String?
+  agentId    String?
+  createdAt  DateTime @default(now())
+
+  workflow SovereignWorkflow? @relation(fields: [workflowId], references: [id])
+  task     SovereignTask?     @relation(fields: [taskId], references: [id])
+  agent    SovereignAgent?    @relation(fields: [agentId], references: [id])
+}
