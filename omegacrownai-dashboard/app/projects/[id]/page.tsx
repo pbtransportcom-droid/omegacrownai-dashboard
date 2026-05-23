@@ -61,8 +61,47 @@ export default async function ProjectPage({
     include: { owner: true },
   });
 
+  if (!project && id === "starter") {
+    const starterProject = {
+      id: "starter",
+      name: "OmegaCrownAI Starter Workspace",
+      owner: { email: session.user.email },
+      createdAt: new Date().toISOString(),
+    };
+
+    return (
+      <ProjectWorkspace
+        project={starterProject}
+        initialPrompt={query.prompt || ""}
+      />
+    );
+  }
+
   if (!project) {
-    return <div className="text-red-500">Project not found</div>;
+    return (
+      <main className="min-h-screen bg-black p-10 text-white">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-950 p-8">
+          <h1 className="text-3xl font-bold">Workspace not initialized</h1>
+
+          <p className="mt-4 text-zinc-400">
+            This project record does not exist yet. Start from the create page
+            or use the starter workspace.
+          </p>
+
+          <div className="mt-6 rounded-xl bg-zinc-900 p-4">
+            <div className="text-sm text-zinc-500">Requested Project ID</div>
+            <div className="mt-1 font-mono text-lg">{id}</div>
+          </div>
+
+          <a
+            href="/projects/starter"
+            className="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500"
+          >
+            Open Starter Workspace
+          </a>
+        </div>
+      </main>
+    );
   }
 
   if (project.owner.email !== session.user.email) {
