@@ -51,13 +51,32 @@ function summarizeAnalysis(analysis: any) {
   }
 
   const profile = analysis.profile || {};
+
+  const profileName =
+    profile.name ||
+    analysis.companyName ||
+    analysis.assetName ||
+    analysis.symbol ||
+    "Market Asset";
+
+  const profileSector =
+    profile.sector ||
+    analysis.sector ||
+    (analysis.marketType === "crypto"
+      ? "Cryptocurrency"
+      : "Financial Asset");
+
+  const profileSummary =
+    profile.summary ||
+    profile.work ||
+    `${analysis.symbol} currently shows a ${analysis.signal} setup with ${safeNumber(analysis.confidence, 0)}% confidence and ${safeText(analysis.risk)} risk conditions.`;
   const power = analysis.powerSummary || {};
   const plan = analysis.tradePlan || {};
 
   return [
     `Symbol: ${safeText(analysis.symbol)}`,
-    `Name: ${safeText(profile.name, "Unknown")}`,
-    `Sector: ${safeText(profile.sector, "Unknown")}`,
+    `Name: ${safeText(profileName)}`,
+    `Sector: ${safeText(profileSector)}`,
     `Price: ${safeNumber(analysis.price, 6)}`,
     `Signal: ${safeText(analysis.signal)}`,
     `Confidence: ${safeNumber(analysis.confidence, 0)}%`,
@@ -73,7 +92,7 @@ function summarizeAnalysis(analysis: any) {
     `Take Profit: ${Array.isArray(plan.takeProfit) ? plan.takeProfit.join(" / ") : "N/A"}`,
     `Support: ${safeText(plan.support)}`,
     `Resistance: ${safeText(plan.resistance)}`,
-    `Summary: ${safeText(profile.summary, profile.work || "")}`,
+    `Summary: ${safeText(profileSummary)}`,
     `Risk Note: ${safeText(profile.riskNote, "Always manage risk.")}`,
   ].join("\n");
 }

@@ -1302,14 +1302,20 @@ export default function TradeClient() {
         }
       }
 
-      const res = await fetch("/api/trading/chat", {
+           const res = await fetch("/api/ai/trading/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           question: questionToAsk,
-          rankings: (rankResult as any)?.rankings || (rankResult as any)?.ranked || (rankResult as any)?.items || [],
+          message: questionToAsk,
+          analysis: result,
+          ranking:
+            (rankResult as any)?.ranked ||
+            (rankResult as any)?.rankings ||
+            (rankResult as any)?.items ||
+            [],
           marketType,
           timeframe,
         }),
