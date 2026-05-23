@@ -248,7 +248,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const question = String(body.question || "").trim();
+    const question = String(
+  body.question ||
+  body.message ||
+  ""
+).trim();
+
     const ranking = Array.isArray(body.ranking) ? body.ranking : [];
     const analysis = body.analysis || null;
 
