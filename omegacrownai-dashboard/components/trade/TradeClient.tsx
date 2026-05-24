@@ -524,6 +524,7 @@ export default function TradeClient() {
   const [rankSymbols, setRankSymbols] = useState("BTC, ETH, SOL, DOGE, AAPL, TSLA, NVDA, POET");
   const [chatQuestion, setChatQuestion] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+const [analysisStage, setAnalysisStage] = useState("");
   const [chatAnswer, setChatAnswer] = useState("");
   const [watchlistStatus, setWatchlistStatus] = useState("");
   const [alertConfidence, setAlertConfidence] = useState("75");
@@ -1222,6 +1223,20 @@ export default function TradeClient() {
     setChatLoading(true);
     setChatAnswer("");
 
+    setAnalysisStage("Scanning market structure...");
+
+    setTimeout(() => {
+      setAnalysisStage("Evaluating institutional pressure...");
+    }, 700);
+
+    setTimeout(() => {
+      setAnalysisStage("Comparing momentum conditions...");
+    }, 1400);
+
+    setTimeout(() => {
+      setAnalysisStage("Generating consensus AI verdict...");
+    }, 2200);
+
     try {
       const needsDiscovery =
         /under\s+\$?\d+|below\s+\$?\d+|less than\s+\$?\d+|cheap|penny|find|search|ai stock|ai stocks|artificial intelligence/i.test(
@@ -1331,6 +1346,7 @@ export default function TradeClient() {
     } catch (error: any) {
       setChatAnswer(error?.message || "Trading chat failed.");
     } finally {
+      setAnalysisStage("");
       setChatLoading(false);
     }
   }
@@ -1969,6 +1985,34 @@ export default function TradeClient() {
               LIVE MARKET READING
             </div>
           </div>
+
+          {chatLoading && (
+            <div className="mt-5 overflow-hidden rounded-3xl border border-cyan-500/20 bg-black/40 p-5">
+              <div className="flex items-center gap-3">
+                <div className="h-3 w-3 animate-pulse rounded-full bg-cyan-400" />
+
+                <div className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">
+                  Sovereign AI Processing
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <div className="rounded-2xl border border-white/5 bg-[#050816] p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+
+                    <span className="text-sm text-slate-200">
+                      {analysisStage || "Initializing AI analysis..."}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-[#050816] p-4 text-xs leading-7 text-slate-500">
+                  Momentum Agent · Risk Agent · Macro Agent · Smart Money Agent · Execution Agent
+                </div>
+              </div>
+            </div>
+          )}
 
           {chatAnswer ? (
             <div className="mt-6 rounded-3xl border border-cyan-500/20 bg-black/40 p-5">
