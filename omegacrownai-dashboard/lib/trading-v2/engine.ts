@@ -388,6 +388,14 @@ export async function analyzeSymbolV2({
   const rsi14 = rsi(closes, 14);
 
   const momentum = ((last - first) / first) * 100;
+
+  const previousClose =
+    candles.length >= 2 ? candles[candles.length - 2].close : last;
+
+  const latestChangePercent =
+    previousClose && Number.isFinite(previousClose) && previousClose !== 0
+      ? ((last - previousClose) / previousClose) * 100
+      : 0;
   const volumeAvg = volumes.reduce((a: number, b: number) => a + b, 0) / Math.max(1, volumes.length);
   const lastVolume = volumes[volumes.length - 1] || 0;
   const volumePower = volumeAvg ? (lastVolume / volumeAvg) * 100 : 0;
@@ -438,11 +446,25 @@ export async function analyzeSymbolV2({
 
   score = Math.max(5, Math.min(98, Math.round(score)));
 
-  let signal = "WEAK / AVOID";
-  if (score >= 82) signal = "BUY WATCH";
-  else if (score >= 68) signal = "ACCUMULATE WATCH";
-  else if (score >= 55) signal = "WATCH";
-  else if (score >= 45) signal = "NEUTRAL";
+  let signal = "AVOID";
+  let action = "WAIT";
+
+  if (score >= 88) {
+    signal = "STRONG BUY";
+    action = "BUY NOW";
+  } else if (score >= 78) {
+    signal = "BUY WATCH";
+    action = "ENTRY WATCH";
+  } else if (score >= 65) {
+    signal = "ACCUMULATE";
+    action = "ACCUMULATE SLOWLY";
+  } else if (score >= 55) {
+    signal = "WATCH";
+    action = "WAIT";
+  } else if (score >= 45) {
+    signal = "NEUTRAL";
+    action = "CAUTION";
+  }
 
   const risk =
     rsi14 && rsi14 > 72 ? "high" :
@@ -484,7 +506,7 @@ export async function analyzeSymbolV2({
     symbol: yahooSymbol,
     profile: profileFor(yahooSymbol, marketType),
     price: round(last, 6),
-    changePercent: round(momentum, 2),
+    changePercent: round(latestChangePercent, 2),
     candles,
     indicators: {
       sma20: round(sma20, 6),
@@ -517,6 +539,7 @@ export async function analyzeSymbolV2({
       resistance: round(resistance, 6),
     },
     signal,
+    action,
     confidence: score,
     risk,
     verdict,
