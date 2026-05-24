@@ -246,21 +246,26 @@ ${top
 The strongest candidate is usually the one with higher confidence, healthier risk, positive trend, and stronger buyer power.`;
   }
 
-  return `King Trading AI Bot analysis:
+  return `AI MARKET INTELLIGENCE REPORT
 
 ${activeSummary}
 
-Simple interpretation:
-The scanner combines trend, RSI, moving averages, momentum, volume power, buy/sell pressure, support, resistance, and risk. A high confidence score means the setup is stronger, but it is not a guarantee.
+Institutional Perspective:
+This setup should be read as a probability-based market condition, not a guaranteed trade. The signal reflects trend quality, buyer/seller pressure, momentum, volatility, and risk alignment.
 
-Ask me things like:
-- Why is this signal strong?
-- What does the power mean?
-- What is the safest entry?
-- Which ranked symbol should I avoid?
-- Compare BTC and LINK
+Market Structure:
+Buyers and sellers are competing around the current price zone. A stronger bullish case requires price holding above support with improving volume and confirmation above resistance. A weaker case develops if price loses support or buyer power fades.
 
-Educational only — not financial advice.`;
+Momentum Conditions:
+Confidence shows the scanner's current strength rating. High confidence suggests stronger alignment, but confirmation from price action, volume, RSI, and support/resistance behavior is still required.
+
+Strategic Outlook:
+- Aggressive traders may watch the entry zone for early confirmation.
+- Conservative traders should wait for breakout confirmation or a clean support retest.
+- Risk-first traders should focus on stop-loss discipline and avoid oversized positions.
+
+AI Verdict:
+The setup has opportunity potential, but the final decision depends on confirmation, risk tolerance, and market conditions. Treat this as an intelligence report, not financial advice.`;
 }
 
 export async function POST(req: Request) {

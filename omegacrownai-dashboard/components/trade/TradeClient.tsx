@@ -1776,60 +1776,85 @@ export default function TradeClient() {
             </div>
           </div>
 
-          <div className="mt-5 flex flex-col gap-3 md:flex-row">
-          <input
-            className="h-14 w-full rounded-2xl border border-cyan-500/20 bg-black/40 px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
-            value={chatQuestion}
-            onChange={(e) => setChatQuestion(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") askTradingChat();
-            }}
-            placeholder="Example: Compare DOGE vs ETH"
-          />
+          {chatAnswer ? (
+            <div className="mt-6 rounded-3xl border border-cyan-500/20 bg-black/40 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+                    AI Trading Verdict
+                  </div>
+                  <h3 className="mt-2 text-xl font-black text-white">
+                    Institutional Market Intelligence
+                  </h3>
+                </div>
 
-          <button
-            onClick={() => askTradingChat()}
-            disabled={chatLoading}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-          >
-            {chatLoading ? "Analyzing..." : "Run Analysis"}
-          </button>
-        </div>
+                <div className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
+                  LIVE AI REPORT
+                </div>
+              </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-          {[
-            "What is the best ranked setup right now?",
-            "Which symbol should I avoid?",
-            "Compare DOGE vs ETH",
-            "Give me the safest entry plan",
-          ].map((q) => (
-            <button
-              key={q}
-              onClick={() => {
-                setChatQuestion(q);
-                askTradingChat(q);
-              }}
-              className="rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/10"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        {chatAnswer && (
-          <div className="mt-5 rounded-3xl border border-cyan-500/20 bg-black/40 p-5">
-            <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
-              AI Trading Verdict
+              <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/5 bg-[#050816] p-5 font-mono text-sm leading-8 text-slate-200">
+                {chatAnswer}
+              </div>
             </div>
-            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/5 bg-[#050816] p-4 font-mono text-sm leading-8 text-slate-200">
-              {chatAnswer}
+          ) : (
+            <div className="mt-6 rounded-3xl border border-cyan-500/10 bg-black/25 p-5">
+              <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+                AI Market Brief
+              </div>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                Ask King Trading System for a full institutional-style market report.
+                The response will include signal quality, risk structure, buyer/seller pressure,
+                strategic timing, confidence interpretation, and AI verdict.
+              </p>
             </div>
+          )}
+
+          <div className="mt-5 rounded-3xl border border-cyan-500/20 bg-black/50 p-4 shadow-inner shadow-cyan-500/5">
+            <div className="flex flex-col gap-3 md:flex-row">
+              <input
+                className="h-14 w-full rounded-2xl border border-cyan-500/20 bg-black/50 px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
+                value={chatQuestion}
+                onChange={(e) => setChatQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") askTradingChat();
+                }}
+                placeholder="Ask King Trading System anything about BTC, ETH, NVDA, risk, entries, or momentum..."
+              />
+
+              <button
+                onClick={() => askTradingChat()}
+                disabled={chatLoading}
+                className="h-14 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 text-sm font-black text-white shadow-lg shadow-cyan-500/20 disabled:opacity-60"
+              >
+                {chatLoading ? "Analyzing..." : "Ask AI"}
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                "Give me the best trade setup now",
+                "Should I buy BTC now?",
+                "Compare ETH vs SOL like a hedge fund analyst",
+                "Give me the safest entry plan",
+              ].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => {
+                    setChatQuestion(q);
+                    askTradingChat(q);
+                  }}
+                  className="rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/10"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-4 text-xs text-slate-500">
+              Educational market analysis only. Not financial advice. Signals are not guarantees.
+            </p>
           </div>
-        )}
-
-          <p className="mt-4 text-xs text-slate-500">
-            Educational market analysis only. Not financial advice. Signals are not guarantees.
-          </p>
         </div>
       </div>
 
