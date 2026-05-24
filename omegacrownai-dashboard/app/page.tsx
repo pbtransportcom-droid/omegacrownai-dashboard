@@ -22,6 +22,36 @@ const buildPaths = [
     href: "/trade" as const,
     detail: "Open King Trading System tools for market intelligence and strategy workflows.",
   },
+
+  {
+    title: "Studio AI",
+    href: "/studio" as const,
+    detail: "Launch the sovereign AI media operating system for cinematic productions, podcasts, music, and marketing campaigns.",
+  },
+
+  {
+    title: "Video AI",
+    href: "/create?type=video" as const,
+    detail: "Generate cinematic videos, AI commercials, trailers, reels, and social campaigns.",
+  },
+
+  {
+    title: "Podcast AI",
+    href: "/create?type=podcast" as const,
+    detail: "Create AI podcasts, narration, interviews, and multi-speaker productions.",
+  },
+
+  {
+    title: "Music AI",
+    href: "/create?type=music" as const,
+    detail: "Generate cinematic soundtracks, branded audio, intros, and production music.",
+  },
+
+  {
+    title: "Marketing AI",
+    href: "/create?type=marketing" as const,
+    detail: "Build AI-powered marketing campaigns, ads, funnels, and social media systems.",
+  },
 ];
 
 const workflow = ["Choose what to build", "Generate the first version", "Review and improve", "Launch or export"];
@@ -37,11 +67,11 @@ export default function HomePage() {
         </p>
 
         <h1 className="mt-5 max-w-5xl text-5xl font-black leading-tight md:text-7xl">
-          Build, automate, trade, and launch with one AI company OS.
+          Build, create media, automate, trade, and launch with one sovereign AI operating system.
         </h1>
 
         <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300">
-          Start with a website, app, automation, or trading workspace. OmegaCrownAI guides the build from idea to production-ready output without exposing the complexity upfront.
+          OmegaCrownAI unifies website generation, AI media production, automation, trading intelligence, podcast systems, cinematic video generation, music production, marketing campaigns, and sovereign AI workspaces inside one production-grade operating system.
         </p>
 
         <div className="mt-9 flex flex-wrap justify-center gap-3">
@@ -54,7 +84,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-8 md:grid-cols-4">
+      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-8 md:grid-cols-2 xl:grid-cols-4">
         {buildPaths.map((item) => (
           <Link
             key={item.title}
@@ -75,7 +105,7 @@ export default function HomePage() {
           <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
             Simple workflow
           </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {workflow.map((step, index) => (
               <div key={step} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
                 <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
