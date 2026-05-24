@@ -1754,6 +1754,85 @@ export default function TradeClient() {
         )}
       </div>
 
+
+      <div className="relative overflow-hidden rounded-3xl border border-purple-500/20 bg-gradient-to-br from-[#140b24] via-[#0b1220] to-black p-6 shadow-2xl shadow-purple-500/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_35%)]" />
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-[0.3em] text-purple-300">
+                Sovereign AI Market Brief
+              </div>
+
+              <h2 className="mt-2 text-2xl font-black text-white">
+                Live Institutional Intelligence
+              </h2>
+            </div>
+
+            <div className="rounded-full border border-purple-400/20 bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-300">
+              LIVE AI
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                BTC Structure
+              </div>
+
+              <div className="mt-3 text-sm leading-7 text-slate-200">
+                Bitcoin momentum remains neutral-to-bullish while buyers defend higher support zones.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                Smart Money Bias
+              </div>
+
+              <div className="mt-3 text-sm leading-7 text-slate-200">
+                Institutional flow appears selective with stronger interest in AI and infrastructure assets.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                Risk Environment
+              </div>
+
+              <div className="mt-3 text-sm leading-7 text-slate-200">
+                Volatility conditions remain elevated. Aggressive entries require disciplined risk management.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                AI Conviction
+              </div>
+
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-slate-400">
+                  <span>Bullish Bias</span>
+                  <span>78%</span>
+                </div>
+
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-500"
+                    style={{ width: "78%" }}
+                  />
+                </div>
+
+                <p className="mt-4 text-sm leading-7 text-slate-200">
+                  AI models currently favor selective bullish continuation setups over defensive positioning.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-950 via-slate-950 to-black p-6 shadow-2xl shadow-cyan-500/10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_35%)]" />
 
