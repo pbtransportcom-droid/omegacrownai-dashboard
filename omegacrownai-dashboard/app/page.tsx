@@ -31,7 +31,7 @@ const buildPaths = [
 
   {
     title: "Video AI",
-    href: "/create?type=video" as const,
+    href: "/video-studio" as const,
     detail: "Generate cinematic videos, AI commercials, trailers, reels, and social campaigns.",
   },
 

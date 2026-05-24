@@ -4,7 +4,7 @@ export default function StudioPage() {
       title: "Video Generator",
       description:
         "Create cinematic AI videos, commercials, reels, trailers, and social campaigns.",
-      href: "/create?type=video",
+      href: "/video-studio",
     },
     {
       title: "Podcast Builder",
@@ -46,7 +46,7 @@ export default function StudioPage() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <a
-              href="/create?type=video"
+              href="/video-studio"
               className="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-black hover:bg-cyan-300"
             >
               Create Video Project
