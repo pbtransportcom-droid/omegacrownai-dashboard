@@ -40,6 +40,13 @@ export default function RenderQueuePage() {
                 Sovereign Render Queue
               </h1>
 
+              <a
+                href="/live-runtime"
+                className="mt-5 inline-flex rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+              >
+                Open Live Runtime
+              </a>
+
               <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-300">
                 Monitor cinematic renders, AI media execution, podcast generation,
                 music processing, and sovereign production orchestration across the

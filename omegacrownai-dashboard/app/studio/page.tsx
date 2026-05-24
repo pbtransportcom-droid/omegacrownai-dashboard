@@ -58,6 +58,13 @@ export default function StudioPage() {
             >
               Open Asset Library
             </a>
+
+            <a
+              href="/live-runtime"
+              className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-6 py-4 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
+            >
+              Live Runtime
+            </a>
           </div>
         </div>
 

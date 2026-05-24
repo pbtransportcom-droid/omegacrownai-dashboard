@@ -81,6 +81,9 @@ export default function HomePage() {
           <Link href="/projects" className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20">
             Open Dashboard
           </Link>
+          <Link href="/live-runtime" className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-6 py-3 text-sm font-black text-emerald-100 hover:bg-emerald-500/20">
+            Live Runtime
+          </Link>
         </div>
       </section>
 
