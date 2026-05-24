@@ -1845,6 +1845,17 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-3 text-sm leading-7 text-slate-200">
                   Detecting improving continuation structure with selective bullish pressure.
                 </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] text-emerald-300">
+                    <span>Confidence</span>
+                    <span>82%</span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[82%] rounded-full bg-emerald-400" />
+                  </div>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
@@ -1854,6 +1865,17 @@ const [analysisStage, setAnalysisStage] = useState("");
 
                 <div className="mt-3 text-sm leading-7 text-slate-200">
                   Elevated volatility conditions detected. Aggressive positioning not advised.
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] text-yellow-300">
+                    <span>Risk Level</span>
+                    <span>61%</span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[61%] rounded-full bg-yellow-400" />
+                  </div>
                 </div>
               </div>
 
@@ -1865,6 +1887,17 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-3 text-sm leading-7 text-slate-200">
                   Institutional accumulation appears selective rather than broad market aggressive.
                 </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] text-cyan-300">
+                    <span>Accumulation Score</span>
+                    <span>74%</span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[74%] rounded-full bg-cyan-400" />
+                  </div>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4">
@@ -1875,6 +1908,17 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-3 text-sm leading-7 text-slate-200">
                   Macro liquidity conditions remain supportive but fragile near resistance zones.
                 </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] text-purple-300">
+                    <span>Macro Stability</span>
+                    <span>69%</span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[69%] rounded-full bg-purple-400" />
+                  </div>
+                </div>
               </div>
 
               <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
@@ -1884,6 +1928,17 @@ const [analysisStage, setAnalysisStage] = useState("");
 
                 <div className="mt-3 text-sm leading-7 text-slate-200">
                   Best execution conditions currently favor staggered entries with disciplined stops.
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-[11px] text-red-300">
+                    <span>Execution Timing</span>
+                    <span>77%</span>
+                  </div>
+
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[77%] rounded-full bg-red-400" />
+                  </div>
                 </div>
               </div>
             </div>
