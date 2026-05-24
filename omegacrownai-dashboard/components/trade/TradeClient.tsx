@@ -1353,6 +1353,7 @@ const [analysisStage, setAnalysisStage] = useState("");
 
   const signal = result?.signal || "WAITING";
   const chartLevels = result?.tradePlan || buildFallbackLevels(result);
+
   const safeRanked = Array.isArray(rankResult?.ranked)
     ? rankResult.ranked.map((row: any, index: number) => ({
         ...normalizeRankRow(row),
@@ -1375,6 +1376,15 @@ const [analysisStage, setAnalysisStage] = useState("");
         },
       }))
     : [];
+
+  const aiBullishBias = Math.max(5, Math.min(98, Number(result?.confidence || safeRanked?.[0]?.confidence || 78)));
+  const aiRiskScore = result?.risk === "high" ? 82 : result?.risk === "medium" ? 61 : 38;
+  const aiMomentumScore = Math.max(5, Math.min(98, Number(result?.indicators?.longTermPower || result?.confidence || safeRanked?.[0]?.confidence || 82)));
+  const aiSmartMoneyScore = Math.max(5, Math.min(98, Number(result?.indicators?.buyPower || safeRanked?.[0]?.buyPower || 74)));
+  const aiMacroScore = Math.max(5, Math.min(98, Math.round((aiBullishBias + aiSmartMoneyScore) / 2)));
+  const aiExecutionScore = Math.max(5, Math.min(98, Math.round((aiMomentumScore + aiRiskScore) / 2)));
+  const aiConsensusBias = aiBullishBias >= 75 ? "{aiConsensusBias}" : aiBullishBias >= 55 ? "SELECTIVE WATCH" : "DEFENSIVE MODE";
+
 
   const topBuyWatch = safeRanked.find((x: any) => x.signal === "BUY WATCH");
   const bestConfidence = safeRanked[0];
@@ -1849,11 +1859,11 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-[11px] text-emerald-300">
                     <span>Confidence</span>
-                    <span>82%</span>
+                    <span>{aiMomentumScore}%</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[82%] rounded-full bg-emerald-400" />
+                    <div className="h-full rounded-full bg-emerald-400" style={{ width: `${aiMomentumScore}%` }} />
                   </div>
                 </div>
               </div>
@@ -1870,11 +1880,11 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-[11px] text-yellow-300">
                     <span>Risk Level</span>
-                    <span>61%</span>
+                    <span>{aiRiskScore}%</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[61%] rounded-full bg-yellow-400" />
+                    <div className="h-full rounded-full bg-yellow-400" style={{ width: `${aiRiskScore}%` }} />
                   </div>
                 </div>
               </div>
@@ -1891,11 +1901,11 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-[11px] text-cyan-300">
                     <span>Accumulation Score</span>
-                    <span>74%</span>
+                    <span>{aiSmartMoneyScore}%</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[74%] rounded-full bg-cyan-400" />
+                    <div className="h-full rounded-full bg-cyan-400" style={{ width: `${aiSmartMoneyScore}%` }} />
                   </div>
                 </div>
               </div>
@@ -1912,11 +1922,11 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-[11px] text-purple-300">
                     <span>Macro Stability</span>
-                    <span>69%</span>
+                    <span>{aiMacroScore}%</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[69%] rounded-full bg-purple-400" />
+                    <div className="h-full rounded-full bg-purple-400" style={{ width: `${aiMacroScore}%` }} />
                   </div>
                 </div>
               </div>
@@ -1933,11 +1943,11 @@ const [analysisStage, setAnalysisStage] = useState("");
                 <div className="mt-4">
                   <div className="flex items-center justify-between text-[11px] text-red-300">
                     <span>Execution Timing</span>
-                    <span>77%</span>
+                    <span>{aiExecutionScore}%</span>
                   </div>
 
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full w-[77%] rounded-full bg-red-400" />
+                    <div className="h-full rounded-full bg-red-400" style={{ width: `${aiExecutionScore}%` }} />
                   </div>
                 </div>
               </div>
@@ -2000,13 +2010,13 @@ const [analysisStage, setAnalysisStage] = useState("");
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>Bullish Bias</span>
-                  <span>78%</span>
+                  <span>{aiBullishBias}%</span>
                 </div>
 
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-500"
-                    style={{ width: "78%" }}
+                    style={{ width: `${aiBullishBias}%` }}
                   />
                 </div>
 
