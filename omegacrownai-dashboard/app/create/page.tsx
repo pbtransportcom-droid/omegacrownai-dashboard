@@ -141,7 +141,7 @@ export default async function CreatePage({
                   href={`/build/${type === "coding" ? "app" : type}/starter`}
                   className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300"
                 >
-                  Open Builder Workspace
+                  Build Now
                 </a>
                 <a
                   href="/projects"
@@ -153,14 +153,14 @@ export default async function CreatePage({
                   href="/build"
                   className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
                 >
-                  Back to Builder Hub
+                  Open Builder Hub
                 </a>
               </div>
             </form>
           </div>
 
           <div className="rounded-2xl border border-slate-700 bg-black/30 p-6">
-            <h2 className="text-2xl font-black">What happens next</h2>
+            <h2 className="text-2xl font-black">Create Now Workflow</h2>
             <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
               <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
                 <p className="font-black text-white">1. Choose builder type</p>
@@ -183,7 +183,7 @@ export default async function CreatePage({
             </div>
 
             <p className="mt-5 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-4 text-xs leading-6 text-yellow-100">
-              This page makes builder entry points visible and type-aware. Full project persistence can be expanded in the next phase if needed.
+              Choose a builder, confirm the project brief, then click Build Now to create and open the correct OmegaCrownAI workspace.
             </p>
           </div>
         </div>
