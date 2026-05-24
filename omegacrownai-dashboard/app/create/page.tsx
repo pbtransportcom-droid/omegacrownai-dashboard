@@ -49,6 +49,66 @@ const builderTypes = {
     defaultPrompt:
       "Start a coding workspace for generating, editing, reviewing, testing, and shipping production code.",
   },
+
+  studio: {
+    label: "Studio AI",
+    title: "Launch OmegaCrownAI Studio",
+    description:
+      "Create cinematic AI productions, commercial campaigns, branded media, and multi-format content pipelines.",
+    examples:
+      "Examples: AI commercial, product launch campaign, cinematic trailer, brand media system.",
+    accent: "pink",
+    defaultPrompt:
+      "Create a production-grade AI media studio workflow with scenes, assets, scripts, voiceover, rendering, and publishing.",
+  },
+
+  video: {
+    label: "Video Generator",
+    title: "Start a Video AI project",
+    description:
+      "Generate cinematic videos, trailers, reels, explainers, ads, and social video campaigns.",
+    examples:
+      "Examples: TikTok campaign, AI movie trailer, YouTube intro, promo advertisement.",
+    accent: "red",
+    defaultPrompt:
+      "Create a cinematic AI video generation workflow with storyboard scenes, transitions, voiceover, captions, and render pipeline.",
+  },
+
+  podcast: {
+    label: "Podcast Builder",
+    title: "Start a Podcast AI project",
+    description:
+      "Generate podcasts, interviews, AI talk shows, narration, and multi-speaker audio productions.",
+    examples:
+      "Examples: business podcast, AI narration, interview series, educational audio content.",
+    accent: "orange",
+    defaultPrompt:
+      "Create a podcast production workflow with scripting, voice generation, music beds, speaker flow, and publishing.",
+  },
+
+  music: {
+    label: "Music Generator",
+    title: "Start a Music AI project",
+    description:
+      "Generate music tracks, sound design, cinematic scores, intros, and branded audio experiences.",
+    examples:
+      "Examples: orchestral soundtrack, piano intro, cinematic score, background music.",
+    accent: "emerald",
+    defaultPrompt:
+      "Create an AI music production workflow with genre control, sound layers, mastering, and export pipeline.",
+  },
+
+  marketing: {
+    label: "Marketing Campaigns",
+    title: "Start a Marketing AI project",
+    description:
+      "Build AI marketing campaigns, ad systems, social media content, funnels, and promotional assets.",
+    examples:
+      "Examples: Facebook ad campaign, social content engine, AI ad generator, email funnel.",
+    accent: "violet",
+    defaultPrompt:
+      "Create a complete AI marketing campaign with ads, copywriting, visuals, audience targeting, and publishing workflow.",
+  },
 };
 
 function normalizeType(value?: string) {
