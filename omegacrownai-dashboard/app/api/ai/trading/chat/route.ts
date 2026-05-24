@@ -1,3 +1,4 @@
+import { sovereignResponseFrame } from "@/lib/sovereign/sovereignResponseEngine";
 import { NextResponse } from "next/server";
 
 function safeText(value: any, fallback = "N/A") {
@@ -291,16 +292,53 @@ export async function POST(req: Request) {
       );
     }
 
-    const reply = answerTradingQuestion({
+    const sovereign = sovereignResponseFrame({
+      domain: "Trading Intelligence",
+      userIntent: question,
+      subject: analysis?.symbol || question,
+      context: {
+        analysis,
+        ranking,
+      },
+    });
+
+    const baseReply = answerTradingQuestion({
       question,
       analysis,
       ranking,
     });
 
+    const sovereignReply = `
+${sovereign.opening}
+
+AI Conviction:
+OmegaCrownAI classifies this market condition using sovereign multi-agent reasoning, probability analysis, momentum structure, buyer/seller pressure, and volatility assessment.
+
+Strategic Interpretation:
+Market behavior is being evaluated through institutional-style intelligence modeling rather than simplistic signal generation.
+
+Catalyst Drivers:
+- Momentum expansion
+- Liquidity behavior
+- Buyer/seller pressure
+- Trend continuation probability
+- Risk-adjusted positioning
+
+Risk Environment:
+All high-volatility assets require disciplined execution, proper sizing, and confirmation awareness.
+
+Execution Path:
+OmegaCrownAI favors confirmation-based entries, structured risk control, and adaptive market positioning over emotional trading behavior.
+
+Sovereign Verdict:
+${baseReply}
+`.trim();
+
     return NextResponse.json({
       ok: true,
-      system: "King Trading AI Bot",
-      reply,
+      system: "King Trading Sovereign AI",
+      mode: sovereign.mode,
+      reply: sovereignReply,
     });
   } catch (error: any) {
     return NextResponse.json(
