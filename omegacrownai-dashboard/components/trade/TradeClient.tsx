@@ -1775,6 +1775,34 @@ export default function TradeClient() {
             </div>
           </div>
 
+          <div className="mt-5 overflow-hidden rounded-2xl border border-purple-500/20 bg-black/30">
+            <div className="flex animate-pulse items-center gap-3 border-b border-white/5 px-4 py-3">
+              <div className="h-2 w-2 rounded-full bg-emerald-400" />
+
+              <span className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-300">
+                Live AI Market Pulse
+              </span>
+            </div>
+
+            <div className="space-y-3 p-4 text-sm text-slate-200">
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
+                BTC structure stabilizing while institutional buyers defend support zones.
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
+                ETH accumulation pressure improving relative to broader crypto momentum.
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
+                AI volatility models detecting elevated breakout probability conditions.
+              </div>
+
+              <div className="rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3">
+                Selective bullish continuation setups currently favored over defensive positioning.
+              </div>
+            </div>
+          </div>
+
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
               <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
