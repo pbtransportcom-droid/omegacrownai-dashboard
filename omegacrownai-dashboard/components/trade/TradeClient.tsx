@@ -1495,7 +1495,7 @@ export default function TradeClient() {
           <button
             onClick={() => analyzeV2()}
             disabled={loading}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="h-14 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 disabled:opacity-60"
           >
             {loading ? "Analyzing..." : "Analyze Market"}
           </button>
@@ -1754,17 +1754,31 @@ export default function TradeClient() {
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-panel/60 p-5">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted">
-          Trading Chatbot
-        </p>
-        <h2 className="mt-1 text-xl font-semibold">
-          Ask King Trading System
-        </h2>
+      <div className="relative overflow-hidden rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-slate-950 via-slate-950 to-black p-6 shadow-2xl shadow-cyan-500/10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_35%)]" />
 
-        <div className="mt-4 flex flex-col gap-3 md:flex-row">
+        <div className="relative z-10">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">
+                AI Trading Intelligence
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                Ask King Trading System
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Ask about entries, risk, pressure, momentum, rankings, and chart context.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-xs font-bold text-emerald-300">
+              LIVE MARKET READING
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 md:flex-row">
           <input
-            className="w-full rounded-xl border border-border bg-black/20 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-accent"
+            className="h-14 w-full rounded-2xl border border-cyan-500/20 bg-black/40 px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20"
             value={chatQuestion}
             onChange={(e) => setChatQuestion(e.target.value)}
             onKeyDown={(e) => {
@@ -1778,11 +1792,11 @@ export default function TradeClient() {
             disabled={chatLoading}
             className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
-            {chatLoading ? "Thinking..." : "Ask"}
+            {chatLoading ? "Analyzing..." : "Run Analysis"}
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
           {[
             "What is the best ranked setup right now?",
             "Which symbol should I avoid?",
@@ -1795,7 +1809,7 @@ export default function TradeClient() {
                 setChatQuestion(q);
                 askTradingChat(q);
               }}
-              className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:border-accent hover:text-text"
+              className="rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:border-cyan-400 hover:bg-cyan-500/10"
             >
               {q}
             </button>
@@ -1803,19 +1817,20 @@ export default function TradeClient() {
         </div>
 
         {chatAnswer && (
-          <div className="mt-4 rounded-xl border border-border bg-black/20 p-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-muted">
-              King Trading System Answer
+          <div className="mt-5 rounded-3xl border border-cyan-500/20 bg-black/40 p-5">
+            <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+              AI Trading Verdict
             </div>
-            <div className="mt-3 whitespace-pre-wrap text-sm leading-7">
+            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/5 bg-[#050816] p-4 font-mono text-sm leading-8 text-slate-200">
               {chatAnswer}
             </div>
           </div>
         )}
 
-        <p className="mt-3 text-xs text-muted">
-          Educational market analysis only. Not financial advice. Signals are not guarantees.
-        </p>
+          <p className="mt-4 text-xs text-slate-500">
+            Educational market analysis only. Not financial advice. Signals are not guarantees.
+          </p>
+        </div>
       </div>
 
       {result && !result.ok && (
