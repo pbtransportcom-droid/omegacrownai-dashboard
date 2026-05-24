@@ -1803,6 +1803,93 @@ export default function TradeClient() {
             </div>
           </div>
 
+          <div className="mt-5 rounded-3xl border border-cyan-500/20 bg-black/30 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+                  Sovereign Multi-Agent Consensus
+                </div>
+
+                <h3 className="mt-2 text-xl font-black text-white">
+                  AI Strategic Debate Engine
+                </h3>
+              </div>
+
+              <div className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-300">
+                5 ACTIVE AGENTS
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                  Momentum Agent
+                </div>
+
+                <div className="mt-3 text-sm leading-7 text-slate-200">
+                  Detecting improving continuation structure with selective bullish pressure.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-yellow-300">
+                  Risk Agent
+                </div>
+
+                <div className="mt-3 text-sm leading-7 text-slate-200">
+                  Elevated volatility conditions detected. Aggressive positioning not advised.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                  Smart Money Agent
+                </div>
+
+                <div className="mt-3 text-sm leading-7 text-slate-200">
+                  Institutional accumulation appears selective rather than broad market aggressive.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-purple-300">
+                  Macro Agent
+                </div>
+
+                <div className="mt-3 text-sm leading-7 text-slate-200">
+                  Macro liquidity conditions remain supportive but fragile near resistance zones.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-red-300">
+                  Execution Agent
+                </div>
+
+                <div className="mt-3 text-sm leading-7 text-slate-200">
+                  Best execution conditions currently favor staggered entries with disciplined stops.
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-white/5 bg-white/[0.03] p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Consensus AI Verdict
+                </div>
+
+                <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
+                  BULLISH BIAS
+                </div>
+              </div>
+
+              <p className="mt-3 text-sm leading-7 text-slate-200">
+                Sovereign AI consensus currently favors selective bullish continuation setups,
+                while maintaining elevated risk awareness due to ongoing volatility expansion.
+              </p>
+            </div>
+          </div>
+
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl border border-white/5 bg-black/30 p-4">
               <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
