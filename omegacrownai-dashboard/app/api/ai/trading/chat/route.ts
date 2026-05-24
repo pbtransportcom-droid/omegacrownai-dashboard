@@ -15,6 +15,20 @@ function safeNumber(value: any, digits = 2) {
 function detectQuestionIntent(question: string) {
   const q = question.toLowerCase();
 
+  if (
+    q.includes("10x") ||
+    q.includes("10 x") ||
+    q.includes("1000%") ||
+    q.includes("moonshot") ||
+    q.includes("multibagger") ||
+    q.includes("multi-bagger") ||
+    q.includes("high upside") ||
+    q.includes("explosive")
+  ) {
+    return "speculative_10x";
+  }
+
+
   if (q.includes("compare") || q.includes("vs") || q.includes("better")) {
     return "compare";
   }
@@ -127,6 +141,36 @@ function answerTradingQuestion({
   const activeSummary = summarizeAnalysis(analysis);
   const best = getBestRanked(ranking);
   const weak = getWeakRanked(ranking);
+
+  if (intent === "speculative_10x") {
+    return `
+OmegaCrownAI speculative momentum scan identifies several high-volatility sectors currently attracting aggressive capital rotation.
+
+AI Conviction:
+Extreme-risk asymmetric opportunities are currently strongest in:
+- Quantum computing
+- AI infrastructure
+- Space communications
+- Defense AI
+
+Strategic Interpretation:
+These sectors historically produce the type of explosive momentum behavior associated with short-term multi-bagger expansions. The objective is not safety; the objective is asymmetric upside under strict risk control.
+
+Top Speculative Watchlist:
+1. RGTI — Rigetti Computing: quantum momentum, government funding narrative, high-volatility trader attention.
+2. ASTS — AST SpaceMobile: satellite-to-phone infrastructure, major telecom partnership narrative, catalyst-sensitive repricing potential.
+3. BBAI — BigBear.ai: defense AI exposure, contract-driven volatility, speculative AI rotation potential.
+
+Risk Environment:
+These setups carry elevated volatility and should be treated as speculative momentum opportunities rather than stable investments. Position sizing, stop discipline, and catalyst timing matter more than conviction alone.
+
+Execution Path:
+OmegaCrownAI favors small speculative sizing, staggered entries, catalyst monitoring, and immediate invalidation if momentum breaks.
+
+Sovereign Verdict:
+High upside potential exists, but these are lottery-ticket style setups. RGTI carries the strongest pure momentum profile, ASTS carries the strongest transformative infrastructure narrative, and BBAI carries the highest AI-defense volatility profile.
+`.trim();
+  }
 
   if (intent === "provider") {
     return `The current market data provider is ${safeText(analysis?.provider, "unknown")}.
