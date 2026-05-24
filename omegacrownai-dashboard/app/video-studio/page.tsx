@@ -61,7 +61,7 @@ export default function VideoStudioPage() {
                 <button
                   className="rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-black text-white hover:bg-white/20"
                 >
-                  Open Timeline
+                  Open Assets
                 </button>
               </div>
             </div>
