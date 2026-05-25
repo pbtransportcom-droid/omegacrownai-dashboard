@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const runtimeEvents = [
   "Initializing sovereign orchestration engine...",
@@ -102,6 +103,20 @@ export default function LiveRuntimePage() {
                 <div className="mt-3 break-all text-lg font-black text-white">
                   {value}
                 </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["Project ID", projectId],
+              ["Runtime ID", runtimeId],
+              ["Intent", intent.toUpperCase()],
+              ["Workspace", workspace],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
+                <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">{label}</div>
+                <div className="mt-3 break-all text-lg font-black text-white">{value}</div>
               </div>
             ))}
           </div>
