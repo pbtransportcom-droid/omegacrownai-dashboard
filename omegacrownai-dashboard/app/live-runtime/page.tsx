@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 const runtimeEvents = [
   "Initializing sovereign orchestration engine...",
@@ -19,6 +20,20 @@ const runtimeEvents = [
 ];
 
 export default function LiveRuntimePage() {
+  const searchParams = useSearchParams();
+
+  const projectId =
+    searchParams.get("projectId") || "OC-UNKNOWN";
+
+  const runtimeId =
+    searchParams.get("runtimeId") || "RT-UNKNOWN";
+
+  const intent =
+    searchParams.get("intent") || "general";
+
+  const workspace =
+    searchParams.get("workspace") || "/workspace";
+
   const [events, setEvents] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
 
@@ -66,6 +81,29 @@ export default function LiveRuntimePage() {
                 LIVE EXECUTION
               </div>
             </div>
+          </div>
+
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["Project ID", projectId],
+              ["Runtime ID", runtimeId],
+              ["Intent", intent.toUpperCase()],
+              ["Workspace", workspace],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5"
+              >
+                <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+                  {label}
+                </div>
+
+                <div className="mt-3 break-all text-lg font-black text-white">
+                  {value}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
