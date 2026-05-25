@@ -15,6 +15,15 @@ export default async function ArtifactPage({
   const brief = fs.existsSync(briefPath) ? fs.readFileSync(briefPath, "utf8") : "No brief found.";
   const plan = fs.existsSync(planPath) ? fs.readFileSync(planPath, "utf8") : "No plan found.";
 
+  const runPath = path.join(process.cwd(), "data", "sovereign-runs", `${projectId}.json`);
+  const run = fs.existsSync(runPath)
+    ? JSON.parse(fs.readFileSync(runPath, "utf8"))
+    : null;
+
+  const runtimeId = run?.runtimeId || "RT-UNKNOWN";
+  const intent = run?.intent || "artifact";
+  const workspace = run?.workspace || "/workspace";
+
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
       <section className="mx-auto max-w-6xl">
@@ -32,7 +41,7 @@ export default async function ArtifactPage({
               Open HTML Preview
             </a>
             <a
-              href={`/live-runtime?projectId=${projectId}&intent=artifact`}
+              href={`/live-runtime?projectId=${projectId}&runtimeId=${runtimeId}&intent=${intent}&workspace=${encodeURIComponent(workspace)}`}
               className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100"
             >
               Open Runtime
