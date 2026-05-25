@@ -1,3 +1,8 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+
 const builderTypes = {
   website: {
     label: "Website Builder",
@@ -118,15 +123,51 @@ function normalizeType(value?: string) {
   return "website";
 }
 
-export default async function CreatePage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ type?: string; department?: string }>;
-}) {
-  const params = await searchParams;
-  const type = normalizeType(params?.type);
+export default function CreatePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [loading, setLoading] = useState(false);
+
+  const type = normalizeType(searchParams.get("type") || undefined);
   const selected = builderTypes[type];
-  const department = params?.department || type;
+  const department = searchParams.get("department") || type;
+
+
+  async function launchSovereignBuild(formData: FormData) {
+    try {
+      setLoading(true);
+
+      const prompt = String(formData.get("prompt") || "");
+
+      const response = await fetch("/api/sovereign/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          type,
+          department,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data?.ok) {
+        router.push(
+          `/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.intent}`
+        );
+      } else {
+        alert("OmegaCrownAI could not initialize the sovereign runtime.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Sovereign execution failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
@@ -169,7 +210,7 @@ export default async function CreatePage({
               Describe what you want OmegaCrownAI to build. This start screen is wired for the selected builder type.
             </p>
 
-            <form action="/projects" className="mt-5 space-y-4">
+            <form action={launchSovereignBuild} className="mt-5 space-y-4">
               <input type="hidden" name="type" value={type} />
               <input type="hidden" name="department" value={department} />
 
@@ -197,12 +238,13 @@ export default async function CreatePage({
               </label>
 
               <div className="flex flex-wrap gap-3">
-                <a
-                  href={`/build/${type === "coding" ? "app" : type}/starter`}
-                  className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300"
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300 disabled:opacity-50"
                 >
-                  Build Now
-                </a>
+                  {loading ? "Launching Sovereign Runtime..." : "Build Now"}
+                </button>
                 <a
                   href="/projects"
                   className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/20"
