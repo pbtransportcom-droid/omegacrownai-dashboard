@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import archiver from "archiver";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -22,8 +23,9 @@ export async function GET(
 
     await new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(zipPath);
-      const archiver = require("archiver");
-      const archive = archiver("zip", { zlib: { level: 9 } });
+      const archive = archiver("zip", {
+        zlib: { level: 9 },
+      });
 
       output.on("close", () => resolve());
       archive.on("error", (err: Error) => reject(err));
@@ -40,9 +42,10 @@ export async function GET(
       zipPath,
       size: fs.statSync(zipPath).size,
     });
-  } catch {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { ok: false, error: "Failed to generate deployment package." },
+      { ok: false, error: String(error) },
       { status: 500 }
     );
   }
