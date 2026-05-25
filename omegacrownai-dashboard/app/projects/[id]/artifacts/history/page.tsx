@@ -42,6 +42,20 @@ export default async function ArtifactHistoryPage({
             <a href={`/live-runtime?projectId=${id}`} className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100">
               Open Runtime
             </a>
+
+            <a
+              href={`/api/sovereign/runs/${id}/export`}
+              className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-5 py-3 text-sm font-black text-amber-100"
+            >
+              Export Production Package
+            </a>
+
+            <a
+              href={`/api/sovereign/download/${id}`}
+              className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-5 py-3 text-sm font-black text-purple-100"
+            >
+              Download ZIP Package
+            </a>
           </div>
         </div>
 
