@@ -18,6 +18,7 @@ export async function POST(req: Request) {
 
     const projectId = String(body.projectId || id());
     const prompt = String(body.prompt || "Build a production-ready OmegaCrownAI project.");
+    const mode = String(body.mode || body.intent || "general");
 
     const root = process.cwd();
     const runPath = path.join(root, "data", "sovereign-runs", `${projectId}.json`);
@@ -131,6 +132,7 @@ article p,.delivery p{color:#cbd5e1;line-height:1.7}
       projectId,
       prompt,
       rememberedGoal: prompt,
+      mode,
       agentHandoffs: agents,
       updatedAt: new Date().toISOString(),
     });
@@ -138,7 +140,8 @@ article p,.delivery p{color:#cbd5e1;line-height:1.7}
     const run = {
       projectId,
       runtimeId,
-      intent: "autonomous_build",
+      intent: mode,
+      mode,
       prompt,
       workspace: `/projects/${projectId}`,
       status: "validated",
@@ -201,6 +204,7 @@ article p,.delivery p{color:#cbd5e1;line-height:1.7}
       runtimeId,
       status: "validated",
       agents,
+      mode,
       preview: `/api/artifacts/${projectId}/preview`,
       artifact: `/artifacts/${projectId}`,
       runtime: `/live-runtime?projectId=${projectId}`,
