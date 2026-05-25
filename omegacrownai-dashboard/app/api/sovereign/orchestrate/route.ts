@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { execSync } from "child_process";
 import { NextResponse } from "next/server";
 
 function id() {
@@ -170,6 +171,28 @@ article p,.delivery p{color:#cbd5e1;line-height:1.7}
       ],
     };
 
+    const exportDir = path.join(root, "data", "exports");
+    fs.mkdirSync(exportDir, { recursive: true });
+    const zipPath = path.join(exportDir, `${projectId}.zip`);
+
+    if (fs.existsSync(zipPath)) {
+      fs.unlinkSync(zipPath);
+    }
+
+    execSync(`cd "${artifactDir}" && zip -r "${zipPath}" .`, {
+      stdio: "ignore",
+    });
+
+    run.events.push("Delivery Agent generated production ZIP export package.");
+    run.artifacts.push({
+      id: `${projectId}-zip-export`,
+      type: "zip-export",
+      title: "Production ZIP Export",
+      status: "generated",
+      path: `data/exports/${projectId}.zip`,
+    });
+
+    run.updatedAt = new Date().toISOString();
     writeJson(runPath, run);
 
     return NextResponse.json({
