@@ -96,8 +96,8 @@ function computeHealth(memory: Memory) {
   const scores = Object.values(memory.protocol.quality);
   const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 1;
 
-  if (memory.protocol.escalations.length > 0 || avg < 0.55) return "warning";
   if (avg < 0.4) return "critical";
+  if (memory.protocol.escalations.length > 0 || avg < 0.55) return "warning";
   return "stable";
 }
 
@@ -198,6 +198,57 @@ async function runAgentReasoning(name: string, role: string, memory: Memory, inp
   }
 
   return `${name} executed role: ${role}.`;
+}
+
+
+function repairRequiredState(memory: any) {
+  const repaired: string[] = [];
+
+  if (!memory.plan) {
+    memory.plan = [
+      `Recovered execution plan for goal: ${memory.rememberedGoal}`,
+      "1. Clarify user goal and intended deliverable.",
+      "2. Design production structure.",
+      "3. Build domain-specific artifacts.",
+      "4. Validate output quality and completeness.",
+      "5. Package delivery and summarize collaboration."
+    ].join("\n");
+    repaired.push("plan");
+  }
+
+  if (!memory.architecture) {
+    memory.architecture = [
+      "Recovered architecture:",
+      "- Shared runtime memory",
+      "- Agent handoff protocol",
+      "- Artifact generation layer",
+      "- Validation layer",
+      "- Delivery/export layer",
+      "- Collaboration transcript and timeline"
+    ].join("\n");
+    repaired.push("architecture");
+  }
+
+  if (!Array.isArray(memory.artifacts)) {
+    memory.artifacts = [];
+    repaired.push("artifacts");
+  }
+
+  if (!memory.protocol) {
+    memory.protocol = {
+      handoffNotes: [],
+      escalations: [],
+      quality: {},
+      timeline: [],
+      transcript: [],
+      health: "stable",
+      contract: {},
+      summary: null
+    };
+    repaired.push("protocol");
+  }
+
+  return repaired;
 }
 
 export async function POST(
