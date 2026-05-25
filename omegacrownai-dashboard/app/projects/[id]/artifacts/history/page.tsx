@@ -1,120 +1,102 @@
-import { getArtifactHistoryUiUpgrade } from "@/lib/sovereign/artifact-history-ui-upgrade";
+import fs from "fs";
+import path from "path";
 
-type PageProps = {
-  params: Promise<{
-    id: string;
-  }>;
-};
-
-export default async function ProjectArtifactHistoryPage({ params }: PageProps) {
+export default async function ArtifactHistoryPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-  const ui = getArtifactHistoryUiUpgrade();
+
+  const artifactDir = path.join(process.cwd(), "data", "generated-artifacts", id);
+  const versionsDir = path.join(artifactDir, "versions");
+  const runPath = path.join(process.cwd(), "data", "sovereign-runs", `${id}.json`);
+
+  const run = fs.existsSync(runPath)
+    ? JSON.parse(fs.readFileSync(runPath, "utf8"))
+    : null;
+
+  const versions = fs.existsSync(versionsDir)
+    ? fs.readdirSync(versionsDir).filter((name) => /^v\d+$/.test(name)).sort()
+    : [];
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto max-w-6xl">
-        <div className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-slate-950 to-purple-500/10 p-8">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
-            Artifact History
+    <main className="min-h-screen bg-black px-6 py-10 text-white">
+      <section className="mx-auto max-w-7xl">
+        <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-8">
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
+            OmegaCrownAI Artifact History
           </p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight">
-            Project Artifact History
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-slate-300">
-            Project: {id}
+
+          <h1 className="mt-4 text-5xl font-black">{id}</h1>
+
+          <p className="mt-4 max-w-4xl text-slate-300">
+            Review generated versions, previews, runtime events, and sovereign artifact lineage.
           </p>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">
-            Review generated artifact versions, customer-ready status, validation evidence,
-            preview/download links, missing-info reports, and rebuild lineage.
-          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href={`/artifacts/${id}`} className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black">
+              Open Active Artifact
+            </a>
+
+            <a href={`/live-runtime?projectId=${id}`} className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100">
+              Open Runtime
+            </a>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-5">
-          {ui.sampleArtifactCards.map((artifact) => (
-            <article
-              key={artifact.artifactId}
-              className="rounded-3xl border border-slate-700 bg-slate-900/70 p-6"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                    Version {artifact.version} · {artifact.statusBadge}
-                  </p>
-                  <h2 className="mt-2 text-2xl font-black text-white">
-                    {artifact.title}
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-300">
-                    Score: {artifact.completenessScore}/100 · Customer Ready:{" "}
-                    {artifact.customerReady ? "Yes" : "No"}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {artifact.previewPath && (
-                    <a
-                      href={artifact.previewPath}
-                      className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
-                    >
-                      Preview
-                    </a>
-                  )}
-                  {artifact.adminPreviewPath && (
-                    <a
-                      href={artifact.adminPreviewPath}
-                      className="rounded-xl border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-sm font-black text-purple-100 hover:bg-purple-500/20"
-                    >
-                      Admin Preview
-                    </a>
-                  )}
-                  {artifact.downloadPath && (
-                    <a
-                      href={artifact.downloadPath}
-                      className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-100 hover:bg-emerald-500/20"
-                    >
-                      Download
-                    </a>
-                  )}
-                </div>
-              </div>
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-2xl font-black">Artifact Versions</h2>
 
-              {artifact.blockedReasons.length > 0 && (
-                <div className="mt-5 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
-                  <p className="text-sm font-black text-red-100">Blocked reasons</p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-6 text-red-50">
-                    {artifact.blockedReasons.map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
+            <div className="mt-6 grid gap-4">
+              {versions.length ? versions.map((version) => (
+                <div key={version} className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5">
+                  <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+                    Generated Version
+                  </div>
+
+                  <div className="mt-2 text-3xl font-black">{version.toUpperCase()}</div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <a
+                      href={`/api/artifacts/${id}/preview`}
+                      className="rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black text-black"
+                    >
+                      Open Active Preview
+                    </a>
+
+                    <a
+                      href={`/api/sovereign/runs/${id}`}
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black text-white"
+                    >
+                      View Run JSON
+                    </a>
+                  </div>
+                </div>
+              )) : (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-slate-300">
+                  No generated versions found yet.
                 </div>
               )}
+            </div>
+          </div>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-slate-700 bg-black/30 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                    Validation
-                  </p>
-                  <p className="mt-2 text-sm text-white">
-                    {artifact.validationStatus}
-                  </p>
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h2 className="text-2xl font-black">Runtime Events</h2>
+
+            <div className="mt-6 space-y-3">
+              {(run?.events || []).slice().reverse().map((event: string, index: number) => (
+                <div key={`${event}-${index}`} className="rounded-2xl border border-emerald-400/10 bg-emerald-500/10 p-4">
+                  <div className="text-xs uppercase tracking-[0.25em] text-emerald-300">
+                    Event
+                  </div>
+
+                  <div className="mt-2 text-sm leading-7 text-slate-200">{event}</div>
                 </div>
-                <div className="rounded-2xl border border-slate-700 bg-black/30 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                    Validation Report
-                  </p>
-                  <p className="mt-2 text-sm text-white">
-                    {artifact.validationReportPath}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-black/30 p-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">
-                    Missing Info
-                  </p>
-                  <p className="mt-2 text-sm text-white">
-                    {artifact.missingInfoReportPath}
-                  </p>
-                </div>
-              </div>
-            </article>
-          ))}
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </main>
