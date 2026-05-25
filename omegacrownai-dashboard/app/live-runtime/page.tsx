@@ -217,7 +217,9 @@ export default function LiveRuntimePage() {
         </main>
       }
     >
-      <LiveRuntimePageClient />
+      <div suppressHydrationWarning>
+        <LiveRuntimePageClient />
+      </div>
     </Suspense>
   );
 }
