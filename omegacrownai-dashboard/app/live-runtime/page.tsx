@@ -36,13 +36,30 @@ function LiveRuntimePageClient() {
 
   const [events, setEvents] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
+  const [realRun, setRealRun] = useState<any>(null);
+
+  useEffect(() => {
+    if (projectId && projectId !== "OC-UNKNOWN") {
+      fetch(`/api/sovereign/runs/${projectId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.ok && data?.run) {
+            setRealRun(data.run);
+            if (Array.isArray(data.run.events)) {
+              setEvents(data.run.events.slice().reverse());
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [projectId]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setEvents((prev) => [
         runtimeEvents[index % runtimeEvents.length],
         ...prev,
-      ]);
+      ].slice(0, 12));
 
       setIndex((prev) => prev + 1);
     }, 1800);
@@ -86,10 +103,10 @@ function LiveRuntimePageClient() {
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
-              ["Project ID", projectId],
-              ["Runtime ID", runtimeId],
-              ["Intent", intent.toUpperCase()],
-              ["Workspace", workspace],
+              ["Project ID", realRun?.projectId || projectId],
+              ["Runtime ID", realRun?.runtimeId || runtimeId],
+              ["Intent", (realRun?.intent || intent).toUpperCase()],
+              ["Workspace", realRun?.workspace || workspace],
             ].map(([label, value]) => (
               <div
                 key={label}
@@ -108,10 +125,10 @@ function LiveRuntimePageClient() {
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[
-              ["Project ID", projectId],
-              ["Runtime ID", runtimeId],
-              ["Intent", intent.toUpperCase()],
-              ["Workspace", workspace],
+              ["Project ID", realRun?.projectId || projectId],
+              ["Runtime ID", realRun?.runtimeId || runtimeId],
+              ["Intent", (realRun?.intent || intent).toUpperCase()],
+              ["Workspace", realRun?.workspace || workspace],
             ].map(([label, value]) => (
               <div key={label} className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
                 <div className="text-xs uppercase tracking-[0.25em] text-cyan-300">{label}</div>
@@ -161,8 +178,8 @@ function LiveRuntimePageClient() {
             <div className="space-y-6">
               {[
                 ["AI Agents Active", "42"],
-                ["Runtime Missions", "18"],
-                ["Render Processes", "11"],
+                ["Runtime Missions", realRun ? String(realRun.events?.length || 0) : "18"],
+                ["Artifacts", realRun ? String(realRun.artifacts?.length || 0) : "0"],
                 ["Publishing Tasks", "27"],
                 ["Workflow Streams", "63"],
               ].map(([label, value]) => (
