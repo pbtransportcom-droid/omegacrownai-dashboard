@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 
 const runtimeEvents = [
   "Initializing sovereign orchestration engine...",
