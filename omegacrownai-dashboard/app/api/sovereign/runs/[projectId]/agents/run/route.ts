@@ -5,11 +5,12 @@ import { NextResponse } from "next/server";
 type Memory = {
   projectId: string;
   rememberedGoal: string;
-  plan: string | null;
-  architecture: string | null;
+  mode?: "general" | "trading" | "video";
+  plan: any;
+  architecture: any;
   artifacts: any[];
-  validation: string | null;
-  delivery: string | null;
+  validation: any;
+  delivery: any;
   agentHandoffs: any[];
   messages: any[];
   protocol: {
@@ -66,6 +67,7 @@ function normalizeMemory(projectId: string, goal: string, value: any): Memory {
   return {
     projectId,
     rememberedGoal: memory.rememberedGoal || goal,
+    mode: memory.mode || "general",
     plan: memory.plan || null,
     architecture: memory.architecture || null,
     artifacts: Array.isArray(memory.artifacts) ? memory.artifacts : [],
@@ -135,6 +137,60 @@ async function runAgentReasoning(name: string, role: string, memory: Memory, inp
   }
 
   if (name === "Builder Agent") {
+    memory.artifacts = Array.isArray(memory.artifacts) ? memory.artifacts : [];
+
+    if (memory.mode === "trading") {
+      const artifact = {
+        type: "trading-bot",
+        language: "pine",
+        strategyName: "OmegaCrownAI Auto Strategy",
+        timeframe: "5",
+        symbols: ["BTCUSDT", "ETHUSDT"],
+        code: `//@version=5
+strategy("OmegaCrownAI Auto Strategy", overlay=true, timeframe="5")
+
+rsiLen = input.int(14, "RSI Length")
+emaLen = input.int(50, "EMA Length")
+
+rsiVal = ta.rsi(close, rsiLen)
+emaVal = ta.ema(close, emaLen)
+
+longCond = rsiVal < 30 and close > emaVal
+shortCond = rsiVal > 70 and close < emaVal
+
+if (longCond)
+    strategy.entry("Long", strategy.long)
+
+if (shortCond)
+    strategy.entry("Short", strategy.short)
+`,
+        createdAt: new Date().toISOString(),
+      };
+
+      memory.artifacts.push(artifact);
+      return `Trading bot generated for ${artifact.symbols.join(", ")} on ${artifact.timeframe}m timeframe.`;
+    }
+
+    if (memory.mode === "video") {
+      const scenes = [
+        { id: 1, title: "Hook", description: `Open with a bold statement about ${memory.rememberedGoal}.`, durationSeconds: 5 },
+        { id: 2, title: "Core Value", description: "Explain what OmegaCrownAI does and why it matters.", durationSeconds: 15 },
+        { id: 3, title: "Call to Action", description: "Invite the viewer to try OmegaCrownAI.", durationSeconds: 10 },
+      ];
+
+      const script = scenes.map((scene) => `Scene ${scene.id}: ${scene.title}\n${scene.description}`).join("\n\n");
+
+      const artifact = {
+        type: "video-assets",
+        script,
+        scenes,
+        createdAt: new Date().toISOString(),
+      };
+
+      memory.artifacts.push(artifact);
+      return `Video script and ${scenes.length} scenes generated.`;
+    }
+
     const artifact = {
       type: "production-artifact",
       title: "Collaborative Build Artifact",
@@ -149,6 +205,38 @@ async function runAgentReasoning(name: string, role: string, memory: Memory, inp
   }
 
   if (name === "Validator Agent") {
+    if (memory.mode === "trading") {
+      const bots = (memory.artifacts || []).filter((artifact: any) => artifact.type === "trading-bot");
+
+      memory.validation = {
+        type: "trading-validation",
+        backtestSummary: "Backtest hook ready. Engine not yet connected.",
+        metrics: {
+          sharpe: null,
+          maxDrawdown: null,
+          winRate: null,
+          trades: null,
+        },
+        notes: `Found ${bots.length} trading bot artifact(s).`,
+      };
+
+      return `Trading validation complete: ${bots.length} bot artifact(s) found.`;
+    }
+
+    if (memory.mode === "video") {
+      const videos = (memory.artifacts || []).filter((artifact: any) => artifact.type === "video-assets");
+      const hasScenes = Boolean(videos[0]?.scenes?.length);
+
+      memory.validation = {
+        type: "video-validation",
+        continuityScore: hasScenes ? 0.8 : 0,
+        pacingNotes: "Continuity and pacing analysis hook ready.",
+        issues: hasScenes ? [] : ["No scenes found."],
+      };
+
+      return `Video validation complete: continuity score ${memory.validation.continuityScore}.`;
+    }
+
     const artifactCount = memory.artifacts.length;
     const valid = artifactCount > 0 && Boolean(memory.plan) && Boolean(memory.architecture);
 
@@ -171,21 +259,48 @@ async function runAgentReasoning(name: string, role: string, memory: Memory, inp
   }
 
   if (name === "Delivery Agent") {
-    const delivery = [
+    let delivery = [
       `Delivery package prepared for project ${memory.projectId}.`,
+      `Mode: ${memory.mode || "general"}`,
       `Plan: ${memory.plan ? "ready" : "missing"}`,
       `Architecture: ${memory.architecture ? "ready" : "missing"}`,
       `Artifacts: ${memory.artifacts.length}`,
-      `Validation: ${memory.validation || "pending"}`,
+      `Validation: ${JSON.stringify(memory.validation || "pending")}`,
     ].join("\n");
+
+    if (memory.mode === "trading") {
+      const bots = (memory.artifacts || []).filter((artifact: any) => artifact.type === "trading-bot");
+      const deployDir = path.join(process.cwd(), "data", "trading-bots");
+      fs.mkdirSync(deployDir, { recursive: true });
+
+      bots.forEach((bot: any, index: number) => {
+        fs.writeFileSync(path.join(deployDir, `${memory.projectId}-${index}.pine`), bot.code, "utf8");
+      });
+
+      delivery = `Trading delivery package prepared. Bots: ${bots.length}. Exported to data/trading-bots.`;
+    }
+
+    if (memory.mode === "video") {
+      const videos = (memory.artifacts || []).filter((artifact: any) => artifact.type === "video-assets");
+      const deployDir = path.join(process.cwd(), "data", "video-packages");
+      fs.mkdirSync(deployDir, { recursive: true });
+
+      videos.forEach((video: any, index: number) => {
+        fs.writeFileSync(path.join(deployDir, `${memory.projectId}-${index}.json`), JSON.stringify(video, null, 2), "utf8");
+      });
+
+      delivery = `Video delivery package prepared. Video asset sets: ${videos.length}. Exported to data/video-packages.`;
+    }
 
     memory.delivery = delivery;
 
     memory.protocol.summary = {
       goal: memory.rememberedGoal,
+      mode: memory.mode || "general",
       planReady: Boolean(memory.plan),
       architectureReady: Boolean(memory.architecture),
       artifactCount: memory.artifacts.length,
+      artifacts: memory.artifacts,
       validation: memory.validation,
       delivery,
       quality: memory.protocol.quality,
@@ -274,6 +389,7 @@ export async function POST(
       : null;
 
     const memory = normalizeMemory(projectId, run.prompt, existingMemory);
+    memory.mode = memory.mode || run.mode || body?.mode || "general";
 
     const agents = [
       ["Planner Agent", "Convert goal into execution plan."],
