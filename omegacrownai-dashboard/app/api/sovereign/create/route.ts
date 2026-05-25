@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 function detectIntent(prompt: string) {
   const value = prompt.toLowerCase();
@@ -56,6 +58,44 @@ export async function POST(req: Request) {
       "RT-" + Math.random().toString(36).slice(2, 10).toUpperCase();
 
     const workspace = workspaceRoute(intent);
+
+    const runRecord = {
+      projectId,
+      runtimeId,
+      intent,
+      prompt,
+      workspace,
+      status: "initializing",
+      createdAt: new Date().toISOString(),
+      events: [
+        "Sovereign execution pipeline initialized.",
+        "Intent classified.",
+        "Runtime orchestration started.",
+        "Project shell created.",
+        "Live execution feed prepared."
+      ],
+      artifacts: [
+        {
+          id: `${projectId}-brief`,
+          type: "brief",
+          title: "Initial Sovereign Project Brief",
+          status: "generated"
+        },
+        {
+          id: `${projectId}-runtime`,
+          type: "runtime",
+          title: "Runtime Execution Session",
+          status: "active"
+        }
+      ]
+    };
+
+    const dataDir = path.join(process.cwd(), "data", "sovereign-runs");
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dataDir, `${projectId}.json`),
+      JSON.stringify(runRecord, null, 2)
+    );
 
     return NextResponse.json({
       ok: true,
