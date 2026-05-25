@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import * as archiver from "archiver";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -23,10 +22,11 @@ export async function GET(
 
     await new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(zipPath);
-      const archive = archiver.default("zip", { zlib: { level: 9 } });
+      const archiver = require("archiver");
+      const archive = archiver("zip", { zlib: { level: 9 } });
 
       output.on("close", () => resolve());
-      archive.on("error", (err) => reject(err));
+      archive.on("error", (err: Error) => reject(err));
 
       archive.pipe(output);
       archive.directory(artifactDir, false);
