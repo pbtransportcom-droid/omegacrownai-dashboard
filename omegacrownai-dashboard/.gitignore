@@ -34,3 +34,7 @@ secrets/
 
 # Runtime generated project uploads
 /public/uploads/projects/
+
+# Runtime/generated artifacts
+data/
+*.zip
