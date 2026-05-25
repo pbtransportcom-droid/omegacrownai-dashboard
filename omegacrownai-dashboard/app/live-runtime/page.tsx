@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const runtimeEvents = [
@@ -19,7 +19,7 @@ const runtimeEvents = [
   "Finalizing AI production workflow...",
 ];
 
-export default function LiveRuntimePage() {
+function LiveRuntimePageClient() {
   const searchParams = useSearchParams();
 
   const projectId =
@@ -196,5 +196,28 @@ export default function LiveRuntimePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+
+export default function LiveRuntimePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-black text-white p-10">
+          <div className="mx-auto max-w-5xl rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-10">
+            <div className="text-sm uppercase tracking-[0.3em] text-cyan-300">
+              OmegaCrownAI Runtime
+            </div>
+
+            <h1 className="mt-4 text-5xl font-black">
+              Initializing Sovereign Runtime...
+            </h1>
+          </div>
+        </main>
+      }
+    >
+      <LiveRuntimePageClient />
+    </Suspense>
   );
 }
