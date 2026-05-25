@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 const builderTypes = {
   website: {
@@ -123,7 +123,7 @@ function normalizeType(value?: string) {
   return "website";
 }
 
-export default function CreatePage() {
+function CreatePageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -291,5 +291,23 @@ export default function CreatePage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
+          <section className="mx-auto max-w-6xl">
+            <div className="rounded-3xl border border-cyan-400/20 bg-slate-900 p-8">
+              <p className="text-sm text-cyan-300">Loading OmegaCrownAI Create...</p>
+            </div>
+          </section>
+        </main>
+      }
+    >
+      <CreatePageClient />
+    </Suspense>
   );
 }
