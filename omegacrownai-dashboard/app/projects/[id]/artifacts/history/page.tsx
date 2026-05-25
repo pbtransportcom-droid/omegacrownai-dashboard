@@ -56,6 +56,13 @@ export default async function ArtifactHistoryPage({
             >
               Download ZIP Package
             </a>
+
+            <a
+              href={`/projects/${id}/validation`}
+              className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100"
+            >
+              View Validation Proof
+            </a>
           </div>
         </div>
 
