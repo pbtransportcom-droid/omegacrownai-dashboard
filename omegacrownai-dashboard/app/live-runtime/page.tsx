@@ -39,19 +39,31 @@ function LiveRuntimePageClient() {
   const [realRun, setRealRun] = useState<any>(null);
 
   useEffect(() => {
-    if (projectId && projectId !== "OC-UNKNOWN") {
-      fetch(`/api/sovereign/runs/${projectId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.ok && data?.run) {
-            setRealRun(data.run);
-            if (Array.isArray(data.run.events)) {
-              setEvents(data.run.events.slice().reverse());
-            }
+    if (!projectId || projectId === "OC-UNKNOWN") return;
+
+    async function loadRun() {
+      try {
+        const res = await fetch(`/api/sovereign/runs/${projectId}`, {
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (data?.ok && data?.run) {
+          setRealRun(data.run);
+
+          if (Array.isArray(data.run.events)) {
+            setEvents(data.run.events.slice().reverse().slice(0, 20));
           }
-        })
-        .catch(() => {});
+        }
+      } catch {}
     }
+
+    loadRun();
+
+    const poll = setInterval(loadRun, 3000);
+
+    return () => clearInterval(poll);
   }, [projectId]);
 
   useEffect(() => {
