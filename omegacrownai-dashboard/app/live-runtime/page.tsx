@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
@@ -23,6 +21,32 @@ const runtimeEvents = [
 
 function LiveRuntimePageClient() {
   const searchParams = useSearchParams();
+
+
+const [runtimeData, setRuntimeData] = useState<any>(null);
+
+useEffect(() => {
+  const projectId = searchParams.get("projectId");
+
+  if (!projectId) return;
+
+  fetch(`/api/sovereign/runs/${projectId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setRuntimeData(data);
+    })
+    .catch(console.error);
+}, [searchParams]);
+
+const agents =
+  runtimeData?.agents?.length || 0;
+
+const artifacts =
+  runtimeData?.artifacts?.length || 0;
+
+const events =
+  runtimeData?.events?.length || 0;
+
 
   const projectId =
     searchParams.get("projectId") || "OC-UNKNOWN";
@@ -232,35 +256,7 @@ function LiveRuntimePageClient() {
 
 
 
-const projectId =
-  searchParams?.projectId || "";
 
-const runtimeId =
-  searchParams?.runtimeId || "";
-
-const runPath = path.join(
-  process.cwd(),
-  "data",
-  "sovereign-runs",
-  `${projectId}.json`
-);
-
-let run: any = null;
-
-if (fs.existsSync(runPath)) {
-  run = JSON.parse(
-    fs.readFileSync(runPath, "utf8")
-  );
-}
-
-const agents =
-  run?.agents?.length || 0;
-
-const artifacts =
-  run?.artifacts?.length || 0;
-
-const events =
-  run?.events?.length || 0;
 
 
 export default function LiveRuntimePage() {
