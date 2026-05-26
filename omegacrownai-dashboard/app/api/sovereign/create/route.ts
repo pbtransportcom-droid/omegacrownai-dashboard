@@ -120,6 +120,7 @@ export async function POST(req: Request) {
 
     const prompt = String(body?.prompt || "");
     const intent = detectIntent(prompt);
+    const mode = String(body?.mode || body?.type || intent || "general");
 
     const projectId =
       "OC-" + Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -142,6 +143,7 @@ export async function POST(req: Request) {
       projectId,
       runtimeId,
       intent,
+      mode,
       prompt,
       workspace,
       status: "initializing",
@@ -189,6 +191,7 @@ export async function POST(req: Request) {
       ok: true,
       sovereign: true,
       intent,
+      mode,
       projectId,
       runtimeId,
       workspace,
