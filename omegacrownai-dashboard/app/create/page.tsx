@@ -154,9 +154,10 @@ function CreatePageClient() {
       const data = await response.json();
 
       if (data?.ok) {
-        router.push(
-          `/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.intent}`
-        );
+        
+     router.push(
+     `/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || "workspace"}`
+     );
       } else {
         alert("OmegaCrownAI could not initialize the sovereign runtime.");
       }
