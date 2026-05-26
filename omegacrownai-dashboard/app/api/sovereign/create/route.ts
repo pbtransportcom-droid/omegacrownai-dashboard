@@ -52,7 +52,7 @@ function buildArtifactFiles(projectId: string, runtimeId: string, intent: string
 Project ID: ${projectId}
 Runtime ID: ${runtimeId}
 Intent: ${intent}
-Mode: ${mode}
+Mode: ${intent}
 
 ## User Brief
 ${prompt}
@@ -121,7 +121,6 @@ export async function POST(req: Request) {
 
     const prompt = String(body?.prompt || "");
     const intent = detectIntent(prompt);
-    const mode = String(body?.mode || body?.type || intent || "general");
     const mode = String(body?.mode || body?.type || intent || "general");
 
     const projectId =
