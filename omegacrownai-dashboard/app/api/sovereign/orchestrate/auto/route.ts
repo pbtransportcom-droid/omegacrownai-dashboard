@@ -91,6 +91,15 @@ export async function POST(req: Request) {
     finalRun.status = "completed";
     finalRun.completedAt = new Date().toISOString();
 
+    const finalMemoryDir = path.join(process.cwd(), "data", "runtime-memory", projectId);
+    fs.mkdirSync(finalMemoryDir, { recursive: true });
+    const finalMemoryPath = path.join(finalMemoryDir, "shared-memory.json");
+
+    const finalMemory = execution.at(-1)?.memory || {};
+    finalMemory.mode = finalRun.mode || finalRun.intent || finalMemory.mode || "general";
+
+    fs.writeFileSync(finalMemoryPath, JSON.stringify(finalMemory, null, 2));
+
     fs.writeFileSync(
       runPath,
       JSON.stringify(finalRun, null, 2)
