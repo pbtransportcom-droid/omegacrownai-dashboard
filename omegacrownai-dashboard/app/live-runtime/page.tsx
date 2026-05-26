@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
@@ -227,6 +229,38 @@ function LiveRuntimePageClient() {
     </main>
   );
 }
+
+
+
+const projectId =
+  searchParams?.projectId || "";
+
+const runtimeId =
+  searchParams?.runtimeId || "";
+
+const runPath = path.join(
+  process.cwd(),
+  "data",
+  "sovereign-runs",
+  `${projectId}.json`
+);
+
+let run: any = null;
+
+if (fs.existsSync(runPath)) {
+  run = JSON.parse(
+    fs.readFileSync(runPath, "utf8")
+  );
+}
+
+const agents =
+  run?.agents?.length || 0;
+
+const artifacts =
+  run?.artifacts?.length || 0;
+
+const events =
+  run?.events?.length || 0;
 
 
 export default function LiveRuntimePage() {
