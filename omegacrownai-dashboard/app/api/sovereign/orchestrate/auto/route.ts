@@ -160,7 +160,24 @@ export async function POST(req: Request) {
     }));
 
     finalRun.agents = generatedAgentHandoffs;
-    finalRun.agentHandoffs = generatedAgentHandoffs;
+    
+finalRun.agentHandoffs = generatedAgentHandoffs;
+
+    finalRun.agents = generatedAgentHandoffs.map((agent: any) => ({
+      id: agent.id,
+      name: agent.name,
+      role: agent.role,
+      output: agent.output,
+      quality: agent.quality,
+      timestamp: agent.timestamp
+    }));
+
+
+    finalRun.agents = generatedAgentHandoffs.map((agent) => ({
+      name: agent.name,
+      role: agent.role,
+      output: agent.output
+    }));
 
     ensureRuntimeDeliverables(projectId, finalRun, generatedAgentHandoffs);
 
