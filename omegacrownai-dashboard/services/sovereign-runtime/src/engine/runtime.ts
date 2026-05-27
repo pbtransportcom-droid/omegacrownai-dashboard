@@ -1,88 +1,106 @@
-import fs from "fs";
-import path from "path";
 import { runAgentChain } from "../agents/chain.js";
 import { buildArtifacts } from "../artifacts/builder.js";
 import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
-
-const root = process.cwd();
-const dataRoot = path.join(root, "data");
-const runsDir = path.join(dataRoot, "runs");
-
-fs.mkdirSync(runsDir, { recursive: true });
+import { appendTranscript } from "../storage/transcript.js";
+import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
+import type { RuntimeRun } from "./schema.js";
 
 function id(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
-function runPath(projectId: string) {
-  return path.join(runsDir, `${projectId}.json`);
-}
-
 export async function createRun(input: any) {
   const projectId = input.projectId || id("OC");
   const runtimeId = input.runtimeId || id("RT");
+  const now = new Date().toISOString();
 
-  const run = {
+  const run: RuntimeRun = {
     ok: true,
     projectId,
     runtimeId,
     mode: input.mode || input.intent || "general",
     prompt: input.prompt || "",
     status: "created",
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     events: ["Run created"],
     agents: [],
     artifacts: [],
     validation: null,
-    delivery: null
+    delivery: null,
+    summary: null
   };
 
-  fs.writeFileSync(runPath(projectId), JSON.stringify(run, null, 2));
-  return run;
+  return saveRun(run);
 }
 
 export async function getRun(projectId: string) {
-  const file = runPath(projectId);
-  if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf8"));
+  return loadRun(projectId);
 }
 
 export async function executeRun(projectId: string, input: any) {
-  const existing = await getRun(projectId);
-  if (!existing) return { ok: false, error: "Run not found", projectId };
+  const run = loadRun(projectId);
 
-  existing.status = "running";
-  existing.events.push("Execution started");
+  if (!run) {
+    return { ok: false, error: "Run not found", projectId };
+  }
 
-  const agents = await runAgentChain(existing, input);
-  existing.agents = agents;
-  existing.events.push("Agent chain completed");
+  try {
+    run.status = "running";
+    appendRunEvent(run, "Execution started");
+    appendTranscript(projectId, "Execution started");
 
-  const artifacts = await buildArtifacts(existing);
-  existing.artifacts = artifacts;
-  existing.events.push("Artifacts generated");
+    run.status = "agent_chain";
+    saveRun(run);
 
-  const validation = await validateRun(existing);
-  existing.validation = validation;
-  existing.events.push("Validation completed");
+    const agents = await runAgentChain(run, input);
+    run.agents = agents;
+    appendRunEvent(run, "Agent chain completed");
+    appendTranscript(projectId, "Agent chain completed");
 
-  const delivery = await prepareDelivery(existing);
-  existing.delivery = delivery;
-  existing.events.push("Delivery prepared");
+    run.status = "artifacts";
+    saveRun(run);
 
-  existing.status = "completed";
-  existing.completedAt = new Date().toISOString();
+    const artifacts = await buildArtifacts(run);
+    run.artifacts = artifacts;
+    appendRunEvent(run, "Artifacts generated");
+    appendTranscript(projectId, "Artifacts generated");
 
-  fs.writeFileSync(runPath(projectId), JSON.stringify(existing, null, 2));
+    run.status = "validation";
+    saveRun(run);
 
-  return {
-    ok: true,
-    projectId,
-    status: existing.status,
-    agents,
-    artifacts,
-    validation,
-    delivery
-  };
+    const validation = await validateRun(run);
+    run.validation = validation;
+    appendRunEvent(run, "Validation completed");
+    appendTranscript(projectId, "Validation completed");
+
+    run.status = "delivery";
+    saveRun(run);
+
+    const delivery = await prepareDelivery(run);
+    run.delivery = delivery;
+    appendRunEvent(run, "Delivery prepared");
+    appendTranscript(projectId, "Delivery prepared");
+
+    run.summary = {
+      agents: run.agents.length,
+      artifacts: run.artifacts.length,
+      validation: run.validation?.status || "unknown",
+      delivery: run.delivery?.status || "unknown"
+    };
+
+    run.status = "completed";
+    run.completedAt = new Date().toISOString();
+    appendRunEvent(run, "Execution completed");
+    appendTranscript(projectId, "Execution completed");
+
+    return saveRun(run);
+  } catch (error) {
+    run.status = "error";
+    run.error = String(error);
+    appendRunEvent(run, `Execution error: ${String(error)}`);
+    appendTranscript(projectId, `Execution error: ${String(error)}`);
+    return saveRun(run);
+  }
 }
