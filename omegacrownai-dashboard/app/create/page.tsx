@@ -154,6 +154,16 @@ function CreatePageClient() {
       const data = await response.json();
 
       if (data?.ok) {
+        await fetch("/api/sovereign/orchestrate/auto", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            projectId: data.projectId,
+            instruction: `Execute ${data.mode || data.intent || "general"} collaboration lifecycle.`,
+          }),
+        });
         
      router.push(
      `/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || "workspace"}`
