@@ -44,7 +44,7 @@ const agents =
 const artifacts =
   runtimeData?.artifacts?.length || 0;
 
-const events =
+const runtimeEventCount =
   runtimeData?.events?.length || 0;
 
 
