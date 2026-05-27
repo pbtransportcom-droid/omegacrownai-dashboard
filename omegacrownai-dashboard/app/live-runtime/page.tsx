@@ -32,9 +32,20 @@ function LiveRuntimeInner() {
       });
   }, [projectId]);
 
-  const agents = runtime?.agents || [];
-  const artifacts = runtime?.artifacts || [];
-  const events = runtime?.events || [];
+  const agents =
+    runtime?.agentHandoffs ||
+    runtime?.run?.agentHandoffs ||
+    runtime?.run?.agents ||
+    runtime?.agents ||
+    [];
+  const artifacts =
+    runtime?.artifacts ||
+    runtime?.run?.artifacts ||
+    [];
+  const events =
+    runtime?.events ||
+    runtime?.run?.events ||
+    [];
   const transcript = runtime?.transcript || [];
 
   return (
