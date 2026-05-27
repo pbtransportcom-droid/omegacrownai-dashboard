@@ -110,6 +110,8 @@ export async function POST(req: Request) {
       projectId,
       cycles: execution.length,
       execution,
+      events: execution.map((item: any) => item.message).filter(Boolean),
+
       status: "completed",
       collaborationHealth:
         finalRun.collaborationHealth || "stable",

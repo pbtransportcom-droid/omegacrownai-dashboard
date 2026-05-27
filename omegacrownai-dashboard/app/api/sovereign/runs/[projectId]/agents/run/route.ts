@@ -428,6 +428,8 @@ export async function POST(
       output: agentOutput,
       quality: score,
       createdAt: new Date().toISOString(),
+      events: memory.messages || [],
+
       status: "completed",
     };
 
