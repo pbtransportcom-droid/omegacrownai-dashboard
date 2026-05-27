@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function VideoStudioPage() {
+  const router = useRouter();
+
   const [prompt, setPrompt] = useState(
     "Create a cinematic OmegaCrownAI commercial showing sovereign AI intelligence, futuristic interfaces, luxury presentation, and production-grade realism."
   );
@@ -10,108 +13,86 @@ export default function VideoStudioPage() {
   const [loading, setLoading] = useState(false);
 
   async function generateVideo() {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+      const createResponse = await fetch("/api/runtime-proxy/runs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "video",
+          prompt,
+        }),
+      });
 
-    setLoading(false);
+      const run = await createResponse.json();
 
-    alert("OmegaCrownAI video generation pipeline initialized.");
+      await fetch(
+        `/api/runtime-proxy/runs/${run.projectId}/execute`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            instruction: "Execute cinematic video generation workflow.",
+          }),
+        }
+      );
+
+      router.push(
+        `/live-runtime?projectId=${run.projectId}&runtimeId=${run.runtimeId}&intent=video`
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Video runtime execution failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-black px-6 py-10 text-white">
-      <section className="mx-auto max-w-7xl">
-        <div className="rounded-3xl border border-red-500/20 bg-gradient-to-br from-[#140505] via-[#0a0a0a] to-black p-10 shadow-2xl shadow-red-500/10">
-          <p className="text-xs font-black uppercase tracking-[0.35em] text-red-300">
+    <main className="min-h-screen bg-black text-white p-10">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div>
+          <p className="uppercase tracking-[0.3em] text-sm text-red-300">
             OmegaCrownAI Video Studio
           </p>
 
-          <h1 className="mt-5 text-5xl font-black">
+          <h1 className="text-6xl font-black mt-4">
             Cinematic AI Video Generation
           </h1>
 
-          <p className="mt-6 max-w-4xl text-lg leading-8 text-slate-300">
-            Generate AI commercials, trailers, cinematic campaigns, reels,
-            product launches, and sovereign media productions using the
-            OmegaCrownAI production engine.
+          <p className="text-zinc-400 mt-6 text-lg">
+            Generate AI commercials, trailers, cinematic campaigns,
+            reels, product launches, and sovereign media productions.
           </p>
+        </div>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <div className="text-sm font-black uppercase tracking-[0.25em] text-red-300">
-                Video Prompt
-              </div>
+        <div className="border border-zinc-800 rounded-3xl p-8 bg-zinc-950">
+          <div className="space-y-4">
+            <label className="text-sm uppercase tracking-[0.3em] text-red-200">
+              Video Prompt
+            </label>
 
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="mt-5 h-64 w-full rounded-2xl border border-white/10 bg-black/40 p-5 text-sm leading-7 text-white outline-none focus:border-red-400"
-              />
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="w-full h-56 bg-black border border-zinc-800 rounded-2xl p-6 text-white"
+            />
 
-              <div className="mt-6 flex flex-wrap gap-4">
-                <button
-                  onClick={generateVideo}
-                  disabled={loading}
-                  className="rounded-2xl bg-red-400 px-6 py-4 text-sm font-black text-black hover:bg-red-300 disabled:opacity-50"
-                >
-                  {loading ? "Initializing Render..." : "Generate Video"}
-                </button>
-
-                <button
-                  className="rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-black text-white hover:bg-white/20"
-                >
-                  Open Assets
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <div className="text-sm font-black uppercase tracking-[0.25em] text-red-300">
-                AI Render Pipeline
-              </div>
-
-              <div className="mt-6 space-y-4">
-                {[
-                  "Scene planning",
-                  "Shot generation",
-                  "Voiceover synthesis",
-                  "Motion sequencing",
-                  "Transition rendering",
-                  "Soundtrack generation",
-                  "Export pipeline",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold">{item}</span>
-
-                      <span className="text-xs uppercase tracking-[0.25em] text-emerald-300">
-                        Ready
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 rounded-2xl border border-red-400/20 bg-red-500/10 p-5">
-                <div className="text-xs font-black uppercase tracking-[0.25em] text-red-300">
-                  Sovereign Production Engine
-                </div>
-
-                <p className="mt-3 text-sm leading-7 text-red-100">
-                  OmegaCrownAI orchestrates cinematic production workflows,
-                  AI-directed sequencing, prompt interpretation, rendering
-                  logic, media assets, and publishing preparation through the
-                  sovereign media runtime.
-                </p>
-              </div>
-            </div>
+            <button
+              onClick={generateVideo}
+              disabled={loading}
+              className="px-8 py-4 rounded-2xl bg-red-400 text-black font-bold"
+            >
+              {loading ? "Launching Runtime..." : "Generate Video"}
+            </button>
           </div>
         </div>
-      </section>
+      </div>
     </main>
   );
 }
