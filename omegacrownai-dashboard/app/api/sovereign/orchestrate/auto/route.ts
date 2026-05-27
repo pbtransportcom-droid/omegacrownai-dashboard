@@ -105,12 +105,45 @@ export async function POST(req: Request) {
       JSON.stringify(finalRun, null, 2)
     );
 
+    const safeExecution = execution.map((item: any) => ({
+      ok: item.ok,
+      projectId: item.projectId,
+      nextAgent: item.nextAgent,
+      health: item.health,
+      eventCount: item.eventCount,
+      handoffCount: item.handoffCount,
+      message: item.message
+        ? {
+            id: item.message.id,
+            from: item.message.from,
+            to: item.message.to,
+            role: item.message.role,
+            output: item.message.output,
+            quality: item.message.quality,
+            createdAt: item.message.createdAt,
+            status: item.message.status,
+          }
+        : null,
+    }));
+
     return NextResponse.json({
       ok: true,
       projectId,
-      cycles: execution.length,
-      execution,
-      events: execution.map((item: any) => item.message).filter(Boolean),
+      cycles: safeExecution.length,
+      execution: safeExecution,
+      events: execution
+        .map((item: any) => item?.message)
+        .filter(Boolean)
+        .map((message: any) => ({
+          id: message.id,
+          from: message.from,
+          to: message.to,
+          role: message.role,
+          output: message.output,
+          quality: message.quality,
+          createdAt: message.createdAt,
+          status: message.status,
+        })),
 
       status: "completed",
       collaborationHealth:
