@@ -1,6 +1,7 @@
 import { Queue, Worker } from "bullmq";
-import IORedis from "ioredis";
-export const connection = new IORedis(process.env.REDIS_URL || "redis://127.0.0.1:6379", { maxRetriesPerRequest: null });
+import RedisModule from "ioredis";
+const RedisCtor = RedisModule.default || RedisModule;
+export const connection = new RedisCtor(process.env.REDIS_URL || "redis://127.0.0.1:6379", { maxRetriesPerRequest: null });
 export const runtimeQueue = new Queue("runtime-execution", {
     connection,
 });
