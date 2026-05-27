@@ -139,7 +139,7 @@ function CreatePageClient() {
 
       const prompt = String(formData.get("prompt") || "");
 
-      const response = await fetch("/api/sovereign/create", {
+      const response = await fetch("/api/runtime-execution/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,6 +154,16 @@ function CreatePageClient() {
       const data = await response.json();
 
       if (data?.ok) {
+        await fetch("/api/runtime-execution/execute", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            projectId: data.projectId,
+            instruction: `Execute ${data.mode || data.intent || "general"} sovereign workflow.`,
+          }),
+        });
         await fetch("/api/sovereign/orchestrate/auto", {
           method: "POST",
           headers: {
@@ -165,9 +175,7 @@ function CreatePageClient() {
           }),
         });
         
-     router.push(
-     `/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || "workspace"}`
-     );
+     router.push(`/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || selected}`);
       } else {
         alert("OmegaCrownAI could not initialize the sovereign runtime.");
       }
