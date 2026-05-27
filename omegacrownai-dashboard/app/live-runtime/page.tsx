@@ -16,7 +16,7 @@ function LiveRuntimeInner() {
   useEffect(() => {
     if (!projectId) return;
 
-    fetch(`/api/sovereign/runs/${projectId}`)
+    fetch(`/api/runtime-proxy/runs/${projectId}`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.ok) {
