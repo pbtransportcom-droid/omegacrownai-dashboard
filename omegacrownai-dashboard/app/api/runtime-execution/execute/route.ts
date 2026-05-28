@@ -22,6 +22,16 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
+    if (data?.ok && body.autoDeploy !== false) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3101"}/api/runtime-proxy/runs/${body.projectId}/deploy`, {
+          method: "POST",
+        });
+      } catch {
+        // Deployment can be retried manually from live-runtime.
+      }
+    }
+
     return NextResponse.json(data, {
       status: response.status,
     });
