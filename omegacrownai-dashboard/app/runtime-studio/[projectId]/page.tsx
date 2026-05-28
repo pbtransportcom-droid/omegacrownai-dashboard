@@ -18,6 +18,7 @@ export default function RuntimeStudioPage() {
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   async function loadFiles() {
     setLoading(true);
@@ -56,6 +57,36 @@ export default function RuntimeStudioPage() {
     if (data?.ok) {
       setContent(data.content || "");
     }
+  }
+
+  async function saveFile() {
+    if (!selectedFile) return;
+
+    setSaving(true);
+
+    const response = await fetch(
+      `/api/runtime-proxy/runs/${projectId}/files/save`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          file: selectedFile,
+          content,
+        }),
+      }
+    );
+
+    const data = await response.json();
+    setSaving(false);
+
+    if (!data?.ok) {
+      alert("Save failed.");
+      return;
+    }
+
+    await loadFiles();
   }
 
   useEffect(() => {
@@ -145,14 +176,21 @@ export default function RuntimeStudioPage() {
         <section className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-black">{selectedFile || "Select a file"}</h2>
-            <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
-              Read-only
-            </span>
+            <button
+              onClick={saveFile}
+              disabled={saving || !selectedFile}
+              className="rounded-full bg-red-400 px-4 py-2 text-xs font-bold text-black disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save File"}
+            </button>
           </div>
 
-          <pre className="min-h-[70vh] overflow-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-sm leading-6 text-zinc-200">
-            <code>{content}</code>
-          </pre>
+          <textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            className="min-h-[70vh] w-full overflow-auto rounded-3xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-sm leading-6 text-zinc-200 outline-none"
+            spellCheck={false}
+          />
         </section>
       </div>
     </main>
