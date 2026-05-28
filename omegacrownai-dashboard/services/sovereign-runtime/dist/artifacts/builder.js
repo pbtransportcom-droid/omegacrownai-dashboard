@@ -70,9 +70,39 @@ export async function buildArtifacts(run) {
       </ul>
     </section>
 
+    ${isTransport ? `
+    <section class="panel">
+      <p class="eyebrow">LUXURY FLEET</p>
+      <h2>Executive vehicles for every trip</h2>
+      <div class="fleet">
+        <article><h3>Executive Sedan</h3><p>Premium black car service for airport transfers and business travel.</p></article>
+        <article><h3>Luxury SUV</h3><p>Spacious rides for families, executives, luggage, and VIP guests.</p></article>
+        <article><h3>Private Chauffeur</h3><p>Professional point-to-point service with polished presentation.</p></article>
+      </div>
+    </section>
+
+    <section class="panel booking">
+      <p class="eyebrow">RESERVATIONS</p>
+      <h2>Book your airport transfer</h2>
+      <form>
+        <input placeholder="Pickup location" />
+        <input placeholder="Drop-off location" />
+        <input placeholder="Date and time" />
+        <input placeholder="Phone or email" />
+        <button type="button">Request Quote</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">SERVICE AREA</p>
+      <h2>O Hare airport and executive travel coverage</h2>
+      <p>Designed for premium airport transfers, corporate transportation, hotel pickups, private events, and scheduled chauffeur service.</p>
+    </section>
+    ` : ""}
+
     <section id="contact" class="panel dark">
-      <h2>Ready for deployment</h2>
-      <p>This package can now be extended into full frontend/backend production output.</p>
+      <h2>${isTransport ? "Ready to ride in comfort" : "Ready for deployment"}</h2>
+      <p>${isTransport ? "Launch-ready black car booking experience with premium positioning, clear reservation flow, and executive design." : "This package can now be extended into full frontend/backend production output."}</p>
     </section>
   </main>
 </body>
@@ -82,7 +112,7 @@ export async function buildArtifacts(run) {
             type: "css",
             title: "Production Stylesheet",
             file: "styles.css",
-            content: `*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#070707;color:#fff}a{color:inherit;text-decoration:none}.hero{min-height:100vh;padding:32px;background:radial-gradient(circle at top right,#7f1d1d,transparent 35%),linear-gradient(135deg,#020202,#151515)}nav{display:flex;gap:24px;align-items:center;justify-content:flex-end}nav strong{margin-right:auto}.hero section{max-width:980px;margin:18vh auto 0}.eyebrow{letter-spacing:.35em;color:#fca5a5;font-size:12px}h1{font-size:clamp(44px,8vw,92px);line-height:.95;margin:24px 0}.lead{font-size:22px;color:#d4d4d8;max-width:760px}.actions{display:flex;gap:16px;margin-top:32px}.primary,.secondary{padding:16px 24px;border-radius:18px;font-weight:800}.primary{background:#f87171;color:#000}.secondary{border:1px solid #3f3f46}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;padding:80px 40px}.grid article,.panel{border:1px solid #27272a;border-radius:28px;background:#111;padding:32px}.panel{margin:40px auto;max-width:1000px}.dark{background:#000}`
+            content: `*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#070707;color:#fff}a{color:inherit;text-decoration:none}.hero{min-height:100vh;padding:32px;background:radial-gradient(circle at top right,#7f1d1d,transparent 35%),linear-gradient(135deg,#020202,#151515)}nav{display:flex;gap:24px;align-items:center;justify-content:flex-end}nav strong{margin-right:auto}.hero section{max-width:980px;margin:18vh auto 0}.eyebrow{letter-spacing:.35em;color:#fca5a5;font-size:12px}h1{font-size:clamp(44px,8vw,92px);line-height:.95;margin:24px 0}.lead{font-size:22px;color:#d4d4d8;max-width:760px}.actions{display:flex;gap:16px;margin-top:32px}.primary,.secondary{padding:16px 24px;border-radius:18px;font-weight:800}.primary{background:#f87171;color:#000}.secondary{border:1px solid #3f3f46}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;padding:80px 40px}.grid article,.panel{border:1px solid #27272a;border-radius:28px;background:#111;padding:32px}.panel{margin:40px auto;max-width:1000px}.dark{background:#000}.fleet{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}.fleet article{border:1px solid #27272a;border-radius:22px;padding:24px;background:#09090b}.booking form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:24px}.booking input{background:#050505;border:1px solid #3f3f46;border-radius:14px;color:white;padding:16px}.booking button{border:0;border-radius:14px;background:#f87171;color:#000;font-weight:900;padding:16px}`
         },
         {
             type: "json",
