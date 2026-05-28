@@ -36,11 +36,23 @@ export async function GET(
     mode: source.mode || run?.mode || run?.intent || "general",
     status: run?.status || source.status || "running",
     agents: source.agentHandoffs || run?.agents || [],
-    artifacts: source.artifacts || [],
+    artifacts:
+      source.artifacts ||
+      source.run?.artifacts ||
+      run?.artifacts ||
+      [],
     events: source.protocol?.timeline || run?.events || [],
     transcript: source.protocol?.transcript || [],
-    validation: source.validation || null,
-    delivery: source.delivery || null,
+    validation:
+      source.validation ||
+      source.run?.validation ||
+      run?.validation ||
+      null,
+    delivery:
+      source.delivery ||
+      source.run?.delivery ||
+      run?.delivery ||
+      null,
     summary: source.protocol?.summary || run?.protocol?.summary || null,
     run,
     memory,
