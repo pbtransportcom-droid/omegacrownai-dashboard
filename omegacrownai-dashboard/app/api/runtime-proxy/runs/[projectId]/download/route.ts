@@ -1,26 +1,47 @@
 import fs from "fs";
 import path from "path";
-import { NextResponse } from "next/server";
+import { Readable } from "stream";
 import archiver from "archiver";
+import { NextResponse } from "next/server";
 
-const RUNTIME_ROOT = path.join(
-  process.cwd(),
-  "services",
-  "sovereign-runtime"
-);
+export const runtime = "nodejs";
+
+const RUNTIME_ROOT = path.join(process.cwd(), "services", "sovereign-runtime");
+
+function artifactDirFor(projectId: string) {
+  return path.join(RUNTIME_ROOT, "data", "artifacts", projectId);
+}
+
+function zipHeaders(projectId: string) {
+  return {
+    "Content-Type": "application/zip",
+    "Content-Disposition": `attachment; filename="${projectId}-artifacts.zip"`,
+  };
+}
+
+export async function HEAD(
+  req: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  const { projectId } = await params;
+  const artifactDir = artifactDirFor(projectId);
+
+  if (!fs.existsSync(artifactDir)) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  return new NextResponse(null, {
+    status: 200,
+    headers: zipHeaders(projectId),
+  });
+}
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await params;
-
-  const artifactDir = path.join(
-    RUNTIME_ROOT,
-    "data",
-    "artifacts",
-    projectId
-  );
+  const artifactDir = artifactDirFor(projectId);
 
   if (!fs.existsSync(artifactDir)) {
     return NextResponse.json(
@@ -29,28 +50,12 @@ export async function GET(
     );
   }
 
-  const chunks: Buffer[] = [];
-
-  const archive = archiver("zip", {
-    zlib: { level: 9 },
-  });
-
+  const archive = archiver("zip", { zlib: { level: 9 } });
   archive.directory(artifactDir, false);
+  archive.finalize();
 
-  const done = new Promise<Buffer>((resolve, reject) => {
-    archive.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
-    archive.on("end", () => resolve(Buffer.concat(chunks)));
-    archive.on("error", reject);
-  });
-
-  await archive.finalize();
-
-  const zip = await done;
-
-  return new NextResponse(zip, {
-    headers: {
-      "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${projectId}-artifacts.zip"`,
-    },
+  return new Response(Readable.toWeb(archive) as BodyInit, {
+    status: 200,
+    headers: zipHeaders(projectId),
   });
 }
