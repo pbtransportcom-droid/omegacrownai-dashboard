@@ -147,12 +147,155 @@ export async function buildArtifacts(run: any) {
           version: "1.0.0",
           private: true,
           scripts: {
-            preview: "npx serve ."
+            preview: "npx serve .",
+            dev: "next dev",
+            build: "next build",
+            start: "next start"
+          },
+          dependencies: {
+            "@types/node": "latest",
+            "@types/react": "latest",
+            "@types/react-dom": "latest",
+            "autoprefixer": "latest",
+            "next": "latest",
+            "postcss": "latest",
+            "react": "latest",
+            "react-dom": "latest",
+            "tailwindcss": "latest",
+            "typescript": "latest"
           }
         },
         null,
         2
       )
+    },
+    {
+      type: "typescript",
+      title: "Next.js App Page",
+      file: "app/page.tsx",
+      content: `export default function Page() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <section className="px-8 py-24">
+        <p className="text-sm uppercase tracking-[0.35em] text-red-300">${mode} runtime artifact</p>
+        <h1 className="mt-6 max-w-5xl text-6xl font-black leading-none">
+          ${run.prompt}
+        </h1>
+        <p className="mt-6 max-w-3xl text-xl text-zinc-300">
+          ${isTransport
+            ? "Premium airport transfers, executive chauffeur service, luxury fleet booking, and reliable point-to-point transportation."
+            : "Production-ready generated application package with runtime validation and delivery support."}
+        </p>
+        <div className="mt-8 flex gap-4">
+          <a className="rounded-2xl bg-red-400 px-6 py-4 font-bold text-black" href="#booking">
+            Request Booking
+          </a>
+          <a className="rounded-2xl border border-zinc-700 px-6 py-4 font-bold" href="#fleet">
+            View Fleet
+          </a>
+        </div>
+      </section>
+
+      ${isTransport ? `
+      <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
+        {["Executive Sedan", "Luxury SUV", "Private Chauffeur"].map((item) => (
+          <article key={item} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+            <h2 className="text-2xl font-black">{item}</h2>
+            <p className="mt-4 text-zinc-400">Premium transportation service with executive presentation.</p>
+          </article>
+        ))}
+      </section>
+
+      <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <h2 className="text-4xl font-black">Book your airport transfer</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Pickup location" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Drop-off location" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Date and time" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Phone or email" />
+        </div>
+        <button className="mt-6 rounded-2xl bg-red-400 px-6 py-4 font-bold text-black">Request Quote</button>
+      </section>
+      ` : ""}
+    </main>
+  );
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Next.js Layout",
+      file: "app/layout.tsx",
+      content: `import "./globals.css";
+
+export const metadata = {
+  title: "${projectName}",
+  description: "${run.prompt}",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+`
+    },
+    {
+      type: "css",
+      title: "Next.js Global Styles",
+      file: "app/globals.css",
+      content: `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+`
+    },
+    {
+      type: "javascript",
+      title: "Tailwind Config",
+      file: "tailwind.config.js",
+      content: `module.exports = {
+  content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+`
+    },
+    {
+      type: "typescript",
+      title: "TypeScript Config",
+      file: "tsconfig.json",
+      content: `{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
+`
     },
     {
       type: "markdown",
