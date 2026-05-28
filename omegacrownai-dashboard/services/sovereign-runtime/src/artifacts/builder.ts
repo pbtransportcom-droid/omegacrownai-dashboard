@@ -19,6 +19,7 @@ export async function buildArtifacts(run: any) {
   fs.mkdirSync(outDir, { recursive: true });
 
   const projectName = slug(run.prompt);
+  const isTransport = /transport|black car|airport|limo|chauffeur|ride/i.test(run.prompt || "");
   const mode = run.mode || "website";
 
   const files = [
@@ -59,9 +60,9 @@ export async function buildArtifacts(run: any) {
 
   <main>
     <section id="features" class="grid">
-      <article><h2>Runtime Generated</h2><p>Created by the independent Sovereign Runtime engine.</p></article>
-      <article><h2>Agent Validated</h2><p>Planner, Builder, Validator, and Delivery agents completed execution.</p></article>
-      <article><h2>Export Ready</h2><p>Artifacts are prepared for ZIP download and customer delivery.</p></article>
+      <article><h2>${isTransport ? "Airport Transfers" : "Runtime Generated"}</h2><p>${isTransport ? "Book premium rides to and from major airports with professional chauffeurs." : "Created by the independent Sovereign Runtime engine."}</p></article>
+      <article><h2>${isTransport ? "Executive Fleet" : "Agent Validated"}</h2><p>${isTransport ? "Luxury sedans, SUVs, and black car service for business and private travel." : "Planner, Builder, Validator, and Delivery agents completed execution."}</p></article>
+      <article><h2>${isTransport ? "Fast Reservations" : "Export Ready"}</h2><p>${isTransport ? "Clear calls to action for booking, quotes, dispatch, and customer service." : "Artifacts are prepared for ZIP download and customer delivery."}</p></article>
     </section>
 
     <section id="delivery" class="panel">
