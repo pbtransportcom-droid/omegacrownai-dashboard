@@ -158,52 +158,130 @@ export async function buildArtifacts(run) {
         },
         {
             type: "typescript",
-            title: "Next.js App Page",
-            file: "app/page.tsx",
-            content: `export default function Page() {
+            title: "Hero Component",
+            file: "components/Hero.tsx",
+            content: `export function Hero() {
   return (
-    <main className="min-h-screen bg-black text-white">
-      <section className="px-8 py-24">
-        <p className="text-sm uppercase tracking-[0.35em] text-red-300">${mode} runtime artifact</p>
-        <h1 className="mt-6 max-w-5xl text-6xl font-black leading-none">
-          ${run.prompt}
-        </h1>
-        <p className="mt-6 max-w-3xl text-xl text-zinc-300">
-          ${isTransport
+    <section className="px-8 py-24">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${mode} runtime artifact</p>
+      <h1 className="mt-6 max-w-5xl text-6xl font-black leading-none">
+        ${run.prompt}
+      </h1>
+      <p className="mt-6 max-w-3xl text-xl text-zinc-300">
+        ${isTransport
                 ? "Premium airport transfers, executive chauffeur service, luxury fleet booking, and reliable point-to-point transportation."
                 : "Production-ready generated application package with runtime validation and delivery support."}
-        </p>
-        <div className="mt-8 flex gap-4">
-          <a className="rounded-2xl bg-red-400 px-6 py-4 font-bold text-black" href="#booking">
-            Request Booking
-          </a>
-          <a className="rounded-2xl border border-zinc-700 px-6 py-4 font-bold" href="#fleet">
-            View Fleet
-          </a>
-        </div>
-      </section>
+      </p>
+      <div className="mt-8 flex flex-wrap gap-4">
+        <a className="rounded-2xl bg-red-400 px-6 py-4 font-bold text-black" href="#booking">
+          Request Booking
+        </a>
+        <a className="rounded-2xl border border-zinc-700 px-6 py-4 font-bold" href="#fleet">
+          View Fleet
+        </a>
+      </div>
+    </section>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Fleet Component",
+            file: "components/Fleet.tsx",
+            content: `const fleet = [
+  "Executive Sedan",
+  "Luxury SUV",
+  "Private Chauffeur"
+];
 
-      ${isTransport ? `
-      <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
-        {["Executive Sedan", "Luxury SUV", "Private Chauffeur"].map((item) => (
-          <article key={item} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-            <h2 className="text-2xl font-black">{item}</h2>
-            <p className="mt-4 text-zinc-400">Premium transportation service with executive presentation.</p>
+export function Fleet() {
+  return (
+    <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
+      {fleet.map((item) => (
+        <article key={item} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">{item}</h2>
+          <p className="mt-4 text-zinc-400">
+            Premium transportation service with executive presentation.
+          </p>
+        </article>
+      ))}
+    </section>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Booking Component",
+            file: "components/BookingForm.tsx",
+            content: `export function BookingForm() {
+  return (
+    <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+      <h2 className="text-4xl font-black">Book your airport transfer</h2>
+      <p className="mt-3 text-zinc-400">
+        Request a luxury ride with professional chauffeur service.
+      </p>
+
+      <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Pickup location" />
+        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Drop-off location" />
+        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Date and time" />
+        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Phone or email" />
+      </div>
+
+      <button className="mt-6 rounded-2xl bg-red-400 px-6 py-4 font-bold text-black">
+        Request Quote
+      </button>
+    </section>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Testimonials Component",
+            file: "components/Testimonials.tsx",
+            content: `const testimonials = [
+  "Professional, punctual, and luxury from start to finish.",
+  "Perfect airport transfer experience for executive travel.",
+  "Clean vehicles, smooth booking, and excellent chauffeur service."
+];
+
+export function Testimonials() {
+  return (
+    <section className="px-8 py-16">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Client Trust</p>
+      <h2 className="mt-4 text-4xl font-black">Trusted for premium travel</h2>
+
+      <div className="mt-8 grid gap-6 md:grid-cols-3">
+        {testimonials.map((quote) => (
+          <article key={quote} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+            <p className="text-zinc-300">“{quote}”</p>
           </article>
         ))}
-      </section>
+      </div>
+    </section>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Next.js App Page",
+            file: "app/page.tsx",
+            content: `import { Hero } from "../components/Hero";
+import { Fleet } from "../components/Fleet";
+import { BookingForm } from "../components/BookingForm";
+import { Testimonials } from "../components/Testimonials";
 
-      <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-        <h2 className="text-4xl font-black">Book your airport transfer</h2>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Pickup location" />
-          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Drop-off location" />
-          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Date and time" />
-          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Phone or email" />
-        </div>
-        <button className="mt-6 rounded-2xl bg-red-400 px-6 py-4 font-bold text-black">Request Quote</button>
-      </section>
-      ` : ""}
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Hero />
+      <Fleet />
+      <BookingForm />
+      <Testimonials />
     </main>
   );
 }
