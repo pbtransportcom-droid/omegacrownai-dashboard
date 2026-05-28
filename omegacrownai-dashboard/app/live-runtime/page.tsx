@@ -59,6 +59,32 @@ function LiveRuntimeInner() {
           Sovereign Runtime Execution
         </h1>
 
+          {projectId && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href={`/api/runtime-proxy/runs/${projectId}/download`}
+                className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-black"
+              >
+                Download ZIP
+              </a>
+
+              <button
+                onClick={() => deployRuntimeArtifact(projectId)}
+                className="rounded-xl bg-red-400 px-5 py-3 text-sm font-bold text-black"
+              >
+                Deploy
+              </button>
+
+              <a
+                href={`/runtime-preview/${projectId}`}
+                target="_blank"
+                className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-bold text-white"
+              >
+                Preview
+              </a>
+            </div>
+          )}
+
         <p className="mt-3 text-white/70">
           Project: {projectId || "missing"} · Runtime: {runtimeId || "missing"} · Mode:{" "}
           {runtime?.mode || intent}
@@ -155,6 +181,21 @@ function LiveRuntimeInner() {
       </section>
     </main>
   );
+}
+
+async function deployRuntimeArtifact(projectId: string) {
+  const response = await fetch(`/api/runtime-proxy/runs/${projectId}/deploy`, {
+    method: "POST",
+  });
+
+  const data = await response.json();
+
+  if (!data?.ok) {
+    alert("Deployment failed.");
+    return;
+  }
+
+  window.open(data.previewUrl || `/deployed/${projectId}`, "_blank");
 }
 
 export default function LiveRuntimePage() {
