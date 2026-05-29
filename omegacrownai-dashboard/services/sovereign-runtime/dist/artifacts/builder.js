@@ -157,6 +157,8 @@ export async function buildArtifacts(run) {
                     start: "next start"
                 },
                 dependencies: {
+                    "@prisma/client": "latest",
+                    "prisma": "latest",
                     "@types/node": "latest",
                     "@types/react": "latest",
                     "@types/react-dom": "latest",
@@ -376,6 +378,131 @@ export function Testimonials() {
     </footer>
   );
 }
+`
+        },
+        {
+            type: "typescript",
+            title: "Booking API Route",
+            file: "app/api/booking/route.ts",
+            content: `import { NextResponse } from "next/server";
+import { saveBookingLead } from "../../../lib/booking-store";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    const lead = await saveBookingLead({
+      pickup: body.pickup || "",
+      dropoff: body.dropoff || "",
+      dateTime: body.dateTime || "",
+      contact: body.contact || "",
+      service: body.service || "Airport Transfer",
+      source: "generated-booking-form",
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message: "Booking request received.",
+      lead,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Booking Store",
+            file: "lib/booking-store.ts",
+            content: `import fs from "fs";
+import path from "path";
+
+export type BookingLead = {
+  id?: string;
+  pickup: string;
+  dropoff: string;
+  dateTime: string;
+  contact: string;
+  service: string;
+  source: string;
+  createdAt?: string;
+};
+
+const dataDir = path.join(process.cwd(), "data");
+const leadFile = path.join(dataDir, "booking-leads.json");
+
+export async function saveBookingLead(input: BookingLead) {
+  fs.mkdirSync(dataDir, { recursive: true });
+
+  const leads: BookingLead[] = fs.existsSync(leadFile)
+    ? JSON.parse(fs.readFileSync(leadFile, "utf8"))
+    : [];
+
+  const lead = {
+    ...input,
+    id: "LEAD-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    createdAt: new Date().toISOString(),
+  };
+
+  leads.push(lead);
+  fs.writeFileSync(leadFile, JSON.stringify(leads, null, 2));
+
+  return lead;
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Database Client Stub",
+            file: "lib/db.ts",
+            content: `// Database scaffold.
+// Replace this file with Prisma, Postgres, Supabase, or your preferred database adapter.
+
+export const db = {
+  status: "ready-for-database-connection",
+  provider: process.env.DATABASE_URL ? "configured" : "file-storage-fallback",
+};
+`
+        },
+        {
+            type: "prisma",
+            title: "Prisma Schema",
+            file: "prisma/schema.prisma",
+            content: `generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BookingLead {
+  id        String   @id @default(cuid())
+  pickup    String
+  dropoff   String
+  dateTime  String
+  contact   String
+  service   String
+  source    String
+  createdAt DateTime @default(now())
+}
+`
+        },
+        {
+            type: "env",
+            title: "Environment Template",
+            file: ".env.example",
+            content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_app"
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+BOOKING_NOTIFICATION_EMAIL="dispatch@example.com"
 `
         },
         {
