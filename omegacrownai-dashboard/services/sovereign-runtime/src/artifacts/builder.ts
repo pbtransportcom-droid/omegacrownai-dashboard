@@ -695,6 +695,185 @@ main()
     },
     {
       type: "typescript",
+      title: "Booking Service",
+      file: "lib/services/booking-service.ts",
+      content: `export function createBookingWorkflow(input: any) {
+  return {
+    id: "BOOK-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    status: "new-request",
+    pickup: input.pickup,
+    dropoff: input.dropoff,
+    service: input.service || "Airport Transfer",
+    customerContact: input.contact,
+    workflow: ["new-request", "quoted", "confirmed", "assigned", "completed"],
+    createdAt: new Date().toISOString(),
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Dispatch Service",
+      file: "lib/services/dispatch-service.ts",
+      content: `export function assignDriverToBooking(bookingId: string, driverId: string, vehicleId: string) {
+  return {
+    bookingId,
+    driverId,
+    vehicleId,
+    status: "assigned",
+    assignedAt: new Date().toISOString(),
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Fleet Service",
+      file: "lib/services/fleet-service.ts",
+      content: `export const fleet = [
+  { id: "VEH-SEDAN", name: "Executive Black Car", status: "available" },
+  { id: "VEH-SUV", name: "Premium SUV", status: "available" },
+  { id: "VEH-CHAUFFEUR", name: "Hourly Chauffeur Vehicle", status: "available" },
+];
+
+export function listFleet() {
+  return fleet;
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Customer Service",
+      file: "lib/services/customer-service.ts",
+      content: `export function createCustomerProfile(input: any) {
+  return {
+    id: "CUS-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    name: input.name || "",
+    email: input.email || "",
+    phone: input.phone || "",
+    tier: "standard",
+    createdAt: new Date().toISOString(),
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Dispatch API Route",
+      file: "app/api/dispatch/route.ts",
+      content: `import { NextResponse } from "next/server";
+import { assignDriverToBooking } from "../../../lib/services/dispatch-service";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  return NextResponse.json({
+    ok: true,
+    assignment: assignDriverToBooking(
+      body.bookingId || "BOOK-DEMO",
+      body.driverId || "DRV-DEMO",
+      body.vehicleId || "VEH-SUV"
+    ),
+  });
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Fleet API Route",
+      file: "app/api/fleet/route.ts",
+      content: `import { NextResponse } from "next/server";
+import { listFleet } from "../../../lib/services/fleet-service";
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    fleet: listFleet(),
+  });
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Invoices API Route",
+      file: "app/api/invoices/route.ts",
+      content: `import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  return NextResponse.json({
+    ok: true,
+    invoice: {
+      id: "INV-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+      bookingId: body.bookingId || "BOOK-DEMO",
+      amount: body.amount || 125,
+      currency: "USD",
+      status: "draft",
+      createdAt: new Date().toISOString(),
+    },
+  });
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Admin Fleet Page",
+      file: "app/admin/fleet/page.tsx",
+      content: `export default function AdminFleetPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Fleet</p>
+      <h1 className="mt-4 text-5xl font-black">Fleet Management</h1>
+      <div className="mt-10 grid gap-6 md:grid-cols-3">
+        {["Executive Black Car", "Premium SUV", "Hourly Chauffeur Vehicle"].map((vehicle) => (
+          <article key={vehicle} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+            <h2 className="text-2xl font-black">{vehicle}</h2>
+            <p className="mt-3 text-zinc-400">Status: available</p>
+          </article>
+        ))}
+      </div>
+    </main>
+  );
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Admin Dispatch Page",
+      file: "app/admin/dispatch/page.tsx",
+      content: `export default function AdminDispatchPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Dispatch</p>
+      <h1 className="mt-4 text-5xl font-black">Dispatch Operations</h1>
+      <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-zinc-400">Assign drivers, vehicles, and booking statuses from this workflow board.</p>
+      </section>
+    </main>
+  );
+}
+`
+    },
+    {
+      type: "typescript",
+      title: "Admin Invoices Page",
+      file: "app/admin/invoices/page.tsx",
+      content: `export default function AdminInvoicesPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Invoices</p>
+      <h1 className="mt-4 text-5xl font-black">Invoice Management</h1>
+      <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-zinc-400">Create invoices, track payment status, and connect Stripe webhooks.</p>
+      </section>
+    </main>
+  );
+}
+`
+    },
+    {
+      type: "typescript",
       title: "Admin Dashboard",
       file: "app/admin/page.tsx",
       content: `export default function AdminDashboard() {
