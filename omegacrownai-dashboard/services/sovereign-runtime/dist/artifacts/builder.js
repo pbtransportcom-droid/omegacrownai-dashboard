@@ -751,6 +751,201 @@ main()
         },
         {
             type: "typescript",
+            title: "Auth Helpers",
+            file: "lib/auth.ts",
+            content: `export type UserRole = "admin" | "dispatcher" | "customer";
+
+export function createDemoUser(role: UserRole = "customer") {
+  return {
+    id: "USER-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    role,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function requireRole(user: { role?: string } | null, roles: UserRole[]) {
+  if (!user || !roles.includes(user.role as UserRole)) {
+    throw new Error("Unauthorized");
+  }
+
+  return true;
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Session Helpers",
+            file: "lib/session.ts",
+            content: `export function createSessionPayload(user: any) {
+  return {
+    user,
+    issuedAt: new Date().toISOString(),
+    expiresIn: "demo-session",
+  };
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Login API Route",
+            file: "app/api/auth/login/route.ts",
+            content: `import { NextResponse } from "next/server";
+import { createDemoUser } from "../../../../lib/auth";
+import { createSessionPayload } from "../../../../lib/session";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const user = createDemoUser(body.role || "customer");
+
+  return NextResponse.json({
+    ok: true,
+    message: "Demo login successful. Replace with real auth provider.",
+    session: createSessionPayload(user),
+  });
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Register API Route",
+            file: "app/api/auth/register/route.ts",
+            content: `import { NextResponse } from "next/server";
+import { createDemoUser } from "../../../../lib/auth";
+import { createSessionPayload } from "../../../../lib/session";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const user = {
+    ...createDemoUser("customer"),
+    name: body.name || "",
+    email: body.email || "",
+  };
+
+  return NextResponse.json({
+    ok: true,
+    message: "Demo registration successful. Replace with database user creation.",
+    session: createSessionPayload(user),
+  });
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Auth Middleware",
+            file: "middleware.ts",
+            content: `import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function middleware(request: NextRequest) {
+  // Demo middleware scaffold. Add real cookie/session checks before production.
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/admin/:path*", "/dispatcher/:path*", "/customer/:path*"],
+};
+`
+        },
+        {
+            type: "typescript",
+            title: "Login Page",
+            file: "app/login/page.tsx",
+            content: `export default function LoginPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <section className="mx-auto max-w-xl rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-sm uppercase tracking-[0.35em] text-red-300">Account Access</p>
+        <h1 className="mt-4 text-5xl font-black">Login</h1>
+        <p className="mt-4 text-zinc-400">Demo auth scaffold for customer, dispatcher, and admin access.</p>
+
+        <form className="mt-8 grid gap-4">
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Email" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Password" type="password" />
+          <button className="rounded-xl bg-red-400 p-4 font-bold text-black" type="button">Login</button>
+        </form>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Register Page",
+            file: "app/register/page.tsx",
+            content: `export default function RegisterPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <section className="mx-auto max-w-xl rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-sm uppercase tracking-[0.35em] text-red-300">Create Account</p>
+        <h1 className="mt-4 text-5xl font-black">Register</h1>
+        <p className="mt-4 text-zinc-400">Customer account scaffold for booking history and future reservations.</p>
+
+        <form className="mt-8 grid gap-4">
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Name" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Email" />
+          <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Password" type="password" />
+          <button className="rounded-xl bg-red-400 p-4 font-bold text-black" type="button">Create Account</button>
+        </form>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Customer Portal",
+            file: "app/customer/page.tsx",
+            content: `export default function CustomerPortal() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Customer Portal</p>
+      <h1 className="mt-4 text-5xl font-black">My Rides</h1>
+
+      <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-zinc-400">
+          Connect this portal to bookings, quote history, invoices, and customer profile records.
+        </p>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Dispatcher Portal",
+            file: "app/dispatcher/page.tsx",
+            content: `export default function DispatcherPortal() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Dispatcher</p>
+      <h1 className="mt-4 text-5xl font-black">Dispatch Board</h1>
+
+      <section className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">New Requests</h2>
+          <p className="mt-3 text-zinc-400">Incoming reservations awaiting review.</p>
+        </div>
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">Assigned Trips</h2>
+          <p className="mt-3 text-zinc-400">Trips assigned to drivers or fleet resources.</p>
+        </div>
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">Fleet Status</h2>
+          <p className="mt-3 text-zinc-400">Vehicle readiness and availability overview.</p>
+        </div>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
             title: "Next.js App Page",
             file: "app/page.tsx",
             content: `import { Navbar } from "../components/Navbar";
