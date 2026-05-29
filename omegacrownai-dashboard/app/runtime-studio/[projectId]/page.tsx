@@ -19,6 +19,7 @@ export default function RuntimeStudioPage() {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deploying, setDeploying] = useState(false);
 
   async function loadFiles() {
     setLoading(true);
@@ -57,6 +58,24 @@ export default function RuntimeStudioPage() {
     if (data?.ok) {
       setContent(data.content || "");
     }
+  }
+
+  async function redeployProject() {
+    setDeploying(true);
+
+    const response = await fetch(`/api/runtime-proxy/runs/${projectId}/deploy`, {
+      method: "POST",
+    });
+
+    const data = await response.json();
+    setDeploying(false);
+
+    if (!data?.ok) {
+      alert("Redeploy failed.");
+      return;
+    }
+
+    window.open(data.previewUrl || `/deployed/${projectId}`, "_blank");
   }
 
   async function saveFile() {
