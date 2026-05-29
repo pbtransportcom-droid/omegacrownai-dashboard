@@ -507,6 +507,244 @@ BOOKING_NOTIFICATION_EMAIL="dispatch@example.com"
         },
         {
             type: "typescript",
+            title: "Bookings API Route",
+            file: "app/api/bookings/route.ts",
+            content: `import { NextResponse } from "next/server";
+import { validateBookingInput } from "../../../lib/validation";
+import { saveBookingLead } from "../../../lib/booking-store";
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    resource: "bookings",
+    message: "Booking list endpoint ready for database integration."
+  });
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const validated = validateBookingInput(body);
+    const booking = await saveBookingLead({
+      ...validated,
+      source: "bookings-api"
+    });
+
+    return NextResponse.json({ ok: true, booking });
+  } catch (error) {
+    return NextResponse.json({ ok: false, error: String(error) }, { status: 400 });
+  }
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Customers API Route",
+            file: "app/api/customers/route.ts",
+            content: `import { NextResponse } from "next/server";
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    resource: "customers",
+    customers: [],
+    message: "Customer endpoint scaffold ready for CRM/database integration."
+  });
+}
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  return NextResponse.json({
+    ok: true,
+    customer: {
+      id: "CUS-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+      name: body.name || "",
+      email: body.email || "",
+      phone: body.phone || "",
+      createdAt: new Date().toISOString()
+    }
+  });
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Quotes API Route",
+            file: "app/api/quotes/route.ts",
+            content: `import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  const estimatedBaseFare = 95;
+  const airportFee = String(body.service || "").toLowerCase().includes("airport") ? 25 : 0;
+
+  return NextResponse.json({
+    ok: true,
+    quote: {
+      service: body.service || "Airport Transfer",
+      estimatedTotal: estimatedBaseFare + airportFee,
+      currency: "USD",
+      note: "Final pricing should be confirmed by dispatch."
+    }
+  });
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Prisma Client",
+            file: "lib/prisma.ts",
+            content: `import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma?: PrismaClient;
+};
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: ["error", "warn"],
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Validation Helpers",
+            file: "lib/validation.ts",
+            content: `export function validateBookingInput(input: any) {
+  const pickup = String(input.pickup || "").trim();
+  const dropoff = String(input.dropoff || "").trim();
+  const dateTime = String(input.dateTime || "").trim();
+  const contact = String(input.contact || "").trim();
+  const service = String(input.service || "Airport Transfer").trim();
+
+  if (!pickup) throw new Error("Pickup location is required.");
+  if (!dropoff) throw new Error("Drop-off location is required.");
+  if (!dateTime) throw new Error("Date and time are required.");
+  if (!contact) throw new Error("Phone or email is required.");
+
+  return { pickup, dropoff, dateTime, contact, service };
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Email Notification Stub",
+            file: "lib/email.ts",
+            content: `export async function sendBookingNotification(input: any) {
+  // Replace this with Resend, SendGrid, SMTP, or your preferred email provider.
+  console.log("Booking notification ready:", input);
+
+  return {
+    ok: true,
+    provider: "stub",
+    message: "Email notification scaffold executed."
+  };
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Prisma Seed Script",
+            file: "prisma/seed.ts",
+            content: `import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log("Seed transportation services and fleet records here.");
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (error) => {
+    console.error(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+`
+        },
+        {
+            type: "typescript",
+            title: "Admin Dashboard",
+            file: "app/admin/page.tsx",
+            content: `export default function AdminDashboard() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Admin</p>
+      <h1 className="mt-4 text-5xl font-black">Transportation Operations Dashboard</h1>
+
+      <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/bookings">
+          <h2 className="text-2xl font-black">Bookings</h2>
+          <p className="mt-3 text-zinc-400">Review new ride requests and dispatch workflow.</p>
+        </a>
+
+        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/customers">
+          <h2 className="text-2xl font-black">Customers</h2>
+          <p className="mt-3 text-zinc-400">Manage customer profiles and contact records.</p>
+        </a>
+
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">Fleet</h2>
+          <p className="mt-3 text-zinc-400">Track executive vehicles and service availability.</p>
+        </div>
+      </div>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Admin Bookings Page",
+            file: "app/admin/bookings/page.tsx",
+            content: `export default function AdminBookingsPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Bookings</p>
+      <h1 className="mt-4 text-5xl font-black">Booking Requests</h1>
+
+      <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-zinc-400">
+          Connect this view to Prisma BookingLead records for live dispatch operations.
+        </p>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
+            title: "Admin Customers Page",
+            file: "app/admin/customers/page.tsx",
+            content: `export default function AdminCustomersPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Customers</p>
+      <h1 className="mt-4 text-5xl font-black">Customer CRM</h1>
+
+      <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+        <p className="text-zinc-400">
+          Connect this view to customer records, ride history, quote history, and VIP profiles.
+        </p>
+      </section>
+    </main>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
             title: "Next.js App Page",
             file: "app/page.tsx",
             content: `import { Navbar } from "../components/Navbar";
