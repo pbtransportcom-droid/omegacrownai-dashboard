@@ -20,6 +20,15 @@ export async function buildArtifacts(run: any) {
 
   const projectName = slug(run.prompt);
   const isTransport = /transport|black car|airport|limo|chauffeur|ride/i.test(run.prompt || "");
+
+  const companyName = isTransport
+    ? "Princess Benjamin Transportation Company"
+    : "OmegaCrownAI Build";
+
+  const companyWebsite = isTransport ? "https://pbtlimo.com" : "";
+  const primaryPhone = isTransport ? "+1 (773) 510-1467" : "";
+  const secondaryPhone = isTransport ? "(224) 224-0263" : "";
+  const tagline = isTransport ? "Your journey, our royal priority." : "";
   const mode = run.mode || "website";
 
   const files = [
@@ -38,7 +47,7 @@ export async function buildArtifacts(run: any) {
 <body>
   <header class="hero">
     <nav>
-      <strong>OmegaCrownAI Build</strong>
+      <strong>${companyName}</strong>
       <a href="#features">Features</a>
       <a href="#delivery">Delivery</a>
       <a href="#contact">Launch</a>
@@ -46,7 +55,8 @@ export async function buildArtifacts(run: any) {
 
     <section>
       <p class="eyebrow">${mode.toUpperCase()} RUNTIME ARTIFACT</p>
-      <h1>${run.prompt}</h1>
+      <h1>${isTransport ? companyName : run.prompt}</h1>
+      ${isTransport ? `<p class="tagline">${tagline}</p>` : ""}
       <p class="lead">
         A production-ready generated artifact package with preview, structure,
         validation, delivery manifest, and export support.
@@ -72,6 +82,7 @@ export async function buildArtifacts(run: any) {
         <li>Runtime ID: ${run.runtimeId}</li>
         <li>Mode: ${mode}</li>
         <li>Status: generated</li>
+        ${isTransport ? `<li>Website: ${companyWebsite}</li><li>Phone: ${primaryPhone}</li><li>Backup: ${secondaryPhone}</li>` : ""}
       </ul>
     </section>
 
@@ -117,7 +128,7 @@ export async function buildArtifacts(run: any) {
       type: "css",
       title: "Production Stylesheet",
       file: "styles.css",
-      content: `*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#070707;color:#fff}a{color:inherit;text-decoration:none}.hero{min-height:100vh;padding:32px;background:radial-gradient(circle at top right,#7f1d1d,transparent 35%),linear-gradient(135deg,#020202,#151515)}nav{display:flex;gap:24px;align-items:center;justify-content:flex-end}nav strong{margin-right:auto}.hero section{max-width:980px;margin:18vh auto 0}.eyebrow{letter-spacing:.35em;color:#fca5a5;font-size:12px}h1{font-size:clamp(44px,8vw,92px);line-height:.95;margin:24px 0}.lead{font-size:22px;color:#d4d4d8;max-width:760px}.actions{display:flex;gap:16px;margin-top:32px}.primary,.secondary{padding:16px 24px;border-radius:18px;font-weight:800}.primary{background:#f87171;color:#000}.secondary{border:1px solid #3f3f46}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;padding:80px 40px}.grid article,.panel{border:1px solid #27272a;border-radius:28px;background:#111;padding:32px}.panel{margin:40px auto;max-width:1000px}.dark{background:#000}.fleet{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}.fleet article{border:1px solid #27272a;border-radius:22px;padding:24px;background:#09090b}.booking form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:24px}.booking input{background:#050505;border:1px solid #3f3f46;border-radius:14px;color:white;padding:16px}.booking button{border:0;border-radius:14px;background:#f87171;color:#000;font-weight:900;padding:16px}`
+      content: `*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#070707;color:#fff}a{color:inherit;text-decoration:none}.hero{min-height:100vh;padding:32px;background:radial-gradient(circle at top right,#7f1d1d,transparent 35%),linear-gradient(135deg,#020202,#151515)}nav{display:flex;gap:24px;align-items:center;justify-content:flex-end}nav strong{margin-right:auto}.hero section{max-width:980px;margin:18vh auto 0}.eyebrow{letter-spacing:.35em;color:#fca5a5;font-size:12px}h1{font-size:clamp(44px,8vw,92px);line-height:.95;margin:24px 0}.lead{font-size:22px;color:#d4d4d8;max-width:760px}.tagline{font-size:24px;color:#fecaca;font-weight:800;margin-top:-8px}.actions{display:flex;gap:16px;margin-top:32px}.primary,.secondary{padding:16px 24px;border-radius:18px;font-weight:800}.primary{background:#f87171;color:#000}.secondary{border:1px solid #3f3f46}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;padding:80px 40px}.grid article,.panel{border:1px solid #27272a;border-radius:28px;background:#111;padding:32px}.panel{margin:40px auto;max-width:1000px}.dark{background:#000}.fleet{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}.fleet article{border:1px solid #27272a;border-radius:22px;padding:24px;background:#09090b}.booking form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:24px}.booking input{background:#050505;border:1px solid #3f3f46;border-radius:14px;color:white;padding:16px}.booking button{border:0;border-radius:14px;background:#f87171;color:#000;font-weight:900;padding:16px}`
     },
     {
       type: "json",
@@ -129,6 +140,11 @@ export async function buildArtifacts(run: any) {
           runtimeId: run.runtimeId,
           mode,
           prompt: run.prompt,
+          companyName,
+          companyWebsite,
+          primaryPhone,
+          secondaryPhone,
+          tagline,
           generatedAt: new Date().toISOString(),
           engine: "sovereign-runtime",
           artifacts: ["index.html", "styles.css", "metadata.json", "README.md", "package.json"]
@@ -307,8 +323,8 @@ export default function Page() {
       content: `import "./globals.css";
 
 export const metadata = {
-  title: "${projectName}",
-  description: "${run.prompt}",
+  title: "${isTransport ? companyName : projectName}",
+  description: "${isTransport ? tagline : run.prompt}",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
