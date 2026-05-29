@@ -166,7 +166,12 @@ export async function buildArtifacts(run: any) {
             preview: "npx serve .",
             dev: "next dev",
             build: "next build",
-            start: "next start"
+            start: "next start",
+            prisma: "prisma",
+            "db:generate": "prisma generate",
+            "db:migrate": "prisma migrate dev",
+            "db:seed": "tsx prisma/seed.ts",
+            smoke: "tsx scripts/smoke-test.ts"
           },
           dependencies: {
             "@prisma/client": "latest",
@@ -180,7 +185,8 @@ export async function buildArtifacts(run: any) {
             "react": "latest",
             "react-dom": "latest",
             "tailwindcss": "latest",
-            "typescript": "latest"
+            "typescript": "latest",
+            "tsx": "latest"
           }
         },
         null,
@@ -858,6 +864,105 @@ body {
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
+`
+    },
+    {
+      type: "docker",
+      title: "Dockerfile",
+      file: "Dockerfile",
+      content: `FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
+`
+    },
+    {
+      type: "yaml",
+      title: "Docker Compose",
+      file: "docker-compose.yml",
+      content: `services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/generated_app
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      BOOKING_NOTIFICATION_EMAIL: dispatch@example.com
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: generated_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - generated_app_db:/var/lib/postgresql/data
+
+volumes:
+  generated_app_db:
+`
+    },
+    {
+      type: "typescript",
+      title: "Smoke Test Script",
+      file: "scripts/smoke-test.ts",
+      content: `async function main() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const quoteResponse = await fetch(baseUrl + "/api/quotes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      service: "Airport Transfer",
+    }),
+  });
+
+  if (!quoteResponse.ok) {
+    throw new Error("Quotes API failed");
+  }
+
+  const bookingResponse = await fetch(baseUrl + "/api/bookings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      pickup: "O Hare Airport",
+      dropoff: "Downtown Chicago",
+      dateTime: new Date().toISOString(),
+      contact: "customer@example.com",
+      service: "Airport Transfer",
+    }),
+  });
+
+  if (!bookingResponse.ok) {
+    throw new Error("Bookings API failed");
+  }
+
+  console.log("Smoke tests passed.");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
 `
     },
     {
