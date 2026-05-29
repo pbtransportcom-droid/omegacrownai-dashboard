@@ -172,6 +172,29 @@ export async function buildArtifacts(run) {
         },
         {
             type: "typescript",
+            title: "Navbar Component",
+            file: "components/Navbar.tsx",
+            content: `export function Navbar() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-black/90 px-8 py-5 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl items-center gap-6">
+        <a href="#" className="mr-auto text-lg font-black">
+          ${companyName}
+        </a>
+        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">Fleet</a>
+        <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">Service Area</a>
+        <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">Reviews</a>
+        <a href="#booking" className="rounded-xl bg-red-400 px-4 py-2 text-sm font-bold text-black">
+          Book Now
+        </a>
+      </nav>
+    </header>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
             title: "Hero Component",
             file: "components/Hero.tsx",
             content: `export function Hero() {
@@ -254,6 +277,39 @@ export function Fleet() {
         },
         {
             type: "typescript",
+            title: "Service Area Component",
+            file: "components/ServiceAreaMap.tsx",
+            content: `const areas = [
+  "Chicago O Hare Airport",
+  "Downtown Chicago",
+  "Hotel Transfers",
+  "Corporate Travel",
+  "Private Events",
+  "Point-to-Point Service"
+];
+
+export function ServiceAreaMap() {
+  return (
+    <section id="service-area" className="px-8 py-16">
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Service Area</p>
+      <h2 className="mt-4 max-w-4xl text-4xl font-black">
+        Premium coverage for airport transfers and executive travel
+      </h2>
+
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        {areas.map((area) => (
+          <div key={area} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 font-bold">
+            {area}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
             title: "Testimonials Component",
             file: "components/Testimonials.tsx",
             content: `const testimonials = [
@@ -282,20 +338,58 @@ export function Testimonials() {
         },
         {
             type: "typescript",
+            title: "Footer Component",
+            file: "components/Footer.tsx",
+            content: `export function Footer() {
+  return (
+    <footer className="border-t border-zinc-800 px-8 py-12">
+      <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
+        <div>
+          <h2 className="text-2xl font-black">${companyName}</h2>
+          <p className="mt-3 text-zinc-400">${tagline || "Production-ready generated business platform."}</p>
+        </div>
+
+        <div>
+          <h3 className="font-black">Contact</h3>
+          <p className="mt-3 text-zinc-400">${primaryPhone || "Contact available on request"}</p>
+          <p className="text-zinc-400">${secondaryPhone || ""}</p>
+          <p className="text-zinc-400">${companyWebsite || ""}</p>
+        </div>
+
+        <div>
+          <h3 className="font-black">Runtime Delivery</h3>
+          <p className="mt-3 text-zinc-400">
+            Generated, validated, deployed, and export-ready through OmegaCrownAI Sovereign Runtime.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+`
+        },
+        {
+            type: "typescript",
             title: "Next.js App Page",
             file: "app/page.tsx",
-            content: `import { Hero } from "../components/Hero";
+            content: `import { Navbar } from "../components/Navbar";
+import { Hero } from "../components/Hero";
 import { Fleet } from "../components/Fleet";
+import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { BookingForm } from "../components/BookingForm";
 import { Testimonials } from "../components/Testimonials";
+import { Footer } from "../components/Footer";
 
 export default function Page() {
   return (
     <main className="min-h-screen bg-black text-white">
+      <Navbar />
       <Hero />
       <Fleet />
+      <ServiceAreaMap />
       <BookingForm />
       <Testimonials />
+      <Footer />
     </main>
   );
 }
