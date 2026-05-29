@@ -242,20 +242,27 @@ export async function buildArtifacts(run: any) {
       title: "Fleet Component",
       file: "components/Fleet.tsx",
       content: `const fleet = [
-  "Executive Sedan",
-  "Luxury SUV",
-  "Private Chauffeur"
+  {
+    name: "Executive Black Car",
+    detail: "Luxury sedan service for airport transfers, business meetings, and private rides."
+  },
+  {
+    name: "Premium SUV",
+    detail: "Spacious executive SUV service for families, luggage, VIP guests, and group travel."
+  },
+  {
+    name: "Hourly Chauffeur",
+    detail: "Professional chauffeur service for events, meetings, hotel pickups, and full-day travel."
+  }
 ];
 
 export function Fleet() {
   return (
     <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
       {fleet.map((item) => (
-        <article key={item} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-          <h2 className="text-2xl font-black">{item}</h2>
-          <p className="mt-4 text-zinc-400">
-            Premium transportation service with executive presentation.
-          </p>
+        <article key={item.name} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">{item.name}</h2>
+          <p className="mt-4 text-zinc-400">{item.detail}</p>
         </article>
       ))}
     </section>
@@ -272,7 +279,7 @@ export function Fleet() {
     <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
       <h2 className="text-4xl font-black">Book your airport transfer</h2>
       <p className="mt-3 text-zinc-400">
-        Request a luxury ride with professional chauffeur service.
+        Request O Hare airport transfer, Midway airport service, hourly chauffeur, or executive black car transportation.
       </p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -296,11 +303,14 @@ export function Fleet() {
       file: "components/ServiceAreaMap.tsx",
       content: `const areas = [
   "Chicago O Hare Airport",
+  "Midway Airport",
   "Downtown Chicago",
+  "Schaumburg",
+  "Naperville",
+  "Evanston",
   "Hotel Transfers",
   "Corporate Travel",
-  "Private Events",
-  "Point-to-Point Service"
+  "Private Events"
 ];
 
 export function ServiceAreaMap() {
@@ -328,9 +338,9 @@ export function ServiceAreaMap() {
       title: "Testimonials Component",
       file: "components/Testimonials.tsx",
       content: `const testimonials = [
-  "Professional, punctual, and luxury from start to finish.",
-  "Perfect airport transfer experience for executive travel.",
-  "Clean vehicles, smooth booking, and excellent chauffeur service."
+  "Professional airport pickup, clean vehicle, and smooth executive service.",
+  "Reliable black car transportation for our business travel in Chicago.",
+  "Excellent chauffeur experience with clear communication and luxury presentation."
 ];
 
 export function Testimonials() {
