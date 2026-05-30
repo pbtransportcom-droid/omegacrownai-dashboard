@@ -67,3 +67,61 @@ export async function startGeneratedApp(projectId) {
     fs.writeFileSync(path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`), JSON.stringify(running, null, 2));
     return running;
 }
+export function getGeneratedAppManifest(projectId) {
+    const manifestPath = path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`);
+    if (!fs.existsSync(manifestPath))
+        return null;
+    return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+}
+export function getGeneratedAppStatus(projectId) {
+    const manifest = getGeneratedAppManifest(projectId);
+    if (!manifest?.pid) {
+        return { ok: false, projectId, status: "not-running" };
+    }
+    let alive = false;
+    try {
+        process.kill(manifest.pid, 0);
+        alive = true;
+    }
+    catch {
+        alive = false;
+    }
+    return {
+        ok: true,
+        ...manifest,
+        status: alive ? "running" : "stopped",
+        checkedAt: new Date().toISOString(),
+    };
+}
+export function stopGeneratedApp(projectId) {
+    const manifest = getGeneratedAppManifest(projectId);
+    if (!manifest?.pid) {
+        return { ok: false, projectId, status: "not-running" };
+    }
+    try {
+        process.kill(manifest.pid, "SIGTERM");
+    }
+    catch { }
+    const stopped = {
+        ...manifest,
+        status: "stopped",
+        stoppedAt: new Date().toISOString(),
+    };
+    fs.writeFileSync(path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`), JSON.stringify(stopped, null, 2));
+    return stopped;
+}
+export async function restartGeneratedApp(projectId) {
+    stopGeneratedApp(projectId);
+    return startGeneratedApp(projectId);
+}
+export function getGeneratedAppLogs(projectId) {
+    const logDir = path.join(RUNTIME_ROOT, "logs", "generated-apps");
+    const outPath = path.join(logDir, `${projectId}.out.log`);
+    const errPath = path.join(logDir, `${projectId}.err.log`);
+    return {
+        ok: true,
+        projectId,
+        out: fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8").slice(-12000) : "",
+        err: fs.existsSync(errPath) ? fs.readFileSync(errPath, "utf8").slice(-12000) : "",
+    };
+}
