@@ -4,7 +4,7 @@ import { runPortfolioAgent } from "@/lib/trading/portfolio/portfolio-agent";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
+  const body = await req.json();
 
   return NextResponse.json(
     runPortfolioAgent({
