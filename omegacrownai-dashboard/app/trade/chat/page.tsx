@@ -11,7 +11,7 @@ export default function TradingChatPage() {
         </h1>
 
         <p className="mt-4 max-w-3xl text-zinc-400">
-          Ask the King Trading System to scan markets, compare stocks, create paper-trade plans,
+          Ask the trading brain to scan markets, compare stocks, build paper-trade plans,
           analyze risk, and explain recommendations.
         </p>
 
@@ -20,9 +20,9 @@ export default function TradingChatPage() {
             "Find the best AI stock to paper trade today",
             "Compare NVDA vs AVGO",
             "Create a swing-trade plan for AMD",
-            "Find momentum stocks under $100",
-            "Analyze my portfolio risk",
-            "What should I watch this week?"
+            "Find momentum stocks with lower risk",
+            "What is the strongest setup under $100?",
+            "Analyze my watchlist"
           ].map((prompt) => (
             <div
               key={prompt}
@@ -33,9 +33,9 @@ export default function TradingChatPage() {
           ))}
         </div>
 
-        <section className="mt-8 rounded-2xl border border-zinc-800 bg-black p-6">
+        <section className="mt-10 rounded-3xl border border-zinc-800 bg-black p-6">
           <h2 className="text-2xl font-black">API Endpoint</h2>
-          <code className="mt-4 block rounded-xl bg-zinc-950 p-4 text-sm text-yellow-300">
+          <code className="mt-4 block rounded-xl bg-zinc-950 p-4 text-sm text-green-300">
             POST /api/trading/brain
           </code>
         </section>
