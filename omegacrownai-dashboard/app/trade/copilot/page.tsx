@@ -23,7 +23,6 @@ export default function TradingCopilotPage() {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [memory, setMemory] = useState<any>(null);
-  const [memory, setMemory] = useState<any>(null);
   const [showRaw, setShowRaw] = useState(false);
 
   const statusSteps = useMemo(
@@ -35,18 +34,6 @@ export default function TradingCopilotPage() {
     ],
     []
   );
-
-  async function loadMemory() {
-    const res = await fetch("/api/trading/copilot-memory?userId=default", {
-      cache: "no-store",
-    });
-    const data = await res.json();
-    setMemory(data.memory);
-  }
-
-  useEffect(() => {
-    loadMemory();
-  }, []);
 
   async function loadMemory() {
     const res = await fetch("/api/trading/copilot-memory?userId=default", {
