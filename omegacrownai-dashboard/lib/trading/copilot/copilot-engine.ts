@@ -2,6 +2,7 @@ import { detectTradingIntent } from "@/lib/trading/copilot/intent-engine";
 import { runTradingBrain } from "@/lib/trading/brain/trading-brain";
 import { runPortfolioAgent } from "@/lib/trading/portfolio/portfolio-agent";
 import { runWatchlistAgent } from "@/lib/trading/watchlist/watchlist-agent";
+import { runUnifiedMarketScanner } from "@/lib/trading/scanner/unified-market-scanner";
 import { getTradingMemory, rememberConversation } from "@/lib/trading/copilot/conversation-memory";
 
 function withMemory(userId: string, message: string, result: any) {
@@ -44,11 +45,18 @@ export async function runTradingCopilot(input: {
   }
 
   if (intent === "watchlist") {
+    const scan = await runUnifiedMarketScanner({
+      query: input.message,
+      symbols,
+      maxResults: 10,
+    });
+
     return withMemory(userId, input.message, {
       intent,
-      ...(await runWatchlistAgent({
-        symbols,
-      })),
+      answer: scan.topOpportunity
+        ? `Top opportunity: ${scan.topOpportunity.symbol}`
+        : "No opportunities found.",
+      ...scan,
     });
   }
 
