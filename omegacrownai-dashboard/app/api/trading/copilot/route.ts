@@ -8,6 +8,7 @@ export async function POST(req: Request) {
 
   const result = await runTradingCopilot({
     message: String(body.message || "Find the best setup."),
+    userId: String(body.userId || "default"),
     accountSize: Number(body.accountSize || 10000),
     maxRiskPercent: Number(body.maxRiskPercent || 1),
     positions: body.positions,
