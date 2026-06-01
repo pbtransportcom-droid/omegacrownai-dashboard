@@ -3,6 +3,7 @@ import { runTechnicalAgent } from "@/lib/trading/brain/technical-agent";
 import { runNewsAgent } from "@/lib/trading/brain/news-agent";
 import { runRiskAgent } from "@/lib/trading/brain/risk-agent";
 import { runDecisionAgent } from "@/lib/trading/brain/decision-agent";
+import { runCompareAgent } from "@/lib/trading/brain/compare-agent";
 
 export async function runTradingBrain(input: {
   message: string;
@@ -10,6 +11,8 @@ export async function runTradingBrain(input: {
   maxRiskPercent?: number;
 }) {
   const message = input.message || "Find the best stock setup.";
+  const comparison = await runCompareAgent({ message, accountSize: input.accountSize, maxRiskPercent: input.maxRiskPercent });
+  if (comparison) return comparison;
   const query = message.toLowerCase().includes("ai") ? "AI stocks" : message;
 
   const scan = await runMarketScanner({ query, maxResults: 5 });
