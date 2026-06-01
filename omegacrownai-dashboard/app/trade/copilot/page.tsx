@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const quickPrompts = [
   "Compare NVDA vs AVGO",
@@ -22,6 +22,7 @@ export default function TradingCopilotPage() {
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
+  const [memory, setMemory] = useState<any>(null);
   const [showRaw, setShowRaw] = useState(false);
 
   const statusSteps = useMemo(
@@ -33,6 +34,18 @@ export default function TradingCopilotPage() {
     ],
     []
   );
+
+  async function loadMemory() {
+    const res = await fetch("/api/trading/copilot-memory?userId=default", {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    setMemory(data.memory);
+  }
+
+  useEffect(() => {
+    loadMemory();
+  }, []);
 
   async function sendMessage(prompt = message) {
     if (!prompt.trim()) return;
@@ -64,6 +77,8 @@ export default function TradingCopilotPage() {
 
     const data = await res.json();
     setResponse(data);
+    setMemory(data.memory || memory);
+    loadMemory();
     setLoading(false);
   }
 
@@ -79,7 +94,12 @@ export default function TradingCopilotPage() {
           <h2 className="mt-3 text-xl font-black">History</h2>
 
           <div className="mt-5 space-y-2">
-            {(history.length ? history : quickPrompts).map((item) => (
+            {((memory?.conversations || []).length
+              ? memory.conversations.map((item: any) => item.message)
+              : history.length
+                ? history
+                : quickPrompts
+            ).map((item: string) => (
               <button
                 key={item}
                 onClick={() => sendMessage(item)}
@@ -88,6 +108,16 @@ export default function TradingCopilotPage() {
                 {item}
               </button>
             ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <h3 className="text-sm font-bold text-zinc-300">Saved Profile</h3>
+            <div className="mt-3 space-y-2 text-xs text-zinc-500">
+              <div>Account: ${memory?.accountSize?.toLocaleString?.() || "10,000"}</div>
+              <div>Risk: {memory?.maxRiskPercent || 1}%</div>
+              <div>Watchlist: {(memory?.watchlist || []).join(", ") || "NVDA, AVGO, AMD"}</div>
+              <div>Positions: {(memory?.portfolio || []).length}</div>
+            </div>
           </div>
         </aside>
 
