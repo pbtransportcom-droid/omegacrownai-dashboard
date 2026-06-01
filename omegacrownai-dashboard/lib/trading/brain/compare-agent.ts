@@ -10,7 +10,7 @@ function extractTickers(message: string) {
       message
         .toUpperCase()
         .match(/\b[A-Z]{2,5}\b/g)
-        ?.filter((word) => !["FIND", "BEST", "STOCK", "TRADE", "TODAY", "COMPARE"].includes(word)) || []
+        ?.filter((word) => !["FIND", "BEST", "STOCK", "TRADE", "TODAY", "COMPARE", "VS", "VERSUS", "WITH", "AND"].includes(word)) || []
     )
   ).slice(0, 4);
 }

@@ -39,16 +39,15 @@ export function runPortfolioAgent(input: {
       : "Portfolio P/L is positive or flat; continue monitoring stops and exposure.",
   ];
 
+  const concentrationPenalty =
+    Math.max(0, exposure.largestPositionWeight - maxSinglePositionPercent) * 0.35 +
+    Math.max(0, exposure.largestSectorWeight - maxSectorPercent) * 0.3;
+
   const portfolioScore = Math.max(
     1,
     Math.min(
       100,
-      Math.round(
-        85 -
-          Math.max(0, exposure.largestPositionWeight - maxSinglePositionPercent) -
-          Math.max(0, exposure.largestSectorWeight - maxSectorPercent) +
-          (totalPnL >= 0 ? 5 : -10)
-      )
+      Math.round(85 - concentrationPenalty + (totalPnL >= 0 ? 5 : -10))
     )
   );
 
