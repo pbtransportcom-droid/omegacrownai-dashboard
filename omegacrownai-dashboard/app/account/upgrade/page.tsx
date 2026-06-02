@@ -9,7 +9,7 @@ const plans = [
       "Portfolio analytics",
       "Trade journal",
     ],
-    href: "#square-pro-link",
+    href: "https://square.link/u/VEalNxqW",
   },
   {
     name: "Elite Trader",
@@ -21,7 +21,7 @@ const plans = [
       "Priority AI processing",
       "Advanced opportunity ranking",
     ],
-    href: "#square-elite-link",
+    href: "https://swipesimple.com/links/lnk_c8438cec197f6459717164e176cf89ea",
   },
   {
     name: "Enterprise",
