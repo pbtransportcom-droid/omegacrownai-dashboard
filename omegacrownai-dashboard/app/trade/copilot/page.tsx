@@ -79,8 +79,6 @@ export default function TradingCopilotPage() {
     setResponse(data);
     setMemory(data.memory || memory);
     loadMemory();
-    setMemory(data.memory || memory);
-    loadMemory();
     setLoading(false);
   }
 

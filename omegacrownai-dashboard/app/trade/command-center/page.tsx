@@ -32,13 +32,11 @@ export default function TradingCommandCenterPage() {
         </p>
 
         <h1 className="mt-4 text-6xl font-black">
-          Trading Command Center
+          King Trading Cockpit
         </h1>
 
         <p className="mt-4 text-zinc-400 max-w-3xl">
-          Unified control center for market intelligence,
-          portfolio management, trade journaling,
-          provider monitoring and AI trading assistance.
+          One cockpit for AI trading chat, market scanning, portfolio analysis, journal tracking, and provider intelligence.
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
