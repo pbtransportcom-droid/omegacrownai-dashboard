@@ -634,24 +634,24 @@ export function Testimonials() {
       title: isTransport ? "Booking API Route" : "Request Intake API Route",
       file: isTransport ? "app/api/booking/route.ts" : "app/api/request/route.ts",
       content: `import { NextResponse } from "next/server";
-import { saveBookingLead } from "../../../lib/booking-store";
+import { ${isTransport ? "saveBookingLead" : "saveRequestLead"} } from "../../../lib/${isTransport ? "booking-store" : "request-store"}";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const lead = await saveBookingLead({
+    const lead = await ${isTransport ? "saveBookingLead" : "saveRequestLead"}({
       pickup: body.pickup || "",
       dropoff: body.dropoff || "",
       dateTime: body.dateTime || "",
       contact: body.contact || "",
       service: body.service || "${profile.smokeService}",
-      source: "generated-booking-form",
+      source: "${isTransport ? "generated-booking-form" : "generated-request-form"}",
     });
 
     return NextResponse.json({
       ok: true,
-      message: "Booking request received.",
+      message: "${isTransport ? "Booking request received." : "Project request received."}",
       lead,
     });
   } catch (error) {
@@ -673,7 +673,7 @@ export async function POST(req: Request) {
       content: `import fs from "fs";
 import path from "path";
 
-export type BookingLead = {
+export type ${isTransport ? "BookingLead" : "RequestLead"} = {
   id?: string;
   pickup: string;
   dropoff: string;
@@ -685,12 +685,12 @@ export type BookingLead = {
 };
 
 const dataDir = path.join(process.cwd(), "data");
-const leadFile = path.join(dataDir, "booking-leads.json");
+const leadFile = path.join(dataDir, "${isTransport ? "booking-leads.json" : "request-leads.json"}");
 
-export async function saveBookingLead(input: BookingLead) {
+export async function ${isTransport ? "saveBookingLead" : "saveRequestLead"}(input: ${isTransport ? "BookingLead" : "RequestLead"}) {
   fs.mkdirSync(dataDir, { recursive: true });
 
-  const leads: BookingLead[] = fs.existsSync(leadFile)
+  const leads: ${isTransport ? "BookingLead" : "RequestLead"}[] = fs.existsSync(leadFile)
     ? JSON.parse(fs.readFileSync(leadFile, "utf8"))
     : [];
 
