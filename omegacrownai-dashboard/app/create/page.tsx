@@ -138,6 +138,7 @@ function CreatePageClient() {
       setLoading(true);
 
       const prompt = String(formData.get("prompt") || "");
+      const name = String(formData.get("name") || `${selected.label} Project`);
 
       const response = await fetch("/api/runtime-execution/create", {
         method: "POST",
@@ -145,6 +146,7 @@ function CreatePageClient() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name,
           prompt,
           type,
           department,
