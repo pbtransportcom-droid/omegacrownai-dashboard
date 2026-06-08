@@ -166,18 +166,22 @@ function CreatePageClient() {
             instruction: `Execute ${data.mode || data.intent || "general"} sovereign workflow.`,
           }),
         });
-        await fetch("/api/sovereign/orchestrate/auto", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            projectId: data.projectId,
-            instruction: `Execute ${data.mode || data.intent || "general"} collaboration lifecycle.`,
-          }),
-        });
+        try {
+          await fetch("/api/sovereign/orchestrate/auto", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              projectId: data.projectId,
+              instruction: `Execute ${data.mode || data.intent || "general"} collaboration lifecycle.`,
+            }),
+          });
+        } catch (orchestrationError) {
+          console.warn("Optional orchestration step skipped.", orchestrationError);
+        }
         
-     router.push(`/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || selected}`);
+     router.push(`/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || type}`);
       } else {
         alert("OmegaCrownAI could not initialize the sovereign runtime.");
       }
