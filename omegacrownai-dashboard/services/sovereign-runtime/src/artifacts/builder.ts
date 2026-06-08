@@ -724,7 +724,8 @@ export const db = {
       type: "prisma",
       title: "Prisma Schema",
       file: "prisma/schema.prisma",
-      content: `generator client {
+      content: isTransport
+        ? `generator client {
   provider = "prisma-client-js"
 }
 
@@ -733,7 +734,107 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BookingLead {
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String?
+  role      String    @default("customer")
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+}
+
+model Vehicle {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  type        String
+  capacity    Int
+  luggage     Int
+  hourlyRate  Int
+  baseRate    Int
+  photoUrl    String?
+  status      String    @default("available")
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+}
+
+model Driver {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String
+  status    String    @default("available")
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+}
+
+model Booking {
+  id              String    @id @default(cuid())
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  pickup          String
+  dropoff         String
+  pickupDateTime  DateTime
+  passengers      Int
+  luggage         Int
+  serviceType     String
+  vehicleType     String
+  specialRequests String?
+  estimatedMiles  Float
+  estimatedMinutes Int
+  subtotal        Int
+  airportFee      Int
+  peakFee         Int
+  total           Int
+  status          String    @default("pending")
+  paymentStatus   String    @default("unpaid")
+  userId          String?
+  vehicleId       String?
+  driverId        String?
+  user            User?     @relation(fields: [userId], references: [id])
+  vehicle         Vehicle?  @relation(fields: [vehicleId], references: [id])
+  driver          Driver?   @relation(fields: [driverId], references: [id])
+  payments        Payment[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  bookingId String
+  provider  String
+  amount    Int
+  currency  String   @default("usd")
+  status    String
+  intentId  String?
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model PricingRule {
+  id          String   @id @default(cuid())
+  name        String
+  serviceType String
+  baseRate    Int
+  perMileRate Int
+  hourlyRate  Int
+  airportFee  Int
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+`
+        : `generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RequestLead {
   id        String   @id @default(cuid())
   pickup    String
   dropoff   String
@@ -819,21 +920,55 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Quotes API Route",
+      title: isTransport ? "Quote Pricing API Route" : "Quotes API Route",
       file: "app/api/quotes/route.ts",
-      content: `import { NextResponse } from "next/server";
+      content: isTransport
+        ? `import { NextResponse } from "next/server";
+import { calculateFareEstimate } from "../../../lib/pricing-engine";
+import { checkVehicleAvailability } from "../../../lib/availability-engine";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const quote = calculateFareEstimate({
+      pickup: body.pickup || "",
+      dropoff: body.dropoff || "",
+      serviceType: body.serviceType || "airport-transfer",
+      vehicleType: body.vehicleType || "luxury-suv",
+      pickupDateTime: body.pickupDateTime || new Date().toISOString(),
+      passengers: Number(body.passengers || 1),
+      luggage: Number(body.luggage || 0),
+      estimatedMiles: Number(body.estimatedMiles || 22),
+      estimatedMinutes: Number(body.estimatedMinutes || 45)
+    });
+
+    const availability = checkVehicleAvailability({
+      vehicleType: quote.vehicleType,
+      pickupDateTime: quote.pickupDateTime,
+      passengers: quote.passengers
+    });
+
+    return NextResponse.json({
+      ok: true,
+      quote,
+      availability,
+      nextStep: availability.available ? "book-now" : "request-manual-review"
+    });
+  } catch (error) {
+    return NextResponse.json({ ok: false, error: String(error) }, { status: 400 });
+  }
+}
+`
+        : `import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const body = await req.json();
-
-  const estimatedBaseFare = 95;
-  const airportFee = String(body.service || "").toLowerCase().includes("airport") ? 25 : 0;
 
   return NextResponse.json({
     ok: true,
     quote: {
       service: body.service || "${profile.smokeService}",
-      estimatedTotal: estimatedBaseFare + airportFee,
+      estimatedTotal: 125,
       currency: "USD",
       note: "Final scope should be confirmed before production launch."
     }
@@ -894,6 +1029,154 @@ if (process.env.NODE_ENV !== "production") {
     ok: true,
     provider: "stub",
     message: "Email notification scaffold executed."
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Pricing Engine" : "Delivery Pricing Notes",
+      file: isTransport ? "lib/pricing-engine.ts" : "lib/pricing-engine.ts",
+      content: isTransport
+        ? `export type FareInput = {
+  pickup: string;
+  dropoff: string;
+  serviceType: string;
+  vehicleType: string;
+  pickupDateTime: string;
+  passengers: number;
+  luggage: number;
+  estimatedMiles: number;
+  estimatedMinutes: number;
+};
+
+const vehicleRates: Record<string, { base: number; perMile: number; hourly: number; minimum: number }> = {
+  "luxury-sedan": { base: 95, perMile: 4, hourly: 95, minimum: 125 },
+  "luxury-suv": { base: 135, perMile: 5, hourly: 125, minimum: 175 },
+  "sprinter-van": { base: 225, perMile: 7, hourly: 185, minimum: 325 },
+  "executive-van": { base: 195, perMile: 6, hourly: 165, minimum: 275 }
+};
+
+function isAirportRoute(input: FareInput) {
+  const route = (input.pickup + " " + input.dropoff).toLowerCase();
+  return route.includes("ord") || route.includes("mdw") || route.includes("o hare") || route.includes("midway") || route.includes("airport");
+}
+
+function isPeakTime(iso: string) {
+  const hour = new Date(iso).getHours();
+  return hour >= 6 && hour <= 9 || hour >= 16 && hour <= 19;
+}
+
+export function calculateFareEstimate(input: FareInput) {
+  const rate = vehicleRates[input.vehicleType] || vehicleRates["luxury-suv"];
+  const distanceFare = Math.round(input.estimatedMiles * rate.perMile);
+  const timeFare = Math.round((input.estimatedMinutes / 60) * rate.hourly);
+  const airportFee = isAirportRoute(input) ? 35 : 0;
+  const peakFee = isPeakTime(input.pickupDateTime) ? 45 : 0;
+  const luggageFee = input.luggage > 4 ? 25 : 0;
+  const subtotal = Math.max(rate.minimum, rate.base + distanceFare + timeFare);
+  const total = subtotal + airportFee + peakFee + luggageFee;
+
+  return {
+    pickup: input.pickup,
+    dropoff: input.dropoff,
+    pickupDateTime: input.pickupDateTime,
+    serviceType: input.serviceType,
+    vehicleType: input.vehicleType,
+    passengers: input.passengers,
+    luggage: input.luggage,
+    estimatedMiles: input.estimatedMiles,
+    estimatedMinutes: input.estimatedMinutes,
+    subtotal,
+    airportFee,
+    peakFee,
+    luggageFee,
+    total,
+    depositDue: Math.round(total * 0.25),
+    currency: "USD",
+    note: "Estimate uses configured mileage/time placeholders until Google Maps Distance Matrix is connected."
+  };
+}
+`
+        : `export function calculateDeliveryEstimate() {
+  return {
+    subtotal: 125,
+    total: 125,
+    currency: "USD",
+    note: "Configure project-specific delivery pricing."
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Vehicle Availability Engine" : "Asset Availability Engine",
+      file: isTransport ? "lib/availability-engine.ts" : "lib/availability-engine.ts",
+      content: isTransport
+        ? `const vehicles = [
+  { id: "veh-nav", name: "Lincoln Navigator", type: "luxury-suv", capacity: 6, luggage: 5, status: "available" },
+  { id: "veh-exp", name: "Ford Expedition", type: "luxury-suv", capacity: 6, luggage: 5, status: "available" },
+  { id: "veh-cont", name: "Lincoln Continental", type: "luxury-sedan", capacity: 3, luggage: 3, status: "available" },
+  { id: "veh-sprinter", name: "Mercedes-Benz Sprinter", type: "sprinter-van", capacity: 14, luggage: 12, status: "available" }
+];
+
+export function listVehicles() {
+  return vehicles;
+}
+
+export function checkVehicleAvailability(input: { vehicleType: string; pickupDateTime: string; passengers: number }) {
+  const matches = vehicles.filter((vehicle) =>
+    vehicle.type === input.vehicleType &&
+    vehicle.capacity >= input.passengers &&
+    vehicle.status === "available"
+  );
+
+  return {
+    available: matches.length > 0,
+    vehicles: matches,
+    checkedAt: new Date().toISOString(),
+    message: matches.length ? "Vehicle options available." : "Manual dispatch review required."
+  };
+}
+`
+        : `export function checkAssetAvailability() {
+  return { available: true, assets: [], checkedAt: new Date().toISOString() };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Payment Provider Stub" : "Payment Provider Stub",
+      file: "lib/payment-provider.ts",
+      content: `export async function createPaymentIntent(input: { amount: number; bookingId: string; customerEmail: string }) {
+  // Replace this stub with Stripe or Square SDK integration.
+  // Stripe example: stripe.paymentIntents.create({ amount, currency: "usd", metadata: { bookingId } })
+  return {
+    provider: process.env.PAYMENT_PROVIDER || "stripe_stub",
+    clientSecret: "demo_client_secret_" + input.bookingId,
+    amount: input.amount,
+    currency: "usd",
+    status: "requires_payment_method",
+    bookingId: input.bookingId,
+    customerEmail: input.customerEmail
+  };
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Transport Notification Service" : "Notification Service",
+      file: "lib/notification-service.ts",
+      content: `export async function sendBookingEmails(input: any) {
+  // Replace with PHPMailer, Resend, SendGrid, SMTP, or Twilio SMS.
+  console.log("Customer confirmation email queued:", input.customerEmail || input.contact);
+  console.log("Admin booking alert queued:", process.env.${profile.notificationEnv} || "notifications@example.com");
+
+  return {
+    ok: true,
+    customerReceipt: true,
+    adminAlert: true,
+    provider: "stub"
   };
 }
 `
@@ -1068,6 +1351,61 @@ export async function GET() {
     ok: true,
     assets: listAssets(),
   });
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Availability API Route" : "Availability API Route",
+      file: "app/api/availability/route.ts",
+      content: isTransport
+        ? `import { NextResponse } from "next/server";
+import { checkVehicleAvailability, listVehicles } from "../../../lib/availability-engine";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, vehicles: listVehicles() });
+}
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  return NextResponse.json({
+    ok: true,
+    availability: checkVehicleAvailability({
+      vehicleType: body.vehicleType || "luxury-suv",
+      pickupDateTime: body.pickupDateTime || new Date().toISOString(),
+      passengers: Number(body.passengers || 1)
+    })
+  });
+}
+`
+        : `import { NextResponse } from "next/server";
+import { checkAssetAvailability } from "../../../lib/availability-engine";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, availability: checkAssetAvailability() });
+}
+`
+    },
+    {
+      type: "typescript",
+      title: isTransport ? "Payment Intent API Route" : "Payment Intent API Route",
+      file: "app/api/payments/create-intent/route.ts",
+      content: `import { NextResponse } from "next/server";
+import { createPaymentIntent } from "../../../../lib/payment-provider";
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const paymentIntent = await createPaymentIntent({
+      amount: Number(body.amount || 10000),
+      bookingId: body.bookingId || "BOOK-DEMO",
+      customerEmail: body.customerEmail || "customer@example.com"
+    });
+
+    return NextResponse.json({ ok: true, paymentIntent });
+  } catch (error) {
+    return NextResponse.json({ ok: false, error: String(error) }, { status: 400 });
+  }
 }
 `
     },
