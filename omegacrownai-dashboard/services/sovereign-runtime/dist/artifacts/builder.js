@@ -233,6 +233,8 @@ function modeProfile(mode, prompt, isTransport) {
 }
 export async function buildArtifacts(run) {
     const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
+    // Ensure regenerated projects do not keep stale files from older artifact schemas.
+    fs.rmSync(outDir, { recursive: true, force: true });
     fs.mkdirSync(outDir, { recursive: true });
     const projectName = slug(run.prompt);
     const isTransport = /transport|black car|airport|limo|chauffeur|ride/i.test(run.prompt || "");

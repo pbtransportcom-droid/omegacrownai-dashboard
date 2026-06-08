@@ -240,6 +240,9 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
 
 export async function buildArtifacts(run: any) {
   const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
+
+  // Ensure regenerated projects do not keep stale files from older artifact schemas.
+  fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
 
   const projectName = slug(run.prompt);
