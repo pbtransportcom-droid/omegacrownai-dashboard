@@ -11,6 +11,226 @@ function slug(text) {
         .replace(/^-|-$/g, "")
         .slice(0, 60);
 }
+function modeProfile(mode, prompt, isTransport) {
+    if (isTransport) {
+        return {
+            navPrimary: "Fleet",
+            navSecondary: "Service Area",
+            navTertiary: "Reviews",
+            cta: "${profile.cta}",
+            heroPrimary: "${profile.heroPrimary}",
+            heroSecondary: "${profile.heroSecondary}",
+            featureTitle: "Executive Fleet",
+            featureFile: "${profile.featureFile}",
+            featureComponent: "Fleet",
+            actionTitle: "${profile.actionTitle}",
+            actionFile: "${profile.actionFile}",
+            actionComponent: "BookingForm",
+            actionHeading: "${profile.actionHeading}",
+            actionDescription: "${profile.actionDescription}",
+            areaTitle: "Service Area",
+            areaHeading: "${profile.areaHeading}",
+            testimonialTitle: "${profile.testimonialTitle}",
+            adminTitle: "${profile.adminTitle}",
+            leadModel: "BookingLead",
+            leadFile: "booking-leads.json",
+            notificationEnv: "${profile.notificationEnv}",
+            smokeService: "${profile.smokeService}",
+        };
+    }
+    const profiles = {
+        website: {
+            navPrimary: "Pages",
+            navSecondary: "Launch",
+            navTertiary: "Trust",
+            cta: "Start Launch",
+            heroPrimary: "Review Site Plan",
+            heroSecondary: "View Sections",
+            featureTitle: "Website Sections",
+            featureFile: "components/Sections.tsx",
+            featureComponent: "Sections",
+            actionTitle: "Lead Capture Component",
+            actionFile: "components/LeadCaptureForm.tsx",
+            actionComponent: "LeadCaptureForm",
+            actionHeading: "Capture launch-ready leads",
+            actionDescription: "Collect customer interest, project goals, timeline, and contact details.",
+            areaTitle: "Launch Coverage",
+            areaHeading: "Pages, copy, conversion sections, SEO basics, and launch checklist",
+            testimonialTitle: "Built for customer trust",
+            adminTitle: "Website Launch Dashboard",
+            leadModel: "WebsiteLead",
+            leadFile: "website-leads.json",
+            notificationEnv: "LEAD_NOTIFICATION_EMAIL",
+            smokeService: "Website Launch",
+            modeItemOne: "Homepage Sections",
+            modeItemTwo: "Lead Capture",
+            modeItemThree: "Launch Checklist",
+        },
+        app: {
+            navPrimary: "Dashboard",
+            navSecondary: "Users",
+            navTertiary: "Analytics",
+            cta: "Open Dashboard",
+            heroPrimary: "Review App Plan",
+            heroSecondary: "View Modules",
+            featureTitle: "Dashboard Modules",
+            featureFile: "components/DashboardModules.tsx",
+            featureComponent: "DashboardModules",
+            actionTitle: "Onboarding Component",
+            actionFile: "components/OnboardingForm.tsx",
+            actionComponent: "OnboardingForm",
+            actionHeading: "Create your SaaS workspace",
+            actionDescription: "Capture user onboarding, workspace setup, role, billing readiness, and product goals.",
+            areaTitle: "Application Modules",
+            areaHeading: "Dashboard, onboarding, analytics, admin, settings, and launch support",
+            testimonialTitle: "Designed for SaaS delivery",
+            adminTitle: "SaaS Operations Dashboard",
+            leadModel: "WorkspaceLead",
+            leadFile: "workspace-leads.json",
+            notificationEnv: "WORKSPACE_NOTIFICATION_EMAIL",
+            smokeService: "SaaS Workspace",
+            modeItemOne: "Dashboard",
+            modeItemTwo: "Analytics",
+            modeItemThree: "Billing Readiness",
+        },
+        automation: {
+            navPrimary: "Workflows",
+            navSecondary: "Agents",
+            navTertiary: "Audit",
+            cta: "Run Workflow",
+            heroPrimary: "Review Workflow",
+            heroSecondary: "View Agents",
+            featureTitle: "Automation Workflows",
+            featureFile: "components/WorkflowMap.tsx",
+            featureComponent: "WorkflowMap",
+            actionTitle: "Workflow Intake Component",
+            actionFile: "components/WorkflowIntakeForm.tsx",
+            actionComponent: "WorkflowIntakeForm",
+            actionHeading: "Define your automation workflow",
+            actionDescription: "Capture triggers, actions, owners, systems, approval steps, and success criteria.",
+            areaTitle: "Automation Scope",
+            areaHeading: "Triggers, agents, actions, schedules, approval paths, and audit logs",
+            testimonialTitle: "Built for repeatable operations",
+            adminTitle: "Automation Control Dashboard",
+            leadModel: "WorkflowLead",
+            leadFile: "workflow-leads.json",
+            notificationEnv: "WORKFLOW_NOTIFICATION_EMAIL",
+            smokeService: "Workflow Automation",
+            modeItemOne: "Trigger Map",
+            modeItemTwo: "Agent Workflow",
+            modeItemThree: "Audit Log",
+        },
+        marketing: {
+            navPrimary: "Campaigns",
+            navSecondary: "Funnels",
+            navTertiary: "Content",
+            cta: "Launch Campaign",
+            heroPrimary: "Review Campaign",
+            heroSecondary: "View Funnel",
+            featureTitle: "Campaign Assets",
+            featureFile: "components/CampaignAssets.tsx",
+            featureComponent: "CampaignAssets",
+            actionTitle: "Campaign Brief Component",
+            actionFile: "components/CampaignBriefForm.tsx",
+            actionComponent: "CampaignBriefForm",
+            actionHeading: "Build your campaign brief",
+            actionDescription: "Capture offer, audience, channel, budget, creative angle, and launch goals.",
+            areaTitle: "Marketing Channels",
+            areaHeading: "Ads, funnels, social calendar, email sequences, creative assets, and analytics",
+            testimonialTitle: "Built for campaign momentum",
+            adminTitle: "Marketing Campaign Dashboard",
+            leadModel: "CampaignLead",
+            leadFile: "campaign-leads.json",
+            notificationEnv: "CAMPAIGN_NOTIFICATION_EMAIL",
+            smokeService: "Campaign Launch",
+            modeItemOne: "Campaign Funnel",
+            modeItemTwo: "Ad Creative",
+            modeItemThree: "Social Calendar",
+        },
+        video: {
+            navPrimary: "Storyboard",
+            navSecondary: "Scenes",
+            navTertiary: "Render",
+            cta: "Build Video",
+            heroPrimary: "Review Storyboard",
+            heroSecondary: "View Scenes",
+            featureTitle: "Video Production Plan",
+            featureFile: "components/Storyboard.tsx",
+            featureComponent: "Storyboard",
+            actionTitle: "Video Brief Component",
+            actionFile: "components/VideoBriefForm.tsx",
+            actionComponent: "VideoBriefForm",
+            actionHeading: "Create your video production brief",
+            actionDescription: "Capture concept, scenes, narration, music direction, visual style, and render requirements.",
+            areaTitle: "Production Scope",
+            areaHeading: "Storyboard, script, shot list, voiceover, music, render checklist, and launch assets",
+            testimonialTitle: "Designed for cinematic delivery",
+            adminTitle: "Video Production Dashboard",
+            leadModel: "VideoBrief",
+            leadFile: "video-briefs.json",
+            notificationEnv: "VIDEO_NOTIFICATION_EMAIL",
+            smokeService: "Video Production",
+            modeItemOne: "Storyboard",
+            modeItemTwo: "Shot List",
+            modeItemThree: "Render Checklist",
+        },
+        podcast: {
+            navPrimary: "Episodes",
+            navSecondary: "Voices",
+            navTertiary: "Distribution",
+            cta: "Build Episode",
+            heroPrimary: "Review Episode",
+            heroSecondary: "View Show Plan",
+            featureTitle: "Podcast Episode Plan",
+            featureFile: "components/EpisodePlan.tsx",
+            featureComponent: "EpisodePlan",
+            actionTitle: "Podcast Brief Component",
+            actionFile: "components/PodcastBriefForm.tsx",
+            actionComponent: "PodcastBriefForm",
+            actionHeading: "Create your podcast production brief",
+            actionDescription: "Capture topic, speakers, tone, episode structure, show notes, and distribution goals.",
+            areaTitle: "Podcast Production",
+            areaHeading: "Episode outline, script, speaker plan, show notes, intro/outro, and publishing checklist",
+            testimonialTitle: "Built for polished audio shows",
+            adminTitle: "Podcast Production Dashboard",
+            leadModel: "PodcastBrief",
+            leadFile: "podcast-briefs.json",
+            notificationEnv: "PODCAST_NOTIFICATION_EMAIL",
+            smokeService: "Podcast Episode",
+            modeItemOne: "Episode Outline",
+            modeItemTwo: "Speaker Plan",
+            modeItemThree: "Show Notes",
+        },
+        music: {
+            navPrimary: "Composition",
+            navSecondary: "Stems",
+            navTertiary: "Licensing",
+            cta: "Build Soundtrack",
+            heroPrimary: "Review Composition",
+            heroSecondary: "View Cue Sheet",
+            featureTitle: "Music Production Plan",
+            featureFile: "components/CompositionPlan.tsx",
+            featureComponent: "CompositionPlan",
+            actionTitle: "Music Brief Component",
+            actionFile: "components/MusicBriefForm.tsx",
+            actionComponent: "MusicBriefForm",
+            actionHeading: "Create your music production brief",
+            actionDescription: "Capture mood, tempo, instrumentation, brand tone, cue points, stems, and licensing needs.",
+            areaTitle: "Music Production",
+            areaHeading: "Composition brief, cue sheet, stems plan, brand audio, licensing checklist, and delivery assets",
+            testimonialTitle: "Built for cinematic sound",
+            adminTitle: "Music Production Dashboard",
+            leadModel: "MusicBrief",
+            leadFile: "music-briefs.json",
+            notificationEnv: "MUSIC_NOTIFICATION_EMAIL",
+            smokeService: "Music Production",
+            modeItemOne: "Composition Brief",
+            modeItemTwo: "Cue Sheet",
+            modeItemThree: "Stems and Licensing",
+        },
+    };
+    return profiles[mode] || profiles.website;
+}
 export async function buildArtifacts(run) {
     const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
     fs.mkdirSync(outDir, { recursive: true });
@@ -24,6 +244,7 @@ export async function buildArtifacts(run) {
     const secondaryPhone = isTransport ? "(224) 224-0263" : "";
     const tagline = isTransport ? "Your journey, our royal priority." : "";
     const mode = run.mode || "website";
+    const profile = modeProfile(mode, run.prompt || "", isTransport);
     const files = [
         {
             type: "html",
@@ -63,7 +284,7 @@ export async function buildArtifacts(run) {
 
   <main>
     <section id="features" class="grid">
-      <article><h2>${isTransport ? "Airport Transfers" : "Runtime Generated"}</h2><p>${isTransport ? "Book premium rides to and from major airports with professional chauffeurs." : "Created by the independent Sovereign Runtime engine."}</p></article>
+      <article><h2>${isTransport ? "${profile.smokeService}s" : "Runtime Generated"}</h2><p>${isTransport ? "Book premium rides to and from major airports with professional chauffeurs." : "Created by the independent Sovereign Runtime engine."}</p></article>
       <article><h2>${isTransport ? "Executive Fleet" : "Agent Validated"}</h2><p>${isTransport ? "Luxury sedans, SUVs, and black car service for business and private travel." : "Planner, Builder, Validator, and Delivery agents completed execution."}</p></article>
       <article><h2>${isTransport ? "Fast Reservations" : "Export Ready"}</h2><p>${isTransport ? "Clear calls to action for booking, quotes, dispatch, and customer service." : "Artifacts are prepared for ZIP download and customer delivery."}</p></article>
     </section>
@@ -92,7 +313,7 @@ export async function buildArtifacts(run) {
 
     <section class="panel booking">
       <p class="eyebrow">RESERVATIONS</p>
-      <h2>Book your airport transfer</h2>
+      <h2>${profile.actionHeading}</h2>
       <form>
         <input placeholder="Pickup location" />
         <input placeholder="Drop-off location" />
@@ -189,11 +410,11 @@ export async function buildArtifacts(run) {
         <a href="#" className="mr-auto text-lg font-black">
           ${companyName}
         </a>
-        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">Fleet</a>
-        <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">Service Area</a>
-        <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">Reviews</a>
+        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">{profile.navPrimary}</a>
+        <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">{profile.navSecondary}</a>
+        <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">{profile.navTertiary}</a>
         <a href="#booking" className="rounded-xl bg-red-400 px-4 py-2 text-sm font-bold text-black">
-          Book Now
+          ${profile.cta}
         </a>
       </nav>
     </header>
@@ -219,10 +440,10 @@ export async function buildArtifacts(run) {
       </p>
       <div className="mt-8 flex flex-wrap gap-4">
         <a className="rounded-2xl bg-red-400 px-6 py-4 font-bold text-black" href="#booking">
-          Request Booking
+          ${profile.heroPrimary}
         </a>
         <a className="rounded-2xl border border-zinc-700 px-6 py-4 font-bold" href="#fleet">
-          View Fleet
+          ${profile.heroSecondary}
         </a>
       </div>
     </section>
@@ -232,15 +453,15 @@ export async function buildArtifacts(run) {
         },
         {
             type: "typescript",
-            title: "Fleet Component",
-            file: "components/Fleet.tsx",
+            title: profile.featureTitle,
+            file: profile.featureFile,
             content: `const fleet = [
   {
-    name: "Executive Black Car",
+    name: profile.modeItemOne || "Executive Black Car",
     detail: "Luxury sedan service for airport transfers, business meetings, and private rides."
   },
   {
-    name: "Premium SUV",
+    name: profile.modeItemTwo || "Premium SUV",
     detail: "Spacious executive SUV service for families, luggage, VIP guests, and group travel."
   },
   {
@@ -249,7 +470,7 @@ export async function buildArtifacts(run) {
   }
 ];
 
-export function Fleet() {
+export function ${profile.featureComponent}() {
   return (
     <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
       {fleet.map((item) => (
@@ -265,14 +486,14 @@ export function Fleet() {
         },
         {
             type: "typescript",
-            title: "Booking Component",
-            file: "components/BookingForm.tsx",
-            content: `export function BookingForm() {
+            title: profile.actionTitle,
+            file: profile.actionFile,
+            content: `export function ${profile.actionComponent}() {
   return (
     <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-      <h2 className="text-4xl font-black">Book your airport transfer</h2>
+      <h2 className="text-4xl font-black">${profile.actionHeading}</h2>
       <p className="mt-3 text-zinc-400">
-        Request O Hare airport transfer, Midway airport service, hourly chauffeur, or executive black car transportation.
+        ${profile.actionDescription}
       </p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -311,7 +532,7 @@ export function ServiceAreaMap() {
     <section id="service-area" className="px-8 py-16">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Service Area</p>
       <h2 className="mt-4 max-w-4xl text-4xl font-black">
-        Premium coverage for airport transfers and executive travel
+        ${profile.areaHeading}
       </h2>
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -340,7 +561,7 @@ export function Testimonials() {
   return (
     <section className="px-8 py-16">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Client Trust</p>
-      <h2 className="mt-4 text-4xl font-black">Trusted for premium travel</h2>
+      <h2 className="mt-4 text-4xl font-black">${profile.testimonialTitle}</h2>
 
       <div className="mt-8 grid gap-6 md:grid-cols-3">
         {testimonials.map((quote) => (
@@ -402,7 +623,7 @@ export async function POST(req: Request) {
       dropoff: body.dropoff || "",
       dateTime: body.dateTime || "",
       contact: body.contact || "",
-      service: body.service || "Airport Transfer",
+      service: body.service || "${profile.smokeService}",
       source: "generated-booking-form",
     });
 
@@ -508,7 +729,7 @@ model BookingLead {
             file: ".env.example",
             content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_app"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-BOOKING_NOTIFICATION_EMAIL="dispatch@example.com"
+${profile.notificationEnv}="dispatch@example.com"
 `
         },
         {
@@ -589,7 +810,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     quote: {
-      service: body.service || "Airport Transfer",
+      service: body.service || "${profile.smokeService}",
       estimatedTotal: estimatedBaseFare + airportFee,
       currency: "USD",
       note: "Final pricing should be confirmed by dispatch."
@@ -628,7 +849,7 @@ if (process.env.NODE_ENV !== "production") {
   const dropoff = String(input.dropoff || "").trim();
   const dateTime = String(input.dateTime || "").trim();
   const contact = String(input.contact || "").trim();
-  const service = String(input.service || "Airport Transfer").trim();
+  const service = String(input.service || "${profile.smokeService}").trim();
 
   if (!pickup) throw new Error("Pickup location is required.");
   if (!dropoff) throw new Error("Drop-off location is required.");
@@ -688,7 +909,7 @@ main()
     status: "new-request",
     pickup: input.pickup,
     dropoff: input.dropoff,
-    service: input.service || "Airport Transfer",
+    service: input.service || "${profile.smokeService}",
     customerContact: input.contact,
     workflow: ["new-request", "quoted", "confirmed", "assigned", "completed"],
     createdAt: new Date().toISOString(),
@@ -716,9 +937,9 @@ main()
             title: "Fleet Service",
             file: "lib/services/fleet-service.ts",
             content: `export const fleet = [
-  { id: "VEH-SEDAN", name: "Executive Black Car", status: "available" },
-  { id: "VEH-SUV", name: "Premium SUV", status: "available" },
-  { id: "VEH-CHAUFFEUR", name: "Hourly Chauffeur Vehicle", status: "available" },
+  { id: "VEH-SEDAN", name: profile.modeItemOne || "Executive Black Car", status: "available" },
+  { id: "VEH-SUV", name: profile.modeItemTwo || "Premium SUV", status: "available" },
+  { id: "VEH-CHAUFFEUR", name: profile.modeItemThree || "Hourly Chauffeur Vehicle", status: "available" },
 ];
 
 export function listFleet() {
@@ -809,9 +1030,9 @@ export async function POST(req: Request) {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Fleet</p>
-      <h1 className="mt-4 text-5xl font-black">Fleet Management</h1>
+      <h1 className="mt-4 text-5xl font-black">${profile.featureTitle}</h1>
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {["Executive Black Car", "Premium SUV", "Hourly Chauffeur Vehicle"].map((vehicle) => (
+        {[profile.modeItemOne || "Executive Black Car", profile.modeItemTwo || "Premium SUV", profile.modeItemThree || "Hourly Chauffeur Vehicle"].map((vehicle) => (
           <article key={vehicle} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
             <h2 className="text-2xl font-black">{vehicle}</h2>
             <p className="mt-3 text-zinc-400">Status: available</p>
@@ -865,7 +1086,7 @@ export async function POST(req: Request) {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Admin</p>
-      <h1 className="mt-4 text-5xl font-black">Transportation Operations Dashboard</h1>
+      <h1 className="mt-4 text-5xl font-black">${profile.adminTitle}</h1>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/bookings">
@@ -1257,7 +1478,7 @@ CMD ["npm", "run", "start"]
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/generated_app
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      BOOKING_NOTIFICATION_EMAIL: dispatch@example.com
+      ${profile.notificationEnv}: dispatch@example.com
     depends_on:
       - db
 
@@ -1289,7 +1510,7 @@ volumes:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      service: "Airport Transfer",
+      service: "${profile.smokeService}",
     }),
   });
 
@@ -1307,7 +1528,7 @@ volumes:
       dropoff: "Downtown Chicago",
       dateTime: new Date().toISOString(),
       contact: "customer@example.com",
-      service: "Airport Transfer",
+      service: "${profile.smokeService}",
     }),
   });
 
