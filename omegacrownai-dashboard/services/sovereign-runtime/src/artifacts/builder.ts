@@ -631,8 +631,8 @@ export function Testimonials() {
     },
     {
       type: "typescript",
-      title: "Booking API Route",
-      file: "app/api/booking/route.ts",
+      title: isTransport ? "Booking API Route" : "Request Intake API Route",
+      file: isTransport ? "app/api/booking/route.ts" : "app/api/request/route.ts",
       content: `import { NextResponse } from "next/server";
 import { saveBookingLead } from "../../../lib/booking-store";
 
@@ -668,8 +668,8 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Booking Store",
-      file: "lib/booking-store.ts",
+      title: isTransport ? "Booking Store" : "Request Store",
+      file: isTransport ? "lib/booking-store.ts" : "lib/request-store.ts",
       content: `import fs from "fs";
 import path from "path";
 
@@ -756,17 +756,17 @@ ${profile.notificationEnv}="notifications@example.com"
     },
     {
       type: "typescript",
-      title: "Bookings API Route",
-      file: "app/api/bookings/route.ts",
+      title: isTransport ? "Bookings API Route" : "Requests API Route",
+      file: isTransport ? "app/api/bookings/route.ts" : "app/api/requests/route.ts",
       content: `import { NextResponse } from "next/server";
 import { validateBookingInput } from "../../../lib/validation";
-import { saveBookingLead } from "../../../lib/booking-store";
+import { saveBookingLead } from "../../../lib/${isTransport ? "booking-store" : "request-store"}";
 
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    resource: "bookings",
-    message: "Booking list endpoint ready for database integration."
+    resource: "${isTransport ? "bookings" : "requests"}",
+    message: "${isTransport ? "Booking list endpoint ready for database integration." : "Request list endpoint ready for database integration."}"
   });
 }
 
@@ -776,10 +776,10 @@ export async function POST(req: Request) {
     const validated = validateBookingInput(body);
     const booking = await saveBookingLead({
       ...validated,
-      source: "bookings-api"
+      source: "${isTransport ? "bookings-api" : "requests-api"}"
     });
 
-    return NextResponse.json({ ok: true, booking });
+    return NextResponse.json({ ok: true, ${isTransport ? "booking" : "request"}: booking });
   } catch (error) {
     return NextResponse.json({ ok: false, error: String(error) }, { status: 400 });
   }
@@ -788,16 +788,16 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Customers API Route",
-      file: "app/api/customers/route.ts",
+      title: isTransport ? "Customers API Route" : "Clients API Route",
+      file: isTransport ? "app/api/customers/route.ts" : "app/api/clients/route.ts",
       content: `import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    resource: "customers",
-    customers: [],
-    message: "Customer endpoint scaffold ready for CRM/database integration."
+    resource: "${isTransport ? "customers" : "clients"}",
+    ${isTransport ? "customers" : "clients"}: [],
+    message: "${isTransport ? "Customer endpoint scaffold ready for CRM/database integration." : "Client endpoint scaffold ready for CRM/database integration."}"
   });
 }
 
@@ -806,8 +806,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    customer: {
-      id: "CUS-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
+    ${isTransport ? "customer" : "client"}: {
+      id: "${isTransport ? "CUS" : "CLI"}-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
       name: body.name || "",
       email: body.email || "",
       phone: body.phone || "",
@@ -923,8 +923,8 @@ main()
     },
     {
       type: "typescript",
-      title: "Booking Service",
-      file: "lib/services/booking-service.ts",
+      title: isTransport ? "Booking Service" : "Request Service",
+      file: isTransport ? "lib/services/booking-service.ts" : "lib/services/request-service.ts",
       content: `export function createBookingWorkflow(input: any) {
   return {
     id: "BOOK-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
@@ -993,8 +993,8 @@ export function listAssets() {
     },
     {
       type: "typescript",
-      title: "Customer Service",
-      file: "lib/services/customer-service.ts",
+      title: isTransport ? "Customer Service" : "Client Service",
+      file: isTransport ? "lib/services/customer-service.ts" : "lib/services/client-service.ts",
       content: `export function createCustomerProfile(input: any) {
   return {
     id: "CUS-" + Math.random().toString(36).slice(2, 10).toUpperCase(),
@@ -1161,19 +1161,19 @@ export async function POST(req: Request) {
       <h1 className="mt-4 text-5xl font-black">${profile.adminTitle}</h1>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/bookings">
-          <h2 className="text-2xl font-black">Bookings</h2>
+        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="${isTransport ? "/admin/bookings" : "/admin/requests"}">
+          <h2 className="text-2xl font-black">${isTransport ? "Bookings" : "Requests"}</h2>
           <p className="mt-3 text-zinc-400">Review new production requests and delivery workflow.</p>
         </a>
 
-        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/customers">
-          <h2 className="text-2xl font-black">Customers</h2>
-          <p className="mt-3 text-zinc-400">Manage customer profiles and contact records.</p>
+        <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="${isTransport ? "/admin/customers" : "/admin/clients"}">
+          <h2 className="text-2xl font-black">${isTransport ? "Customers" : "Clients"}</h2>
+          <p className="mt-3 text-zinc-400">${isTransport ? "Manage customer profiles and contact records." : "Manage client profiles and contact records."}</p>
         </a>
 
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-          <h2 className="text-2xl font-black">Fleet</h2>
-          <p className="mt-3 text-zinc-400">Track executive vehicles and service availability.</p>
+          <h2 className="text-2xl font-black">${isTransport ? "Fleet" : "Assets"}</h2>
+          <p className="mt-3 text-zinc-400">${isTransport ? "Track executive vehicles and service availability." : "Track production assets and delivery readiness."}</p>
         </div>
       </div>
     </main>
@@ -1183,13 +1183,13 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Admin Bookings Page",
-      file: "app/admin/bookings/page.tsx",
+      title: isTransport ? "Admin Bookings Page" : "Admin Requests Page",
+      file: isTransport ? "app/admin/bookings/page.tsx" : "app/admin/requests/page.tsx",
       content: `export default function AdminBookingsPage() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Bookings</p>
-      <h1 className="mt-4 text-5xl font-black">Booking Requests</h1>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Bookings" : "Requests"}</p>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Booking Requests" : "Production Requests"}</h1>
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
@@ -1203,17 +1203,17 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Admin Customers Page",
-      file: "app/admin/customers/page.tsx",
+      title: isTransport ? "Admin Customers Page" : "Admin Clients Page",
+      file: isTransport ? "app/admin/customers/page.tsx" : "app/admin/clients/page.tsx",
       content: `export default function AdminCustomersPage() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Customers</p>
-      <h1 className="mt-4 text-5xl font-black">Customer CRM</h1>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Customers" : "Clients"}</p>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Customer CRM" : "Client CRM"}</h1>
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
-          Connect this view to customer records, ride history, quote history, and VIP profiles.
+          ${isTransport ? "Connect this view to customer records, ride history, quote history, and VIP profiles." : "Connect this view to client records, request history, quote history, and account profiles."}
         </p>
       </section>
     </main>
