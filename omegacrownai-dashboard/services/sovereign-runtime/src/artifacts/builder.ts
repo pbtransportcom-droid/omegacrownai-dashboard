@@ -1366,17 +1366,17 @@ export const config = {
     },
     {
       type: "typescript",
-      title: "Customer Portal",
-      file: "app/customer/page.tsx",
-      content: `export default function CustomerPortal() {
+      title: isTransport ? "Customer Portal" : "Client Portal",
+      file: isTransport ? "app/customer/page.tsx" : "app/client/page.tsx",
+      content: `export default function ClientPortal() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Customer Portal</p>
-      <h1 className="mt-4 text-5xl font-black">My Rides</h1>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Customer Portal" : "Client Portal"}</p>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "My Rides" : "My Deliverables"}</h1>
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
-          Connect this portal to bookings, quote history, invoices, and customer profile records.
+          ${isTransport ? "Connect this portal to bookings, quote history, invoices, and customer profile records." : "Connect this portal to requests, quote history, invoices, and client profile records."}
         </p>
       </section>
     </main>
@@ -1400,12 +1400,12 @@ export const config = {
           <p className="mt-3 text-zinc-400">Incoming reservations awaiting review.</p>
         </div>
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-          <h2 className="text-2xl font-black">Assigned Trips</h2>
-          <p className="mt-3 text-zinc-400">Trips assigned to drivers or fleet resources.</p>
+          <h2 className="text-2xl font-black">${isTransport ? "Assigned Trips" : "Assigned Jobs"}</h2>
+          <p className="mt-3 text-zinc-400">${isTransport ? "Trips assigned to drivers or fleet resources." : "Jobs assigned to producers or production resources."}</p>
         </div>
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
           <h2 className="text-2xl font-black">Fleet Status</h2>
-          <p className="mt-3 text-zinc-400">Vehicle readiness and availability overview.</p>
+          <p className="mt-3 text-zinc-400">${isTransport ? "Vehicle readiness and availability overview." : "Asset readiness and delivery availability overview."}</p>
         </div>
       </section>
     </main>
