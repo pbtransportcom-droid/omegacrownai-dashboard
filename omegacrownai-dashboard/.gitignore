@@ -39,3 +39,8 @@ secrets/
 data/
 *.zip
 public/runtime-deployments/
+
+# Runtime/generated artifacts
+routes.txt
+services/sovereign-runtime/generated-apps/
+services/sovereign-runtime/logs/
