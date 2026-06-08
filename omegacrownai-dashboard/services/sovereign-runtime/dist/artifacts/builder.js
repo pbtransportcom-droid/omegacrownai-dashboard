@@ -919,13 +919,24 @@ main()
         },
         {
             type: "typescript",
-            title: "Dispatch Service",
-            file: "lib/services/dispatch-service.ts",
-            content: `export function assignDriverToBooking(bookingId: string, driverId: string, vehicleId: string) {
+            title: isTransport ? "Dispatch Service" : "Delivery Service",
+            file: isTransport ? "lib/services/dispatch-service.ts" : "lib/services/delivery-service.ts",
+            content: isTransport
+                ? `export function assignDriverToBooking(bookingId: string, driverId: string, vehicleId: string) {
   return {
     bookingId,
     driverId,
     vehicleId,
+    status: "assigned",
+    assignedAt: new Date().toISOString(),
+  };
+}
+`
+                : `export function assignProducerToDelivery(requestId: string, producerId: string, assetId: string) {
+  return {
+    requestId,
+    producerId,
+    assetId,
     status: "assigned",
     assignedAt: new Date().toISOString(),
   };
@@ -965,9 +976,10 @@ export function listFleet() {
         },
         {
             type: "typescript",
-            title: "Dispatch API Route",
-            file: "app/api/dispatch/route.ts",
-            content: `import { NextResponse } from "next/server";
+            title: isTransport ? "Dispatch API Route" : "Delivery API Route",
+            file: isTransport ? "app/api/dispatch/route.ts" : "app/api/delivery/route.ts",
+            content: isTransport
+                ? `import { NextResponse } from "next/server";
 import { assignDriverToBooking } from "../../../lib/services/dispatch-service";
 
 export async function POST(req: Request) {
@@ -979,6 +991,22 @@ export async function POST(req: Request) {
       body.bookingId || "BOOK-DEMO",
       body.driverId || "DRV-DEMO",
       body.vehicleId || "VEH-SUV"
+    ),
+  });
+}
+`
+                : `import { NextResponse } from "next/server";
+import { assignProducerToDelivery } from "../../../lib/services/delivery-service";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+
+  return NextResponse.json({
+    ok: true,
+    assignment: assignProducerToDelivery(
+      body.requestId || "REQ-DEMO",
+      body.producerId || "PROD-DEMO",
+      body.assetId || "ASSET-DEMO"
     ),
   });
 }
