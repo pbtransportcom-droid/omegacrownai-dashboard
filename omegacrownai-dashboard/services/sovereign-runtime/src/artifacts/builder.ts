@@ -1104,15 +1104,15 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Admin Dispatch Page",
-      file: "app/admin/dispatch/page.tsx",
-      content: `export default function AdminDispatchPage() {
+      title: isTransport ? "Admin Dispatch Page" : "Admin Delivery Page",
+      file: isTransport ? "app/admin/dispatch/page.tsx" : "app/admin/delivery/page.tsx",
+      content: `export default function AdminDeliveryPage() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Dispatch</p>
-      <h1 className="mt-4 text-5xl font-black">Dispatch Operations</h1>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Dispatch" : "Delivery"}</p>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Dispatch Operations" : "Delivery Operations"}</h1>
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-        <p className="text-zinc-400">Assign drivers, vehicles, and booking statuses from this workflow board.</p>
+        <p className="text-zinc-400">${isTransport ? "Assign drivers, vehicles, and booking statuses from this workflow board." : "Coordinate production milestones, delivery assets, review status, and launch-ready outputs from this workflow board."}</p>
       </section>
     </main>
   );
@@ -1211,7 +1211,7 @@ export async function POST(req: Request) {
       type: "typescript",
       title: "Auth Helpers",
       file: "lib/auth.ts",
-      content: `export type UserRole = "admin" | "dispatcher" | "customer";
+      content: `export type UserRole = "admin" | "operator" | "customer";
 
 export function createDemoUser(role: UserRole = "customer") {
   return {
@@ -1302,7 +1302,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dispatcher/:path*", "/customer/:path*"],
+  matcher: ["/admin/:path*", "/operator/:path*", "/customer/:path*"],
 };
 `
     },
@@ -1316,7 +1316,7 @@ export const config = {
       <section className="mx-auto max-w-xl rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-sm uppercase tracking-[0.35em] text-red-300">Account Access</p>
         <h1 className="mt-4 text-5xl font-black">Login</h1>
-        <p className="mt-4 text-zinc-400">Demo auth scaffold for customer, dispatcher, and admin access.</p>
+        <p className="mt-4 text-zinc-400">Demo auth scaffold for customer, operator, and admin access.</p>
 
         <form className="mt-8 grid gap-4">
           <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Email" />
@@ -1375,13 +1375,13 @@ export const config = {
     },
     {
       type: "typescript",
-      title: "Dispatcher Portal",
-      file: "app/dispatcher/page.tsx",
-      content: `export default function DispatcherPortal() {
+      title: isTransport ? "Dispatcher Portal" : "Operator Portal",
+      file: isTransport ? "app/dispatcher/page.tsx" : "app/operator/page.tsx",
+      content: `export default function OperatorPortal() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Dispatcher</p>
-      <h1 className="mt-4 text-5xl font-black">Dispatch Board</h1>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Dispatcher" : "Operator"}</p>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Dispatch Board" : "Production Board"}</h1>
 
       <section className="mt-10 grid gap-6 md:grid-cols-3">
         <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
