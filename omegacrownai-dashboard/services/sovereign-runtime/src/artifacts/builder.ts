@@ -1082,12 +1082,12 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Admin Fleet Page",
-      file: "app/admin/fleet/page.tsx",
-      content: `export default function AdminFleetPage() {
+      title: isTransport ? "Admin Fleet Page" : "Admin Assets Page",
+      file: isTransport ? "app/admin/fleet/page.tsx" : "app/admin/assets/page.tsx",
+      content: `export default function AdminAssetsPage() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm uppercase tracking-[0.35em] text-red-300">Fleet</p>
+      <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Fleet" : "Assets"}</p>
       <h1 className="mt-4 text-5xl font-black">${profile.featureTitle}</h1>
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {["${profile.modeItemOne}", "${profile.modeItemTwo}", "${profile.modeItemThree}"].map((vehicle) => (
