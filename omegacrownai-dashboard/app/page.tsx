@@ -14,12 +14,12 @@ const buildPaths = [
   },
   {
     title: "Automation",
-    href: "/automate" as const,
+    href: "/create?type=automation" as const,
     detail: "Build workflows, agents, repeatable tasks, and business automations.",
   },
   {
     title: "Trading",
-    href: "/trade" as const,
+    href: "/trade/copilot" as const,
     detail: "Open King Trading System tools for market intelligence and strategy workflows.",
   },
 
