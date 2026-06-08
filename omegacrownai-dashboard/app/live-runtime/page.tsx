@@ -112,10 +112,86 @@ function LiveRuntimeInner() {
           {runtime?.mode || intent}
         </p>
 
+        {runtime?.status === "completed" && (
+          <div className="mt-8 rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-6 shadow-2xl shadow-emerald-500/10">
+            <div className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">
+              Delivery Ready
+            </div>
+
+            <h2 className="mt-3 text-3xl font-black text-white">
+              Your {runtime?.mode || intent} project has been generated.
+            </h2>
+
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-emerald-100/80">
+              OmegaCrownAI completed the agent workflow, generated the project artifacts,
+              prepared validation, deployed the preview, and packaged the export files.
+              Use the buttons below to open the customer preview or download the full ZIP.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a
+                href={`/deployed/${projectId}`}
+                target="_blank"
+                className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300"
+              >
+                Open Customer Preview
+              </a>
+
+              <a
+                href={`/api/runtime-proxy/runs/${projectId}/download`}
+                className="rounded-xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-slate-200"
+              >
+                Download Full ZIP
+              </a>
+
+              <a
+                href={`/artifacts/${projectId}`}
+                className="rounded-xl border border-purple-400/50 bg-purple-500/10 px-5 py-3 text-sm font-black text-purple-100 hover:bg-purple-500/20"
+              >
+                Review Artifacts
+              </a>
+
+              <a
+                href={`/projects/${projectId}/validation`}
+                className="rounded-xl border border-yellow-400/50 bg-yellow-500/10 px-5 py-3 text-sm font-black text-yellow-100 hover:bg-yellow-500/20"
+              >
+                View Validation
+              </a>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="mt-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-red-200">
             {error}
           </div>
+        )}
+
+        {runtime?.status === "completed" && projectId && (
+          <section className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black">Live Preview</h2>
+                <p className="mt-1 text-sm text-white/60">
+                  This is the generated customer-facing output.
+                </p>
+              </div>
+
+              <a
+                href={`/deployed/${projectId}`}
+                target="_blank"
+                className="rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+              >
+                Open Full Screen
+              </a>
+            </div>
+
+            <iframe
+              src={`/deployed/${projectId}`}
+              className="h-[620px] w-full rounded-2xl border border-white/10 bg-white"
+              title="Generated project preview"
+            />
+          </section>
         )}
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
