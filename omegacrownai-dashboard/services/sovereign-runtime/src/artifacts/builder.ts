@@ -1033,15 +1033,26 @@ export async function POST(req: Request) {
     },
     {
       type: "typescript",
-      title: "Fleet API Route",
-      file: "app/api/fleet/route.ts",
-      content: `import { NextResponse } from "next/server";
+      title: isTransport ? "Fleet API Route" : "Asset API Route",
+      file: isTransport ? "app/api/fleet/route.ts" : "app/api/assets/route.ts",
+      content: isTransport
+        ? `import { NextResponse } from "next/server";
 import { listFleet } from "../../../lib/services/fleet-service";
 
 export async function GET() {
   return NextResponse.json({
     ok: true,
     fleet: listFleet(),
+  });
+}
+`
+        : `import { NextResponse } from "next/server";
+import { listAssets } from "../../../lib/services/asset-service";
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    assets: listAssets(),
   });
 }
 `
