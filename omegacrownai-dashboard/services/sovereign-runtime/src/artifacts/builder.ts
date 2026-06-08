@@ -964,9 +964,10 @@ main()
     },
     {
       type: "typescript",
-      title: "Fleet Service",
-      file: "lib/services/fleet-service.ts",
-      content: `export const fleet = [
+      title: isTransport ? "Fleet Service" : "Asset Service",
+      file: isTransport ? "lib/services/fleet-service.ts" : "lib/services/asset-service.ts",
+      content: isTransport
+        ? `export const fleet = [
   { id: "VEH-SEDAN", name: "${profile.modeItemOne}", status: "available" },
   { id: "VEH-SUV", name: "${profile.modeItemTwo}", status: "available" },
   { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree}", status: "available" },
@@ -974,6 +975,16 @@ main()
 
 export function listFleet() {
   return fleet;
+}
+`
+        : `export const assets = [
+  { id: "ASSET-001", name: "${profile.modeItemOne}", status: "ready" },
+  { id: "ASSET-002", name: "${profile.modeItemTwo}", status: "ready" },
+  { id: "ASSET-003", name: "${profile.modeItemThree}", status: "ready" },
+];
+
+export function listAssets() {
+  return assets;
 }
 `
     },
