@@ -76,11 +76,33 @@ function LiveRuntimeInner() {
               </button>
 
               <a
-                href={`/runtime-preview/${projectId}`}
+                href={`/deployed/${projectId}`}
                 target="_blank"
-                className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-bold text-white"
+                className="rounded-xl border border-emerald-500/60 bg-emerald-500/10 px-5 py-3 text-sm font-bold text-emerald-100"
               >
-                Preview
+                Open Preview
+              </a>
+
+              <a
+                href={`/runtime-deployments/${projectId}/index.html`}
+                target="_blank"
+                className="rounded-xl border border-cyan-500/60 bg-cyan-500/10 px-5 py-3 text-sm font-bold text-cyan-100"
+              >
+                Static HTML
+              </a>
+
+              <a
+                href={`/projects/${projectId}/validation`}
+                className="rounded-xl border border-yellow-500/60 bg-yellow-500/10 px-5 py-3 text-sm font-bold text-yellow-100"
+              >
+                View Validation
+              </a>
+
+              <a
+                href={`/artifacts/${projectId}`}
+                className="rounded-xl border border-purple-500/60 bg-purple-500/10 px-5 py-3 text-sm font-bold text-purple-100"
+              >
+                View Artifacts
               </a>
             </div>
           )}
