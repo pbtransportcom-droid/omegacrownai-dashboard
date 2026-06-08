@@ -466,7 +466,7 @@ export async function buildArtifacts(run) {
   },
   {
     name: "Hourly Chauffeur",
-    detail: "Professional chauffeur service for events, meetings, hotel pickups, and full-day travel."
+    detail: "${profile.modeItemThree} delivery plan with production milestones, approvals, and launch-ready assets."
   }
 ];
 
