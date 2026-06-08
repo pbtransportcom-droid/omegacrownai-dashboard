@@ -286,7 +286,7 @@ export async function buildArtifacts(run) {
     <section id="features" class="grid">
       <article><h2>${isTransport ? "${profile.smokeService}s" : "Runtime Generated"}</h2><p>${isTransport ? "Book premium rides to and from major airports with professional chauffeurs." : "Created by the independent Sovereign Runtime engine."}</p></article>
       <article><h2>${isTransport ? "Executive Fleet" : "Agent Validated"}</h2><p>${isTransport ? "Luxury sedans, SUVs, and black car service for business and private travel." : "Planner, Builder, Validator, and Delivery agents completed execution."}</p></article>
-      <article><h2>${isTransport ? "Fast Reservations" : "Export Ready"}</h2><p>${isTransport ? "Clear calls to action for booking, quotes, dispatch, and customer service." : "Artifacts are prepared for ZIP download and customer delivery."}</p></article>
+      <article><h2>${isTransport ? "Fast Reservations" : "Export Ready"}</h2><p>${isTransport ? "Clear calls to action for ${profile.smokeService.toLowerCase()}, customer intake, approvals, and delivery." : "Artifacts are prepared for ZIP download and customer delivery."}</p></article>
     </section>
 
     <section id="delivery" class="panel">
@@ -326,7 +326,7 @@ export async function buildArtifacts(run) {
     <section class="panel">
       <p class="eyebrow">SERVICE AREA</p>
       <h2>O Hare airport and executive travel coverage</h2>
-      <p>Designed for premium airport transfers, corporate transportation, hotel pickups, private events, and scheduled chauffeur service.</p>
+      <p>${profile.areaHeading}</p>
     </section>
     ` : ""}
 
@@ -435,7 +435,7 @@ export async function buildArtifacts(run) {
       </h1>
       <p className="mt-6 max-w-3xl text-xl text-zinc-300">
         ${isTransport
-                ? "Premium airport transfers, executive chauffeur service, luxury fleet booking, and reliable point-to-point transportation."
+                ? "${profile.areaHeading}"
                 : "Production-ready generated application package with runtime validation and delivery support."}
       </p>
       <div className="mt-8 flex flex-wrap gap-4">
@@ -457,11 +457,11 @@ export async function buildArtifacts(run) {
             file: profile.featureFile,
             content: `const fleet = [
   {
-    name: profile.modeItemOne || "Executive Black Car",
+    name: "${profile.modeItemOne}",
     detail: "Luxury sedan service for airport transfers, business meetings, and private rides."
   },
   {
-    name: profile.modeItemTwo || "Premium SUV",
+    name: "${profile.modeItemTwo}",
     detail: "Spacious executive SUV service for families, luggage, VIP guests, and group travel."
   },
   {
@@ -554,7 +554,7 @@ export function ServiceAreaMap() {
             content: `const testimonials = [
   "Professional airport pickup, clean vehicle, and smooth executive service.",
   "Reliable black car transportation for our business travel in Chicago.",
-  "Excellent chauffeur experience with clear communication and luxury presentation."
+  "Professional delivery experience with clear structure, polished assets, and launch-ready presentation."
 ];
 
 export function Testimonials() {
@@ -729,7 +729,7 @@ model BookingLead {
             file: ".env.example",
             content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_app"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-${profile.notificationEnv}="dispatch@example.com"
+${profile.notificationEnv}="notifications@example.com"
 `
         },
         {
@@ -813,7 +813,7 @@ export async function POST(req: Request) {
       service: body.service || "${profile.smokeService}",
       estimatedTotal: estimatedBaseFare + airportFee,
       currency: "USD",
-      note: "Final pricing should be confirmed by dispatch."
+      note: "Final scope should be confirmed before production launch."
     }
   });
 }
@@ -937,9 +937,9 @@ main()
             title: "Fleet Service",
             file: "lib/services/fleet-service.ts",
             content: `export const fleet = [
-  { id: "VEH-SEDAN", name: profile.modeItemOne || "Executive Black Car", status: "available" },
-  { id: "VEH-SUV", name: profile.modeItemTwo || "Premium SUV", status: "available" },
-  { id: "VEH-CHAUFFEUR", name: profile.modeItemThree || "Hourly Chauffeur Vehicle", status: "available" },
+  { id: "VEH-SEDAN", name: "${profile.modeItemOne}", status: "available" },
+  { id: "VEH-SUV", name: "${profile.modeItemTwo}", status: "available" },
+  { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree}", status: "available" },
 ];
 
 export function listFleet() {
@@ -1032,7 +1032,7 @@ export async function POST(req: Request) {
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Fleet</p>
       <h1 className="mt-4 text-5xl font-black">${profile.featureTitle}</h1>
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {[profile.modeItemOne || "Executive Black Car", profile.modeItemTwo || "Premium SUV", profile.modeItemThree || "Hourly Chauffeur Vehicle"].map((vehicle) => (
+        {["${profile.modeItemOne}", "${profile.modeItemTwo}", "${profile.modeItemThree}"].map((vehicle) => (
           <article key={vehicle} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
             <h2 className="text-2xl font-black">{vehicle}</h2>
             <p className="mt-3 text-zinc-400">Status: available</p>
@@ -1091,7 +1091,7 @@ export async function POST(req: Request) {
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/bookings">
           <h2 className="text-2xl font-black">Bookings</h2>
-          <p className="mt-3 text-zinc-400">Review new ride requests and dispatch workflow.</p>
+          <p className="mt-3 text-zinc-400">Review new production requests and delivery workflow.</p>
         </a>
 
         <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="/admin/customers">
@@ -1121,7 +1121,7 @@ export async function POST(req: Request) {
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
-          Connect this view to Prisma BookingLead records for live dispatch operations.
+          Connect this view to production request records for live delivery operations.
         </p>
       </section>
     </main>
@@ -1478,7 +1478,7 @@ CMD ["npm", "run", "start"]
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/generated_app
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      ${profile.notificationEnv}: dispatch@example.com
+      ${profile.notificationEnv}: notifications@example.com
     depends_on:
       - db
 
