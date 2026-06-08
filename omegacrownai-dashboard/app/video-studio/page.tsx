@@ -16,31 +16,32 @@ export default function VideoStudioPage() {
     try {
       setLoading(true);
 
-      const createResponse = await fetch("/api/runtime-proxy/runs", {
+      const createResponse = await fetch("/api/runtime-execution/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: "Video Studio Project",
           mode: "video",
+          type: "video",
+          department: "video",
           prompt,
         }),
       });
 
       const run = await createResponse.json();
 
-      await fetch(
-        `/api/runtime-proxy/runs/${run.projectId}/execute`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            instruction: "Execute cinematic video generation workflow.",
-          }),
-        }
-      );
+      await fetch("/api/runtime-execution/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: run.projectId,
+          instruction: "Execute cinematic video generation workflow.",
+        }),
+      });
 
       router.push(
         `/live-runtime?projectId=${run.projectId}&runtimeId=${run.runtimeId}&intent=video`
