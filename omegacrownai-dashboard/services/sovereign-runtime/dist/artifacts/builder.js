@@ -490,24 +490,146 @@ export function ${profile.featureComponent}() {
             type: "typescript",
             title: profile.actionTitle,
             file: profile.actionFile,
-            content: `export function ${profile.actionComponent}() {
+            content: `"use client";
+
+import { useState } from "react";
+
+type FareEstimate = {
+  subtotal: number;
+  airportFee: number;
+  peakFee: number;
+  luggageFee?: number;
+  total: number;
+  depositDue: number;
+  currency: string;
+  note: string;
+};
+
+export function ${profile.actionComponent}() {
+  const [form, setForm] = useState({
+    pickup: "ORD Airport",
+    dropoff: "Downtown Chicago",
+    dateTime: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
+    contact: "customer@example.com",
+    customerName: "Demo Customer",
+    customerEmail: "customer@example.com",
+    customerPhone: "773-510-1467",
+    serviceType: "${profile.smokeService}",
+    vehicleType: "luxury-suv",
+    passengers: 2,
+    luggage: 2,
+    estimatedMiles: 18,
+    estimatedMinutes: 45,
+    specialRequests: ""
+  });
+  const [quote, setQuote] = useState<FareEstimate | null>(null);
+  const [booking, setBooking] = useState<any>(null);
+  const [payment, setPayment] = useState<any>(null);
+  const [status, setStatus] = useState("");
+
+  function update(field: string, value: string) {
+    setForm((current) => ({
+      ...current,
+      [field]: ["passengers", "luggage", "estimatedMiles", "estimatedMinutes"].includes(field)
+        ? Number(value)
+        : value
+    }));
+  }
+
+  async function requestQuote() {
+    setStatus("Calculating quote...");
+    const response = await fetch("/api/quotes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+    const data = await response.json();
+    setQuote(data.estimate || data.quote || data);
+    setStatus(data.ok ? "Quote ready." : "Quote failed.");
+  }
+
+  async function bookNow() {
+    setStatus("Creating booking...");
+    const bookingResponse = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, quote })
+    });
+    const bookingData = await bookingResponse.json();
+    setBooking(bookingData.booking || bookingData.lead || bookingData);
+
+    const bookingId =
+      bookingData.booking?.id ||
+      bookingData.lead?.id ||
+      bookingData.id ||
+      "BOOK-DEMO";
+
+    const paymentResponse = await fetch("/api/payments/create-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId,
+        amount: quote?.depositDue || quote?.total || 125,
+        customerEmail: form.customerEmail || form.contact
+      })
+    });
+    const paymentData = await paymentResponse.json();
+    setPayment(paymentData.intent || paymentData.paymentIntent || paymentData);
+    setStatus(paymentData.ok ? "Booking and payment intent ready." : "Booking created; payment intent needs review.");
+  }
+
   return (
     <section id="booking" className="mx-8 my-16 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
       <h2 className="text-4xl font-black">${profile.actionHeading}</h2>
-      <p className="mt-3 text-zinc-400">
-        ${profile.actionDescription}
-      </p>
+      <p className="mt-3 text-zinc-400">${profile.actionDescription}</p>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Pickup location" />
-        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Drop-off location" />
-        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Date and time" />
-        <input className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Phone or email" />
+        <input value={form.pickup} onChange={(event) => update("pickup", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Pickup location" />
+        <input value={form.dropoff} onChange={(event) => update("dropoff", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Drop-off location" />
+        <input value={form.dateTime} onChange={(event) => update("dateTime", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" type="datetime-local" />
+        <input value={form.contact} onChange={(event) => update("contact", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Phone or email" />
+        <input value={form.customerName} onChange={(event) => update("customerName", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Customer name" />
+        <input value={form.customerEmail} onChange={(event) => update("customerEmail", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Customer email" />
+        <input value={form.vehicleType} onChange={(event) => update("vehicleType", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" placeholder="Vehicle type" />
+        <input value={form.passengers} onChange={(event) => update("passengers", event.target.value)} className="rounded-xl border border-zinc-800 bg-black p-4" type="number" min="1" placeholder="Passengers" />
       </div>
 
-      <button className="mt-6 rounded-2xl bg-red-400 px-6 py-4 font-bold text-black">
-        Request Quote
-      </button>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button onClick={requestQuote} className="rounded-2xl bg-red-400 px-6 py-4 font-bold text-black">
+          Request Quote
+        </button>
+        <button onClick={bookNow} disabled={!quote} className="rounded-2xl border border-zinc-700 px-6 py-4 font-bold disabled:opacity-40">
+          Book Now + Create Payment Intent
+        </button>
+      </div>
+
+      {status && <p className="mt-4 text-sm text-red-200">{status}</p>}
+
+      {quote && (
+        <div className="mt-6 rounded-2xl border border-zinc-800 bg-black p-5">
+          <h3 className="text-xl font-black">Fare Estimate</h3>
+          <p className="mt-2 text-zinc-300">Subtotal: ${"$"}{quote.subtotal}</p>
+          <p className="text-zinc-300">Airport fee: ${"$"}{quote.airportFee}</p>
+          <p className="text-zinc-300">Peak fee: ${"$"}{quote.peakFee}</p>
+          <p className="text-zinc-300">Deposit due: ${"$"}{quote.depositDue}</p>
+          <p className="mt-2 text-2xl font-black">Total: ${"$"}{quote.total} {quote.currency}</p>
+          <p className="mt-2 text-xs text-zinc-500">{quote.note}</p>
+        </div>
+      )}
+
+      {booking && (
+        <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-5">
+          <h3 className="text-xl font-black">Booking Created</h3>
+          <pre className="mt-3 overflow-auto text-xs text-zinc-400">{JSON.stringify(booking, null, 2)}</pre>
+        </div>
+      )}
+
+      {payment && (
+        <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-5">
+          <h3 className="text-xl font-black">Payment Intent</h3>
+          <pre className="mt-3 overflow-auto text-xs text-zinc-400">{JSON.stringify(payment, null, 2)}</pre>
+        </div>
+      )}
     </section>
   );
 }
