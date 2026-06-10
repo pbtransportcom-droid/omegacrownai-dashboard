@@ -290,7 +290,7 @@ export async function buildArtifacts(run: any) {
     <section class="${isTransport ? "hero hero-transport" : "hero"}">
       <div class="hero-copy">
         <p class="eyebrow">${isTransport ? "Chicago airport black car service" : "Production package"}</p>
-        <h1>${run.prompt}</h1>
+        <h1>${isTransport ? "Premium limo booking website for Chicago airport and executive travel" : "Production-ready generated application package"}</h1>
         <p class="lede">
           ${isTransport
             ? "A production-grade limo website package with quote flow, booking intake, payment intent scaffold, customer portal, admin dispatch views, fleet management, and deployment-ready artifacts."
