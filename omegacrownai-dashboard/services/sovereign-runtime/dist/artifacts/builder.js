@@ -1934,7 +1934,9 @@ export async function POST(req: Request) {
             type: "typescript",
             title: isTransport ? "Admin Bookings Page" : "Admin Requests Page",
             file: isTransport ? "app/admin/bookings/page.tsx" : "app/admin/requests/page.tsx",
-            content: `export default function AdminBookingsPage() {
+            content: `${isTransport ? 'import { listBookingLeads } from "../../../lib/booking-store";\\n\\n' : ''}export default async function AdminBookingsPage() {
+  const bookingLeads = ${isTransport ? "await listBookingLeads()" : "[]"};
+
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Bookings" : "Requests"}</p>
@@ -1944,6 +1946,27 @@ export async function POST(req: Request) {
         <p className="text-zinc-400">
           ${isTransport ? "Live Booking Queue: read submitted booking requests from listBookingLeads(), prepare each ride for dispatch review, and track pending dispatch status." : "Connect this view to production request records for live delivery operations."}
         </p>
+
+        <div className="mt-6 grid gap-4">
+          {bookingLeads.length === 0 ? (
+            <div className="rounded-2xl border border-zinc-800 bg-black p-5">
+              <p className="text-sm font-black text-zinc-300">${isTransport ? "No booking requests are waiting for dispatch yet." : "No production requests are waiting for review yet."}</p>
+            </div>
+          ) : (
+            bookingLeads.slice(0, 12).map((booking: any) => (
+              <article key={booking.id} className="rounded-2xl border border-zinc-800 bg-black p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.25em] text-red-300">{booking.status || "pending"}</p>
+                    <h2 className="mt-2 text-xl font-black">{booking.pickup || "Pickup pending"} → {booking.dropoff || "Drop-off pending"}</h2>
+                    <p className="mt-2 text-sm text-zinc-400">{booking.service || "Executive black car"} • {booking.customerContact || "Customer contact pending"}</p>
+                  </div>
+                  <span className="rounded-full bg-yellow-300 px-3 py-1 text-xs font-black text-black">Pending dispatch</span>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </main>
   );
@@ -2120,7 +2143,9 @@ export const config = {
             type: "typescript",
             title: isTransport ? "Customer Portal" : "Client Portal",
             file: isTransport ? "app/customer/page.tsx" : "app/client/page.tsx",
-            content: `export default function ClientPortal() {
+            content: `${isTransport ? 'import { listBookingLeads } from "../../lib/booking-store";\\n\\n' : ''}export default async function ClientPortal() {
+  const bookingLeads = ${isTransport ? "await listBookingLeads()" : "[]"};
+
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Customer Portal" : "Client Portal"}</p>
@@ -2130,6 +2155,23 @@ export const config = {
         <p className="text-zinc-400">
           ${isTransport ? "Ride Request History: connect this customer portal to listBookingLeads() so customers can review submitted booking requests, quote history, invoices, pickup, drop-off, contact details, and profile records. Empty state: No booking requests." : "Connect this portal to requests, quote history, invoices, and client profile records."}
         </p>
+
+        <div className="mt-6 grid gap-4">
+          {bookingLeads.length === 0 ? (
+            <div className="rounded-2xl border border-zinc-800 bg-black p-5">
+              <p className="text-sm font-black text-zinc-300">${isTransport ? "No booking requests yet." : "No delivery requests yet."}</p>
+              <p className="mt-2 text-sm text-zinc-500">${isTransport ? "Submitted rides will appear here with pickup, drop-off, contact, quote, invoice, and status details." : "Submitted requests will appear here with quote, invoice, and delivery details."}</p>
+            </div>
+          ) : (
+            bookingLeads.slice(0, 8).map((booking: any) => (
+              <article key={booking.id} className="rounded-2xl border border-zinc-800 bg-black p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-red-300">{booking.status || "submitted"}</p>
+                <h2 className="mt-2 text-xl font-black">{booking.pickup || "Pickup pending"} → {booking.dropoff || "Drop-off pending"}</h2>
+                <p className="mt-2 text-sm text-zinc-400">{booking.service || "Executive black car"} • {booking.customerContact || "Customer contact pending"}</p>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </main>
   );
