@@ -35,7 +35,7 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
       areaTitle: "Service Area",
       areaHeading: "O Hare airport, Midway, downtown Chicago, suburbs, hotels, events, and executive travel coverage.",
       testimonialTitle: "${profile.testimonialTitle}",
-      adminTitle: "${profile.adminTitle}",
+      adminTitle: "${isTransport ? "Transportation Admin Command Center" : "Production Admin Command Center"}",
       leadModel: "BookingLead",
       leadFile: "booking-leads.json",
       notificationEnv: "${profile.notificationEnv}",
@@ -1601,7 +1601,7 @@ export function checkVehicleAvailability(input: { vehicleType: string; pickupDat
       content: `export async function sendBookingEmails(input: any) {
   // Replace with PHPMailer, Resend, SendGrid, SMTP, or Twilio SMS.
   console.log("Customer confirmation email queued:", input.customerEmail || input.contact);
-  console.log("Admin booking alert queued:", process.env.${profile.notificationEnv} || "notifications@example.com");
+  console.log("Admin booking alert queued:", process.env.ADMIN_NOTIFICATION_EMAIL || "notifications@example.com");
 
   return {
     ok: true,
@@ -1927,7 +1927,7 @@ export async function POST(req: Request) {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Admin</p>
-      <h1 className="mt-4 text-5xl font-black">${profile.adminTitle}</h1>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Transportation Admin Command Center" : "Production Admin Command Center"}</h1>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="${isTransport ? "/admin/bookings" : "/admin/requests"}">
