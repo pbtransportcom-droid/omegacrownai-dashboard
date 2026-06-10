@@ -1954,7 +1954,7 @@ export async function POST(req: Request) {
       type: "typescript",
       title: isTransport ? "Admin Bookings Page" : "Admin Requests Page",
       file: isTransport ? "app/admin/bookings/page.tsx" : "app/admin/requests/page.tsx",
-      content: `${isTransport ? 'import { listBookingLeads } from "../../../lib/booking-store";\\n\\n' : ''}export default async function AdminBookingsPage() {
+      content: `${isTransport ? 'import { listBookingLeads } from "../../../lib/booking-store";\n\n' : ''}export default async function AdminBookingsPage() {
   const bookingLeads = ${isTransport ? "await listBookingLeads()" : "[]"};
 
   return (
@@ -2163,7 +2163,7 @@ export const config = {
       type: "typescript",
       title: isTransport ? "Customer Portal" : "Client Portal",
       file: isTransport ? "app/customer/page.tsx" : "app/client/page.tsx",
-      content: `${isTransport ? 'import { listBookingLeads } from "../../lib/booking-store";\\n\\n' : ''}export default async function ClientPortal() {
+      content: `${isTransport ? 'import { listBookingLeads } from "../../lib/booking-store";\n\n' : ''}export default async function ClientPortal() {
   const bookingLeads = ${isTransport ? "await listBookingLeads()" : "[]"};
 
   return (
