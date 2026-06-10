@@ -809,12 +809,21 @@ export type ${isTransport ? "BookingLead" : "RequestLead"} = {
 const dataDir = path.join(process.cwd(), "data");
 const leadFile = path.join(dataDir, "${isTransport ? "booking-leads.json" : "request-leads.json"}");
 
-export async function ${isTransport ? "saveBookingLead" : "saveRequestLead"}(input: ${isTransport ? "BookingLead" : "RequestLead"}) {
+function readLeads(): ${isTransport ? "BookingLead" : "RequestLead"}[] {
   fs.mkdirSync(dataDir, { recursive: true });
 
-  const leads: ${isTransport ? "BookingLead" : "RequestLead"}[] = fs.existsSync(leadFile)
+  return fs.existsSync(leadFile)
     ? JSON.parse(fs.readFileSync(leadFile, "utf8"))
     : [];
+}
+
+function writeLeads(leads: ${isTransport ? "BookingLead" : "RequestLead"}[]) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(leadFile, JSON.stringify(leads, null, 2));
+}
+
+export async function ${isTransport ? "saveBookingLead" : "saveRequestLead"}(input: ${isTransport ? "BookingLead" : "RequestLead"}) {
+  const leads = readLeads();
 
   const lead = {
     ...input,
@@ -823,9 +832,13 @@ export async function ${isTransport ? "saveBookingLead" : "saveRequestLead"}(inp
   };
 
   leads.push(lead);
-  fs.writeFileSync(leadFile, JSON.stringify(leads, null, 2));
+  writeLeads(leads);
 
   return lead;
+}
+
+export async function ${isTransport ? "listBookingLeads" : "listRequestLeads"}() {
+  return readLeads().sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
 }
 `
     },
