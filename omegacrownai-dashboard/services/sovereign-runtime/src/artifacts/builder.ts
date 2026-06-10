@@ -1958,11 +1958,11 @@ export async function POST(req: Request) {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Bookings" : "Requests"}</p>
-      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Booking Requests" : "Production Requests"}</h1>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Dispatch Booking Queue" : "Production Requests"}</h1>
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
-          Connect this view to production request records for live delivery operations.
+          ${isTransport ? "Live Booking Queue: read submitted booking requests from listBookingLeads(), prepare each ride for dispatch review, and track pending dispatch status." : "Connect this view to production request records for live delivery operations."}
         </p>
       </section>
     </main>
@@ -2144,11 +2144,11 @@ export const config = {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Customer Portal" : "Client Portal"}</p>
-      <h1 className="mt-4 text-5xl font-black">${isTransport ? "My Rides" : "My Deliverables"}</h1>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "My Booking Requests" : "My Deliverables"}</h1>
 
       <section className="mt-10 rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
         <p className="text-zinc-400">
-          ${isTransport ? "Connect this portal to bookings, quote history, invoices, and customer profile records." : "Connect this portal to requests, quote history, invoices, and client profile records."}
+          ${isTransport ? "Ride Request History: connect this customer portal to listBookingLeads() so customers can review submitted booking requests, quote history, invoices, pickup, drop-off, contact details, and profile records. Empty state: No booking requests." : "Connect this portal to requests, quote history, invoices, and client profile records."}
         </p>
       </section>
     </main>
