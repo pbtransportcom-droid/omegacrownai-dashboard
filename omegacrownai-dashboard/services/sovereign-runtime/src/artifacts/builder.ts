@@ -22,18 +22,18 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
       navSecondary: "Service Area",
       navTertiary: "Reviews",
       cta: "${profile.cta}",
-      heroPrimary: "${profile.heroPrimary}",
-      heroSecondary: "${profile.heroSecondary}",
+      heroPrimary: "Reserve Black Car",
+      heroSecondary: "View Fleet",
       featureTitle: "Executive Fleet",
       featureFile: "components/Fleet.tsx",
       featureComponent: "Fleet",
       actionTitle: "Booking Form Component",
       actionFile: "components/BookingForm.tsx",
       actionComponent: "BookingForm",
-      actionHeading: "${profile.actionHeading}",
-      actionDescription: "${profile.actionDescription}",
+      actionHeading: "Reserve Your Ride",
+      actionDescription: "Request an executive ride with pickup, drop-off, schedule, contact details, quote, booking, and payment intent readiness.",
       areaTitle: "Service Area",
-      areaHeading: "${profile.areaHeading}",
+      areaHeading: "O Hare airport, Midway, downtown Chicago, suburbs, hotels, events, and executive travel coverage.",
       testimonialTitle: "${profile.testimonialTitle}",
       adminTitle: "${profile.adminTitle}",
       leadModel: "BookingLead",
@@ -457,7 +457,7 @@ export async function buildArtifacts(run: any) {
       </h1>
       <p className="mt-6 max-w-3xl text-xl text-zinc-300">
         ${isTransport
-          ? "${profile.areaHeading}"
+          ? profile.areaHeading
           : "Production-ready generated application package with runtime validation and delivery support."}
       </p>
       <div className="mt-8 flex flex-wrap gap-4">
