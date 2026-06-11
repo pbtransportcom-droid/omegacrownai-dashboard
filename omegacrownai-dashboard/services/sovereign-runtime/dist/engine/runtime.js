@@ -1,5 +1,6 @@
 import { runAgentChain } from "../agents/chain.js";
 import { buildArtifacts } from "../artifacts/builder.js";
+import { validateGeneratedArtifacts } from "../artifacts/generated-artifact-validator.js";
 import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
@@ -53,6 +54,19 @@ export async function executeRun(projectId, input) {
         run.artifacts = artifacts;
         appendRunEvent(run, "Artifacts generated");
         appendTranscript(projectId, "Artifacts generated");
+        const generatedArtifactValidation = validateGeneratedArtifacts(artifacts);
+        run.validation = {
+            generatedArtifacts: generatedArtifactValidation,
+        };
+        if (!generatedArtifactValidation.ok) {
+            run.status = "validation";
+            appendRunEvent(run, "Generated artifact validation failed");
+            appendTranscript(projectId, generatedArtifactValidation.summary);
+            await saveRun(run);
+            return run;
+        }
+        appendRunEvent(run, "Generated artifact validation passed");
+        appendTranscript(projectId, generatedArtifactValidation.summary);
         run.status = "validation";
         saveRun(run);
         const validation = await validateRun(run);
