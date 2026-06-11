@@ -26,6 +26,10 @@ function artifactFile(artifact: GeneratedArtifact): string {
   return artifact.file || artifact.path || artifact.title || "unknown";
 }
 
+function normalizeArtifactPath(value: string): string {
+  return value.replace(/\\/g, "/").replace(/^.*\/data\/artifacts\/[^/]+\//, "");
+}
+
 function artifactContent(artifact: GeneratedArtifact): string {
   if (typeof artifact.content === "string" && artifact.content.length > 0) {
     return artifact.content;
@@ -43,7 +47,10 @@ function artifactContent(artifact: GeneratedArtifact): string {
 }
 
 function findArtifact(artifacts: GeneratedArtifact[], file: string): GeneratedArtifact | undefined {
-  return artifacts.find((artifact) => artifactFile(artifact) === file);
+  return artifacts.find((artifact) => {
+    const candidate = normalizeArtifactPath(artifactFile(artifact));
+    return candidate === file || candidate.endsWith(`/${file}`);
+  });
 }
 
 function includesAnyProfileLeak(content: string): boolean {

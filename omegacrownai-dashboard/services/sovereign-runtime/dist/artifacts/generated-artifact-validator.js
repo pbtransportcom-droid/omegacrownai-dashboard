@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 function artifactFile(artifact) {
     return artifact.file || artifact.path || artifact.title || "unknown";
 }
+function normalizeArtifactPath(value) {
+    return value.replace(/\\/g, "/").replace(/^.*\/data\/artifacts\/[^/]+\//, "");
+}
 function artifactContent(artifact) {
     if (typeof artifact.content === "string" && artifact.content.length > 0) {
         return artifact.content;
@@ -17,7 +20,10 @@ function artifactContent(artifact) {
     return "";
 }
 function findArtifact(artifacts, file) {
-    return artifacts.find((artifact) => artifactFile(artifact) === file);
+    return artifacts.find((artifact) => {
+        const candidate = normalizeArtifactPath(artifactFile(artifact));
+        return candidate === file || candidate.endsWith(`/${file}`);
+    });
 }
 function includesAnyProfileLeak(content) {
     return content.includes("${profile") || content.includes("{profile") || content.includes("process.env.${profile");
