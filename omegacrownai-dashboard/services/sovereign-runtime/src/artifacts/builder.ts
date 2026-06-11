@@ -21,7 +21,7 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
       navPrimary: "Fleet",
       navSecondary: "Service Area",
       navTertiary: "Reviews",
-      cta: "${profile.cta}",
+      cta: "Reserve Black Car",
       heroPrimary: "Reserve Black Car",
       heroSecondary: "View Fleet",
       featureTitle: "Executive Fleet",
@@ -34,12 +34,12 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
       actionDescription: "Request an executive ride with pickup, drop-off, schedule, contact details, quote, booking, and payment intent readiness.",
       areaTitle: "Service Area",
       areaHeading: "O Hare airport, Midway, downtown Chicago, suburbs, hotels, events, and executive travel coverage.",
-      testimonialTitle: "${profile.testimonialTitle}",
-      adminTitle: "${isTransport ? "Transportation Admin Command Center" : "Production Admin Command Center"}",
+      testimonialTitle: "Trusted by executives, families, and airport travelers",
+      adminTitle: "Transportation Admin Command Center",
       leadModel: "BookingLead",
       leadFile: "booking-leads.json",
-      notificationEnv: "${profile.notificationEnv}",
-      smokeService: "${profile.smokeService}",
+      notificationEnv: "ADMIN_NOTIFICATION_EMAIL",
+      smokeService: "Airport Transfer",
     };
   }
 
@@ -728,9 +728,9 @@ a {
         <a href="#" className="mr-auto text-lg font-black">
           ${companyName}
         </a>
-        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">{profile.navPrimary}</a>
-        <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">{profile.navSecondary}</a>
-        <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">{profile.navTertiary}</a>
+        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">${profile.navPrimary}</a>
+        <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">${profile.navSecondary}</a>
+        <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">${profile.navTertiary}</a>
         <a href="#booking" className="rounded-xl bg-red-400 px-4 py-2 text-sm font-bold text-black">
           ${profile.cta}
         </a>
