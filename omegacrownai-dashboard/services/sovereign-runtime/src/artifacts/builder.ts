@@ -698,8 +698,8 @@ a {
             smoke: "tsx scripts/smoke-test.ts"
           },
           dependencies: {
-            "@prisma/client": "latest",
-            "prisma": "latest",
+            "@prisma/client": "6.19.0",
+            "prisma": "6.19.0",
             "@types/node": "latest",
             "@types/react": "latest",
             "@types/react-dom": "latest",
@@ -2303,6 +2303,14 @@ body {
   plugins: [],
 };
 `
+    },
+    {
+      type: "typescript",
+      title: "CSS Type Declarations",
+      file: "global.d.ts",
+      content: `declare module "*.css";
+`,
+      status: "generated",
     },
     {
       type: "typescript",
