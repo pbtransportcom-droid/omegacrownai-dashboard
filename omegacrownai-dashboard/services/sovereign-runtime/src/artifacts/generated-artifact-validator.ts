@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 export type GeneratedArtifact = {
   type?: string;
   title?: string;
@@ -26,7 +27,19 @@ function artifactFile(artifact: GeneratedArtifact): string {
 }
 
 function artifactContent(artifact: GeneratedArtifact): string {
-  return String(artifact.content || "");
+  if (typeof artifact.content === "string" && artifact.content.length > 0) {
+    return artifact.content;
+  }
+
+  if (typeof artifact.path === "string" && artifact.path.length > 0) {
+    try {
+      return readFileSync(artifact.path, "utf8");
+    } catch {
+      return "";
+    }
+  }
+
+  return "";
 }
 
 function findArtifact(artifacts: GeneratedArtifact[], file: string): GeneratedArtifact | undefined {

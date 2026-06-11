@@ -1,8 +1,20 @@
+import { readFileSync } from "node:fs";
 function artifactFile(artifact) {
     return artifact.file || artifact.path || artifact.title || "unknown";
 }
 function artifactContent(artifact) {
-    return String(artifact.content || "");
+    if (typeof artifact.content === "string" && artifact.content.length > 0) {
+        return artifact.content;
+    }
+    if (typeof artifact.path === "string" && artifact.path.length > 0) {
+        try {
+            return readFileSync(artifact.path, "utf8");
+        }
+        catch {
+            return "";
+        }
+    }
+    return "";
 }
 function findArtifact(artifacts, file) {
     return artifacts.find((artifact) => artifactFile(artifact) === file);
