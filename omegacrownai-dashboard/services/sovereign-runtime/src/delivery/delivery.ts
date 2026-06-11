@@ -8,8 +8,8 @@ export async function prepareDelivery(run: any) {
   const manifestPath = path.join(exportDir, `${run.projectId}.json`);
 
   const buildProof = {
-    generatedArtifactValidation: run.validation?.generatedArtifacts || null,
-    standaloneBuildReady: Boolean(run.validation?.generatedArtifacts?.ok),
+    generatedArtifactValidation: (run as any).generatedArtifactValidation || run.validation?.generatedArtifacts || null,
+    standaloneBuildReady: Boolean(((run as any).generatedArtifactValidation || run.validation?.generatedArtifacts)?.ok),
     requiredFiles: [
       "package.json",
       "global.d.ts",

@@ -5,8 +5,8 @@ export async function prepareDelivery(run) {
     fs.mkdirSync(exportDir, { recursive: true });
     const manifestPath = path.join(exportDir, `${run.projectId}.json`);
     const buildProof = {
-        generatedArtifactValidation: run.validation?.generatedArtifacts || null,
-        standaloneBuildReady: Boolean(run.validation?.generatedArtifacts?.ok),
+        generatedArtifactValidation: run.generatedArtifactValidation || run.validation?.generatedArtifacts || null,
+        standaloneBuildReady: Boolean((run.generatedArtifactValidation || run.validation?.generatedArtifacts)?.ok),
         requiredFiles: [
             "package.json",
             "global.d.ts",

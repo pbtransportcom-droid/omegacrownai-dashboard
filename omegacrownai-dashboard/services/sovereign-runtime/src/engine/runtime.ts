@@ -69,11 +69,12 @@ export async function executeRun(projectId: string, input: any) {
     appendTranscript(projectId, "Artifacts generated");
 
     const generatedArtifactValidation = validateGeneratedArtifacts(artifacts);
-    run.validation = {
-      generatedArtifacts: generatedArtifactValidation,
-    };
+    (run as any).generatedArtifactValidation = generatedArtifactValidation;
 
     if (!generatedArtifactValidation.ok) {
+      run.validation = {
+        generatedArtifacts: generatedArtifactValidation,
+      };
       run.status = "validation";
       appendRunEvent(run, "Generated artifact validation failed");
       appendTranscript(projectId, generatedArtifactValidation.summary);
