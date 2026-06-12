@@ -14,6 +14,167 @@ function slug(text: string) {
     .slice(0, 60);
 }
 
+function positivePromptSource(prompt: string) {
+  return String(prompt || "")
+    .toLowerCase()
+    .replace(/do not build[^.\n]*/g, " ")
+    .replace(/do not create[^.\n]*/g, " ")
+    .replace(/do not make[^.\n]*/g, " ")
+    .replace(/not a[^.\n]*/g, " ")
+    .replace(/without[^.\n]*/g, " ");
+}
+
+function hasAny(source: string, terms: string[]) {
+  return terms.some((term) => source.includes(term));
+}
+
+function detectPromptMode(prompt: string, fallbackMode: string) {
+  const source = positivePromptSource(prompt);
+
+  if (hasAny(source, ["stock", "trading", "trade", "portfolio", "broker", "alpaca", "watchlist", "signal", "scanner", "forecast", "market", "risk controls"])) {
+    return "trading";
+  }
+
+  if (hasAny(source, ["restaurant", "menu", "ordering", "food", "kitchen", "reservation", "dining", "chef", "cart", "checkout"])) {
+    return "restaurant";
+  }
+
+  if (hasAny(source, ["law firm", "legal", "attorney", "lawyer", "case intake", "consultation", "practice area", "case inquiry"])) {
+    return "legal";
+  }
+
+  if (hasAny(source, ["shop", "store", "ecommerce", "e-commerce", "product catalog", "cart", "checkout", "inventory", "fulfillment"])) {
+    return "ecommerce";
+  }
+
+  if (hasAny(source, ["transport", "black car", "airport transfer", "limo", "chauffeur", "ride booking", "fleet dispatch", "limousine"])) {
+    return "transport";
+  }
+
+  return fallbackMode || "website";
+}
+
+function profileName(mode: string) {
+  return String(mode || "Production")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function domainProfile(mode: string) {
+  const profiles: Record<string, any> = {
+    trading: {
+      navPrimary: "Signals",
+      navSecondary: "Portfolio",
+      navTertiary: "Risk",
+      cta: "Open Trading Desk",
+      heroPrimary: "Review Market Engine",
+      heroSecondary: "View Signals",
+      featureTitle: "Trading Intelligence Modules",
+      featureFile: "components/TradingIntelligence.tsx",
+      featureComponent: "TradingIntelligence",
+      actionTitle: "Trading Strategy Intake Component",
+      actionFile: "components/TradingStrategyForm.tsx",
+      actionComponent: "TradingStrategyForm",
+      actionHeading: "Configure market strategy",
+      actionDescription: "Capture symbols, timeframe, risk limits, portfolio rules, broker provider, watchlist, and signal preferences.",
+      areaTitle: "Trading Coverage",
+      areaHeading: "Signals, watchlists, portfolio analysis, risk controls, broker readiness, journaling, and forecast quality checks",
+      testimonialTitle: "Built for disciplined market operators",
+      adminTitle: "Trading Command Center",
+      leadModel: "TradingStrategyLead",
+      leadFile: "trading-strategy-leads.json",
+      notificationEnv: "TRADING_NOTIFICATION_EMAIL",
+      smokeService: "Trading Strategy",
+      modeItemOne: "Signal Scanner",
+      modeItemTwo: "Portfolio Risk",
+      modeItemThree: "Broker Readiness",
+    },
+    restaurant: {
+      navPrimary: "Menu",
+      navSecondary: "Orders",
+      navTertiary: "Kitchen",
+      cta: "Start Order",
+      heroPrimary: "Review Ordering Flow",
+      heroSecondary: "View Menu",
+      featureTitle: "Restaurant Ordering Modules",
+      featureFile: "components/MenuSections.tsx",
+      featureComponent: "MenuSections",
+      actionTitle: "Order Intake Component",
+      actionFile: "components/OrderForm.tsx",
+      actionComponent: "OrderForm",
+      actionHeading: "Create an order",
+      actionDescription: "Capture menu items, customer details, pickup or delivery preference, payment readiness, and kitchen notes.",
+      areaTitle: "Restaurant Operations",
+      areaHeading: "Menu, cart, checkout, kitchen queue, reservations, inventory, customer records, and order notifications",
+      testimonialTitle: "Built for fast restaurant operations",
+      adminTitle: "Restaurant Operations Dashboard",
+      leadModel: "RestaurantOrderLead",
+      leadFile: "restaurant-order-leads.json",
+      notificationEnv: "RESTAURANT_NOTIFICATION_EMAIL",
+      smokeService: "Restaurant Order",
+      modeItemOne: "Menu Catalog",
+      modeItemTwo: "Kitchen Queue",
+      modeItemThree: "Order Checkout",
+    },
+    legal: {
+      navPrimary: "Practice Areas",
+      navSecondary: "Consultations",
+      navTertiary: "Intake",
+      cta: "Request Consultation",
+      heroPrimary: "Review Intake Flow",
+      heroSecondary: "View Practice Areas",
+      featureTitle: "Legal Practice Modules",
+      featureFile: "components/PracticeAreas.tsx",
+      featureComponent: "PracticeAreas",
+      actionTitle: "Consultation Intake Component",
+      actionFile: "components/ConsultationForm.tsx",
+      actionComponent: "ConsultationForm",
+      actionHeading: "Request legal consultation",
+      actionDescription: "Capture matter type, client contact, urgency, consultation notes, conflicts-check readiness, and follow-up workflow.",
+      areaTitle: "Legal Operations",
+      areaHeading: "Practice areas, attorney profiles, consultation intake, case notes, client portal, admin review, and secure follow-up",
+      testimonialTitle: "Built for professional client trust",
+      adminTitle: "Legal Intake Dashboard",
+      leadModel: "LegalConsultationLead",
+      leadFile: "legal-consultation-leads.json",
+      notificationEnv: "LEGAL_NOTIFICATION_EMAIL",
+      smokeService: "Legal Consultation",
+      modeItemOne: "Practice Areas",
+      modeItemTwo: "Consultation Intake",
+      modeItemThree: "Case Review Queue",
+    },
+    ecommerce: {
+      navPrimary: "Catalog",
+      navSecondary: "Cart",
+      navTertiary: "Orders",
+      cta: "Shop Products",
+      heroPrimary: "Review Storefront",
+      heroSecondary: "View Catalog",
+      featureTitle: "Storefront Commerce Modules",
+      featureFile: "components/ProductCatalog.tsx",
+      featureComponent: "ProductCatalog",
+      actionTitle: "Checkout Component",
+      actionFile: "components/CheckoutForm.tsx",
+      actionComponent: "CheckoutForm",
+      actionHeading: "Start checkout",
+      actionDescription: "Capture cart items, customer details, payment readiness, inventory status, and fulfillment notes.",
+      areaTitle: "Commerce Operations",
+      areaHeading: "Product catalog, cart, checkout, inventory, orders, customer accounts, fulfillment, and admin reporting",
+      testimonialTitle: "Built for conversion-ready commerce",
+      adminTitle: "Ecommerce Operations Dashboard",
+      leadModel: "StoreOrderLead",
+      leadFile: "store-order-leads.json",
+      notificationEnv: "STORE_NOTIFICATION_EMAIL",
+      smokeService: "Store Order",
+      modeItemOne: "Product Catalog",
+      modeItemTwo: "Checkout Flow",
+      modeItemThree: "Order Fulfillment",
+    },
+  };
+
+  return profiles[mode] || {};
+}
+
 
 function modeProfile(mode: string, prompt: string, isTransport: boolean) {
   if (isTransport) {
@@ -246,18 +407,21 @@ export async function buildArtifacts(run: any) {
   fs.mkdirSync(outDir, { recursive: true });
 
   const projectName = slug(run.prompt);
-  const isTransport = /transport|black car|airport|limo|chauffeur|ride/i.test(run.prompt || "");
+  const requestedMode = run.mode || "website";
+  const mode = detectPromptMode(run.prompt || "", requestedMode);
+  const isTransport = mode === "transport";
+
+  const baseProfile = modeProfile(mode, run.prompt || "", isTransport);
+  const profile = { ...baseProfile, ...domainProfile(mode) };
 
   const companyName = isTransport
     ? "Princess Benjamin Transportation Company"
-    : "OmegaCrownAI Build";
+    : `OmegaCrownAI ${profileName(mode)} Build`;
 
   const companyWebsite = isTransport ? "https://pbtlimo.com" : "";
   const primaryPhone = isTransport ? "+1 (773) 510-1467" : "";
   const secondaryPhone = isTransport ? "(224) 224-0263" : "";
-  const tagline = isTransport ? "Your journey, our royal priority." : "";
-  const mode = run.mode || "website";
-  const profile = modeProfile(mode, run.prompt || "", isTransport);
+  const tagline = isTransport ? "Your journey, our royal priority." : profile.areaHeading;
 
   const files = [
     {
@@ -269,7 +433,7 @@ export async function buildArtifacts(run: any) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${companyName} | ${mode} Production Preview</title>
+  <title>${companyName} | ${profile.adminTitle}</title>
   <meta name="description" content="${isTransport ? "Premium airport transfer, black car, chauffeur, and executive transportation website preview generated by OmegaCrownAI." : "Production-ready generated artifact preview from OmegaCrownAI."}" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -277,12 +441,12 @@ export async function buildArtifacts(run: any) {
   <main class="site-shell">
     <nav class="topbar">
       <div>
-        <p class="eyebrow">${mode} runtime artifact</p>
+        <p class="eyebrow">${mode} prompt-directed artifact</p>
         <strong>${companyName}</strong>
       </div>
       <div class="nav-actions">
-        <a href="#booking">Reserve</a>
-        <a href="#fleet">Fleet</a>
+        <a href="#action">${profile.cta}</a>
+        <a href="#modules">${profile.navPrimary}</a>
         <a href="#delivery">Delivery</a>
       </div>
     </nav>
@@ -297,12 +461,12 @@ export async function buildArtifacts(run: any) {
             : "A production-ready generated application package with runtime validation, preview, delivery, and export support."}
         </p>
         <div class="hero-actions">
-          <a class="primary" href="#booking">${profile.heroPrimary}</a>
-          <a class="secondary" href="#fleet">${profile.heroSecondary}</a>
+          <a class="primary" href="#action">${profile.heroPrimary}</a>
+          <a class="secondary" href="#modules">${profile.heroSecondary}</a>
         </div>
       </div>
 
-      <aside class="quote-card" id="booking">
+      <aside class="quote-card" id="action">
         <p class="eyebrow">Live flow preview</p>
         <h2>${profile.actionHeading}</h2>
         <p>${profile.actionDescription}</p>
@@ -323,23 +487,23 @@ export async function buildArtifacts(run: any) {
       <span>Admin Dispatch</span>
     </section>
 
-    <section id="fleet" class="fleet-layout">
+    <section id="modules" class="module-layout">
       <div class="section-heading">
         <p class="eyebrow">${profile.featureTitle}</p>
-        <h2>Fleet, service, and dispatch tools generated together</h2>
+        <h2>${isTransport ? "Fleet, service, and dispatch tools generated together" : profile.areaHeading}</h2>
       </div>
-      <div class="fleet-grid">
+      <div class="module-grid">
         <article>
           <h3>${profile.modeItemOne}</h3>
-          <p>Executive sedan experience for airport transfers, business meetings, and individual premium travel.</p>
+          <p>${isTransport ? "Executive sedan experience for airport transfers, business meetings, and individual premium travel." : "Primary module generated from the requested prompt and domain workflow."}</p>
         </article>
         <article>
           <h3>${profile.modeItemTwo}</h3>
-          <p>Spacious luxury SUV readiness for families, VIP guests, luggage-heavy airport rides, and corporate clients.</p>
+          <p>${isTransport ? "Spacious luxury SUV readiness for families, VIP guests, luggage-heavy airport rides, and corporate clients." : "Operational module for records, users, review flows, and admin visibility."}</p>
         </article>
         <article>
           <h3>${profile.modeItemThree}</h3>
-          <p>Hourly chauffeur and event transportation workflows with admin dispatch and customer-facing booking support.</p>
+          <p>${isTransport ? "Hourly chauffeur and event transportation workflows with admin dispatch and customer-facing booking support." : "Delivery module for validation, reporting, exports, and launch readiness."}</p>
         </article>
       </div>
     </section>
@@ -434,7 +598,7 @@ a {
 .delivery-panel,
 .split-panel,
 .ops-grid article,
-.fleet-grid article,
+.module-grid article,
 .quote-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(12, 12, 14, 0.76);
@@ -551,7 +715,7 @@ a {
 .quote-card p,
 .ops-grid p,
 .delivery-panel p,
-.fleet-grid p {
+.module-grid p {
   color: #c4c4c7;
   line-height: 1.7;
 }
@@ -591,7 +755,7 @@ a {
   text-transform: uppercase;
 }
 
-.fleet-layout,
+.module-layout,
 .split-panel,
 .ops-grid,
 .delivery-panel {
@@ -602,21 +766,21 @@ a {
   padding: 34px 0 20px;
 }
 
-.fleet-grid,
+.module-grid,
 .ops-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
-.fleet-grid article,
+.module-grid article,
 .ops-grid article {
   min-height: 240px;
   border-radius: 30px;
   padding: 28px;
 }
 
-.fleet-grid h3,
+.module-grid h3,
 .ops-grid h3 {
   margin: 0;
   font-size: 1.65rem;
@@ -636,7 +800,7 @@ a {
   .hero,
   .split-panel,
   .delivery-panel,
-  .fleet-grid,
+  .module-grid,
   .ops-grid {
     grid-template-columns: 1fr;
   }
