@@ -855,7 +855,7 @@ a {
         <a href="#" className="mr-auto text-lg font-black">
           ${companyName}
         </a>
-        <a href="#fleet" className="hidden text-sm text-zinc-300 md:block">${profile.navPrimary}</a>
+        <a href="${isTransport ? "#fleet" : "#modules"}" className="hidden text-sm text-zinc-300 md:block">${profile.navPrimary}</a>
         <a href="#service-area" className="hidden text-sm text-zinc-300 md:block">${profile.navSecondary}</a>
         <a href="#testimonials" className="hidden text-sm text-zinc-300 md:block">${profile.navTertiary}</a>
         <a href="#booking" className="rounded-xl bg-red-400 px-4 py-2 text-sm font-bold text-black">
@@ -900,14 +900,14 @@ a {
             type: "typescript",
             title: profile.featureTitle,
             file: profile.featureFile,
-            content: `const fleet = [
+            content: `const generatedModules = [
   {
     name: "${profile.modeItemOne}",
     detail: "${isTransport ? "Luxury sedan service for airport transfers, business meetings, and private rides." : "Primary module for the requested domain workflow, records, and operational visibility."}"
   },
   {
     name: "${profile.modeItemTwo}",
-    detail: "Spacious executive SUV service for families, luggage, VIP guests, and group travel."
+    detail: "${isTransport ? "Spacious executive SUV service for families, luggage, VIP guests, and group travel." : "Operational module for users, review queues, status tracking, and admin readiness."}"
   },
   {
     name: "${profile.modeItemThree}",
@@ -917,8 +917,8 @@ a {
 
 export function ${profile.featureComponent}() {
   return (
-    <section id="fleet" className="grid gap-6 px-8 py-16 md:grid-cols-3">
-      {fleet.map((item) => (
+    <section id="${isTransport ? "fleet" : "modules"}" className="grid gap-6 px-8 py-16 md:grid-cols-3">
+      {generatedModules.map((item) => (
         <article key={item.name} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
           <h2 className="text-2xl font-black">{item.name}</h2>
           <p className="mt-4 text-zinc-400">{item.detail}</p>
@@ -1811,7 +1811,7 @@ main()
             title: isTransport ? "Fleet Service" : "Asset Service",
             file: isTransport ? "lib/services/fleet-service.ts" : "lib/services/asset-service.ts",
             content: isTransport
-                ? `export const fleet = [
+                ? `export const generatedModules = [
   { id: "VEH-SEDAN", name: "${profile.modeItemOne}", status: "available" },
   { id: "VEH-SUV", name: "${profile.modeItemTwo}", status: "available" },
   { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree}", status: "available" },

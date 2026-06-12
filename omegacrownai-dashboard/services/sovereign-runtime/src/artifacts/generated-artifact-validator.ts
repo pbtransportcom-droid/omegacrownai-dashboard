@@ -80,6 +80,16 @@ function shouldCheckDrift(file: string): boolean {
 }
 
 const transportDriftTerms = [
+  "dispatch queue",
+  "booking visibility",
+  "ride request",
+  "airport",
+  "chauffeur",
+  "limo",
+  "fleet",
+  "executive SUV",
+  "sedan service",
+  "SUV",
   "Princess Benjamin",
   "pbtlimo",
   "Premium limo",

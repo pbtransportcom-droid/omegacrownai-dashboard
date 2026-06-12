@@ -48,6 +48,16 @@ function shouldCheckDrift(file) {
         normalized.startsWith("components/"));
 }
 const transportDriftTerms = [
+    "dispatch queue",
+    "booking visibility",
+    "ride request",
+    "airport",
+    "chauffeur",
+    "limo",
+    "fleet",
+    "executive SUV",
+    "sedan service",
+    "SUV",
     "Princess Benjamin",
     "pbtlimo",
     "Premium limo",
