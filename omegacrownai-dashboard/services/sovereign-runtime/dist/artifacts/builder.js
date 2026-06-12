@@ -910,7 +910,7 @@ a {
     detail: "Spacious executive SUV service for families, luggage, VIP guests, and group travel."
   },
   {
-    name: "Hourly Chauffeur",
+    name: "${profile.modeItemThree}",
     detail: "${isTransport ? profile.modeItemThree + " delivery plan with production milestones, approvals, and launch-ready assets." : "Delivery module for validation, reporting, export, and launch readiness."}"
   }
 ];
