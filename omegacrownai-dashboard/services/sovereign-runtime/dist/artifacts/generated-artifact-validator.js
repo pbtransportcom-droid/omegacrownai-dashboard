@@ -28,9 +28,49 @@ function findArtifact(artifacts, file) {
 function includesAnyProfileLeak(content) {
     return content.includes("${profile") || content.includes("{profile") || content.includes("process.env.${profile");
 }
+function generatedModeFromArtifacts(artifacts) {
+    const metadata = findArtifact(artifacts, "metadata.json");
+    if (!metadata)
+        return "";
+    try {
+        const parsed = JSON.parse(artifactContent(metadata));
+        return String(parsed.mode || "").toLowerCase();
+    }
+    catch {
+        return "";
+    }
+}
+function shouldCheckDrift(file) {
+    const normalized = normalizeArtifactPath(file);
+    return (normalized === "index.html" ||
+        normalized === "app/page.tsx" ||
+        normalized === "app/admin/page.tsx" ||
+        normalized.startsWith("components/"));
+}
+const transportDriftTerms = [
+    "Princess Benjamin",
+    "pbtlimo",
+    "Premium limo",
+    "Reserve Black Car",
+    "Airport Transfers",
+    "Hourly Chauffeur",
+    "Transportation Admin Command Center",
+    "Vehicle: Luxury SUV",
+    "components/Fleet",
+    "components/BookingForm",
+    "Executive Fleet",
+    "Chicago airport black car service"
+];
+function includesTransportDrift(content) {
+    const lower = content.toLowerCase();
+    const matched = transportDriftTerms.find((term) => lower.includes(term.toLowerCase()));
+    return matched || null;
+}
 export function validateGeneratedArtifacts(artifacts) {
     const errors = [];
     const warnings = [];
+    const generatedMode = generatedModeFromArtifacts(artifacts);
+    const rejectTransportDrift = generatedMode.length > 0 && generatedMode !== "transport";
     for (const artifact of artifacts) {
         const file = artifactFile(artifact);
         const content = artifactContent(artifact);
@@ -40,6 +80,16 @@ export function validateGeneratedArtifacts(artifacts) {
                 file,
                 message: "Generated artifact contains unresolved profile placeholder text.",
             });
+        }
+        if (rejectTransportDrift && shouldCheckDrift(file)) {
+            const driftTerm = includesTransportDrift(content);
+            if (driftTerm) {
+                errors.push({
+                    level: "error",
+                    file,
+                    message: `Generated non-transport artifact contains transport drift term: ${driftTerm}.`,
+                });
+            }
         }
     }
     const packageJson = findArtifact(artifacts, "package.json");

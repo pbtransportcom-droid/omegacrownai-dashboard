@@ -422,6 +422,8 @@ export async function buildArtifacts(run: any) {
   const primaryPhone = isTransport ? "+1 (773) 510-1467" : "";
   const secondaryPhone = isTransport ? "(224) 224-0263" : "";
   const tagline = isTransport ? "Your journey, our royal priority." : profile.areaHeading;
+  const featureImportPath = "../" + String(profile.featureFile).replace(/\.tsx$/, "");
+  const actionImportPath = "../" + String(profile.actionFile).replace(/\.tsx$/, "");
 
   const files = [
     {
@@ -940,7 +942,7 @@ a {
       content: `const fleet = [
   {
     name: "${profile.modeItemOne}",
-    detail: "Luxury sedan service for airport transfers, business meetings, and private rides."
+    detail: "${isTransport ? "Luxury sedan service for airport transfers, business meetings, and private rides." : "Primary module for the requested domain workflow, records, and operational visibility."}"
   },
   {
     name: "${profile.modeItemTwo}",
@@ -948,7 +950,7 @@ a {
   },
   {
     name: "Hourly Chauffeur",
-    detail: "${profile.modeItemThree} delivery plan with production milestones, approvals, and launch-ready assets."
+    detail: "${isTransport ? profile.modeItemThree + " delivery plan with production milestones, approvals, and launch-ready assets." : "Delivery module for validation, reporting, export, and launch readiness."}"
   }
 ];
 
@@ -1157,7 +1159,7 @@ export function ServiceAreaMap() {
       file: "components/Testimonials.tsx",
       content: `const testimonials = [
   "Professional airport pickup, clean vehicle, and smooth executive service.",
-  "Reliable black car transportation for our business travel in Chicago.",
+  ${isTransport ? "\"Reliable black car transportation for our business travel in Chicago.\"" : "\"Professional delivery aligned to our requested workflow and launch needs.\""},
   "Professional delivery experience with clear structure, polished assets, and launch-ready presentation."
 ];
 
@@ -2091,7 +2093,7 @@ export async function POST(req: Request) {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">Admin</p>
-      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Transportation Admin Command Center" : "Production Admin Command Center"}</h1>
+      <h1 className="mt-4 text-5xl font-black">${isTransport ? "Transportation Admin Command Center" : profile.adminTitle}</h1>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         <a className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8" href="${isTransport ? "/admin/bookings" : "/admin/requests"}">
@@ -2397,9 +2399,9 @@ export const config = {
       file: "app/page.tsx",
       content: `import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
-import { Fleet } from "../components/Fleet";
+import { ${profile.featureComponent} } from "${featureImportPath}";
 import { ServiceAreaMap } from "../components/ServiceAreaMap";
-import { BookingForm } from "../components/BookingForm";
+import { ${profile.actionComponent} } from "${actionImportPath}";
 import { Testimonials } from "../components/Testimonials";
 import { Footer } from "../components/Footer";
 
@@ -2408,9 +2410,9 @@ export default function Page() {
     <main className="min-h-screen bg-black text-white">
       <Navbar />
       <Hero />
-      <Fleet />
+      <${profile.featureComponent} />
       <ServiceAreaMap />
-      <BookingForm />
+      <${profile.actionComponent} />
       <Testimonials />
       <Footer />
     </main>
