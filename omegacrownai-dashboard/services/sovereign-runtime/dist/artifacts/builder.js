@@ -448,21 +448,18 @@ export async function buildArtifacts(run) {
         <h2>${profile.actionHeading}</h2>
         <p>${profile.actionDescription}</p>
         <div class="quote-grid">
-          <span>Pickup: ORD Airport</span>
-          <span>Drop-off: Downtown Chicago</span>
-          <span>Vehicle: Luxury SUV</span>
-          <span>Status: Quote → Booking → Payment intent</span>
-        </div>
+            ${isTransport
+                ? "<span>Pickup: ORD Airport</span><span>Drop-off: Downtown Chicago</span><span>Vehicle: Luxury SUV</span><span>Status: Quote → Booking → Payment intent</span>"
+                : `<span>Workflow: ${profile.smokeService}</span><span>Module: ${profile.modeItemOne}</span><span>Admin: ${profile.adminTitle}</span><span>Status: Intake → Review → Delivery</span>`}
+          </div>
       </aside>
     </section>
 
     <section class="trust-strip">
-      <span>Airport Transfers</span>
-      <span>Corporate Travel</span>
-      <span>Hourly Chauffeur</span>
-      <span>Customer Portal</span>
-      <span>Admin Dispatch</span>
-    </section>
+        ${isTransport
+                ? "<span>Airport Transfers</span><span>Corporate Travel</span><span>Hourly Chauffeur</span><span>Customer Portal</span><span>Admin Dispatch</span>"
+                : `<span>${profile.modeItemOne}</span><span>${profile.modeItemTwo}</span><span>${profile.modeItemThree}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span>`}
+      </section>
 
     <section id="modules" class="module-layout">
       <div class="section-heading">
@@ -491,32 +488,29 @@ export async function buildArtifacts(run) {
         <h2>${profile.areaHeading}</h2>
       </div>
       <div class="service-list">
-        <span>ORD / O Hare</span>
-        <span>Midway</span>
-        <span>Downtown Chicago</span>
-        <span>North Shore</span>
-        <span>Arlington Heights</span>
-        <span>Hotels & events</span>
-      </div>
+          ${isTransport
+                ? "<span>ORD / O Hare</span><span>Midway</span><span>Downtown Chicago</span><span>North Shore</span><span>Arlington Heights</span><span>Hotels & events</span>"
+                : `<span>${profile.navPrimary}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span><span>${profile.modeItemOne}</span><span>${profile.modeItemTwo}</span><span>${profile.modeItemThree}</span>`}
+        </div>
     </section>
 
     <section class="ops-grid">
-      <article>
-        <p class="eyebrow">Customer portal</p>
-        <h3>Booking visibility</h3>
-        <p>Generated customer pages are prepared for ride requests, quote history, invoices, and customer records.</p>
-      </article>
-      <article>
-        <p class="eyebrow">Admin portal</p>
-        <h3>Dispatch queue</h3>
-        <p>Generated admin pages are prepared for booking review, fleet assignment, customer tracking, and dispatch status.</p>
-      </article>
-      <article>
-        <p class="eyebrow">Backend</p>
-        <h3>Quote + payment scaffold</h3>
-        <p>Generated API routes include quote pricing, booking intake, availability, notifications, and payment intent placeholders.</p>
-      </article>
-    </section>
+        <article>
+          <p class="eyebrow">${isTransport ? "Customer portal" : "User portal"}</p>
+          <h3>${isTransport ? "Booking visibility" : profile.modeItemOne}</h3>
+          <p>${isTransport ? "Generated customer pages are prepared for ride requests, quote history, invoices, and customer records." : "Generated portal pages are aligned to the requested workflow, records, history, and user-facing actions."}</p>
+        </article>
+        <article>
+          <p class="eyebrow">Admin portal</p>
+          <h3>${isTransport ? "Dispatch queue" : profile.modeItemTwo}</h3>
+          <p>${isTransport ? "Generated admin pages are prepared for booking review, fleet assignment, customer tracking, and dispatch status." : "Generated admin pages are prepared for review, management, reporting, and operational status."}</p>
+        </article>
+        <article>
+          <p class="eyebrow">Backend</p>
+          <h3>${isTransport ? "Quote + payment scaffold" : profile.modeItemThree}</h3>
+          <p>${isTransport ? "Generated API routes include quote pricing, booking intake, availability, notifications, and payment intent placeholders." : "Generated API routes include intake, validation, persistence stubs, notifications, and delivery readiness."}</p>
+        </article>
+      </section>
 
     <section id="delivery" class="delivery-panel">
       <div>
