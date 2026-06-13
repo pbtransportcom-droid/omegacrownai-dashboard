@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { buildSaasLandingArtifacts, isSaasLandingPrompt } from "./saas-landing-builder.js";
 function write(filePath, content) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
@@ -385,6 +386,9 @@ export async function buildArtifacts(run) {
     // Ensure regenerated projects do not keep stale files from older artifact schemas.
     fs.rmSync(outDir, { recursive: true, force: true });
     fs.mkdirSync(outDir, { recursive: true });
+    if (isSaasLandingPrompt(run.prompt || "")) {
+        return buildSaasLandingArtifacts(run, outDir);
+    }
     const projectName = slug(run.prompt);
     const requestedMode = run.mode || "website";
     const mode = detectPromptMode(run.prompt || "", requestedMode);
