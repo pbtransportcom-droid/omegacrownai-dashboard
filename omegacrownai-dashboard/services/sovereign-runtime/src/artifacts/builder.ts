@@ -823,7 +823,7 @@ a {
           projectId: run.projectId,
           runtimeId: run.runtimeId,
           mode,
-          prompt: run.prompt,
+          prompt: profile.areaHeading,
           companyName,
           companyWebsite,
           primaryPhone,
@@ -972,7 +972,7 @@ import { useState } from "react";
 
 type FareEstimate = {
   subtotal: number;
-  airportFee: number;
+  ${isTransport ? "airportFee" : "serviceFee"}: number;
   peakFee: number;
   luggageFee?: number;
   total: number;
@@ -983,15 +983,15 @@ type FareEstimate = {
 
 export function ${profile.actionComponent}() {
   const [form, setForm] = useState({
-    pickup: "ORD Airport",
-    dropoff: "Downtown Chicago",
+    pickup: "${isTransport ? "ORD Airport" : profile.modeItemOne}",
+    dropoff: "${isTransport ? "Downtown Chicago" : profile.modeItemTwo}",
     dateTime: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
     contact: "customer@example.com",
     customerName: "Demo Customer",
     customerEmail: "customer@example.com",
     customerPhone: "773-510-1467",
     serviceType: "${profile.smokeService}",
-    vehicleType: "luxury-suv",
+    vehicleType: "${isTransport ? "luxury-suv" : "standard"}",
     passengers: 2,
     luggage: 2,
     estimatedMiles: 18,
@@ -1085,7 +1085,6 @@ export function ${profile.actionComponent}() {
         <div className="mt-6 rounded-2xl border border-zinc-800 bg-black p-5">
           <h3 className="text-xl font-black">Fare Estimate</h3>
           <p className="mt-2 text-zinc-300">Subtotal: ${"$"}{quote.subtotal}</p>
-          <p className="text-zinc-300">Airport fee: ${"$"}{quote.airportFee}</p>
           <p className="text-zinc-300">Peak fee: ${"$"}{quote.peakFee}</p>
           <p className="text-zinc-300">Deposit due: ${"$"}{quote.depositDue}</p>
           <p className="mt-2 text-2xl font-black">Total: ${"$"}{quote.total} {quote.currency}</p>
@@ -2422,7 +2421,7 @@ export default function Page() {
 
 export const metadata = {
   title: "${isTransport ? companyName : projectName}",
-  description: "${isTransport ? tagline : run.prompt}",
+  description: "${isTransport ? tagline : profile.areaHeading}",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -2576,7 +2575,7 @@ volumes:
     },
     body: JSON.stringify({
       pickup: "O Hare Airport",
-      dropoff: "Downtown Chicago",
+      dropoff: "${isTransport ? "Downtown Chicago" : profile.modeItemTwo}",
       dateTime: new Date().toISOString(),
       contact: "customer@example.com",
       service: "${profile.smokeService}",

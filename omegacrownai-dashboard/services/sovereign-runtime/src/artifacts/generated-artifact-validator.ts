@@ -80,6 +80,12 @@ function shouldCheckDrift(file: string): boolean {
 }
 
 const transportDriftTerms = [
+  "black car transportation",
+  "Reliable black car",
+  "airportFee",
+  "Airport fee",
+  "Downtown Chicago",
+  "ORD Airport",
   "dispatch queue",
   "booking visibility",
   "ride request",
