@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { buildSaasLandingArtifacts, isSaasLandingPrompt } from "./saas-landing-builder.js";
+import { buildLegalFirmArtifacts, isLegalFirmPrompt } from "./legal-firm-builder.js";
 function write(filePath, content) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
@@ -388,6 +389,9 @@ export async function buildArtifacts(run) {
     fs.mkdirSync(outDir, { recursive: true });
     if (isSaasLandingPrompt(run.prompt || "")) {
         return buildSaasLandingArtifacts(run, outDir);
+    }
+    if (isLegalFirmPrompt(run.prompt || "")) {
+        return buildLegalFirmArtifacts(run, outDir);
     }
     const projectName = slug(run.prompt);
     const requestedMode = run.mode || "website";
