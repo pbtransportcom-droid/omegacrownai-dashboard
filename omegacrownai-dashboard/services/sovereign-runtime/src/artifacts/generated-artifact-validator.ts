@@ -57,16 +57,30 @@ function includesAnyProfileLeak(content: string): boolean {
   return content.includes("${profile") || content.includes("{profile") || content.includes("process.env.${profile");
 }
 
-function generatedModeFromArtifacts(artifacts: GeneratedArtifact[]): string {
-  const metadata = findArtifact(artifacts, "metadata.json");
-  if (!metadata) return "";
+function parseJsonArtifact(artifact: GeneratedArtifact | undefined): any | null {
+  if (!artifact) return null;
 
   try {
-    const parsed = JSON.parse(artifactContent(metadata));
-    return String(parsed.mode || "").toLowerCase();
+    return JSON.parse(artifactContent(artifact));
   } catch {
-    return "";
+    return null;
   }
+}
+
+function generatedModeFromArtifacts(artifacts: GeneratedArtifact[]): string {
+  const parsed = parseJsonArtifact(findArtifact(artifacts, "metadata.json"));
+  return String(parsed?.mode || "").toLowerCase();
+}
+
+function hasArtifact(artifacts: GeneratedArtifact[], file: string): boolean {
+  return Boolean(findArtifact(artifacts, file));
+}
+
+function artifactTextIncludes(artifacts: GeneratedArtifact[], file: string, terms: string[]): boolean {
+  const artifact = findArtifact(artifacts, file);
+  if (!artifact) return false;
+  const content = artifactContent(artifact).toLowerCase();
+  return terms.every((term) => content.includes(term.toLowerCase()));
 }
 
 function shouldCheckDrift(file: string): boolean {
@@ -155,30 +169,44 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
       message: "Generated project is missing package.json.",
     });
   } else {
-    const packageContent = artifactContent(packageJson);
+    const parsedPackage = parseJsonArtifact(packageJson);
 
-    if (!packageContent.includes('"@prisma/client": "6.19.0"')) {
+    if (!parsedPackage) {
       errors.push({
         level: "error",
         file: "package.json",
-        message: "Generated package.json must pin @prisma/client to 6.19.0.",
+        message: "Generated package.json must be valid JSON.",
       });
-    }
+    } else {
+      const dependencies = {
+        ...(parsedPackage.dependencies || {}),
+        ...(parsedPackage.devDependencies || {}),
+      };
+      const scripts = parsedPackage.scripts || {};
 
-    if (!packageContent.includes('"prisma": "6.19.0"')) {
-      errors.push({
-        level: "error",
-        file: "package.json",
-        message: "Generated package.json must pin prisma to 6.19.0.",
-      });
-    }
+      if (dependencies["@prisma/client"] !== "6.19.0") {
+        errors.push({
+          level: "error",
+          file: "package.json",
+          message: "Generated package.json must pin @prisma/client to 6.19.0.",
+        });
+      }
 
-    if (!packageContent.includes('"db:generate": "prisma generate"')) {
-      warnings.push({
-        level: "warning",
-        file: "package.json",
-        message: "Generated package.json should include db:generate script.",
-      });
+      if (dependencies.prisma !== "6.19.0") {
+        errors.push({
+          level: "error",
+          file: "package.json",
+          message: "Generated package.json must pin prisma to 6.19.0.",
+        });
+      }
+
+      if (scripts["db:generate"] !== "prisma generate") {
+        warnings.push({
+          level: "warning",
+          file: "package.json",
+          message: "Generated package.json should include db:generate script.",
+        });
+      }
     }
   }
 
@@ -197,22 +225,66 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
     });
   }
 
-  const customerPage = findArtifact(artifacts, "app/customer/page.tsx");
-  if (!customerPage || !artifactContent(customerPage).includes("await listBookingLeads()")) {
-    warnings.push({
-      level: "warning",
-      file: "app/customer/page.tsx",
-      message: "Customer portal should render persisted booking leads.",
-    });
+  if (generatedMode === "transport") {
+    const customerPage = findArtifact(artifacts, "app/customer/page.tsx");
+    if (!customerPage || !artifactContent(customerPage).includes("await listBookingLeads()")) {
+      warnings.push({
+        level: "warning",
+        file: "app/customer/page.tsx",
+        message: "Customer portal should render persisted booking leads.",
+      });
+    }
+
+    const adminBookingsPage = findArtifact(artifacts, "app/admin/bookings/page.tsx");
+    if (!adminBookingsPage || !artifactContent(adminBookingsPage).includes("await listBookingLeads()")) {
+      warnings.push({
+        level: "warning",
+        file: "app/admin/bookings/page.tsx",
+        message: "Admin bookings page should render persisted booking leads.",
+      });
+    }
   }
 
-  const adminBookingsPage = findArtifact(artifacts, "app/admin/bookings/page.tsx");
-  if (!adminBookingsPage || !artifactContent(adminBookingsPage).includes("await listBookingLeads()")) {
-    warnings.push({
-      level: "warning",
-      file: "app/admin/bookings/page.tsx",
-      message: "Admin bookings page should render persisted booking leads.",
-    });
+  if (generatedMode === "restaurant") {
+    const requiredRestaurantFiles = [
+      "app/page.tsx",
+      "app/admin/page.tsx",
+      "app/api/orders/route.ts",
+      "app/api/reservations/route.ts",
+      "components/MenuShowcase.tsx",
+      "components/OnlineOrdering.tsx",
+      "components/Reservations.tsx",
+      "components/KitchenQueue.tsx",
+      "prisma/schema.prisma",
+      "README.md",
+      "scripts/smoke-test.ts",
+    ];
+
+    for (const file of requiredRestaurantFiles) {
+      if (!hasArtifact(artifacts, file)) {
+        errors.push({
+          level: "error",
+          file,
+          message: "Restaurant artifact is missing required restaurant platform file.",
+        });
+      }
+    }
+
+    if (!artifactTextIncludes(artifacts, "prisma/schema.prisma", ["MenuItem", "RestaurantOrder", "RestaurantReservation"])) {
+      errors.push({
+        level: "error",
+        file: "prisma/schema.prisma",
+        message: "Restaurant Prisma schema must include MenuItem, RestaurantOrder, and RestaurantReservation models.",
+      });
+    }
+
+    if (!artifactTextIncludes(artifacts, "metadata.json", ["generatedArtifactQualityReport", "restaurant"])) {
+      warnings.push({
+        level: "warning",
+        file: "metadata.json",
+        message: "Restaurant metadata should include generatedArtifactQualityReport.",
+      });
+    }
   }
 
   const ok = errors.length === 0;
