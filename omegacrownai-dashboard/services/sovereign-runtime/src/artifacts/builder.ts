@@ -3,6 +3,7 @@ import path from "path";
 import { buildSaasLandingArtifacts, isSaasLandingPrompt } from "./saas-landing-builder.js";
 import { buildLegalFirmArtifacts, isLegalFirmPrompt } from "./legal-firm-builder.js";
 import { buildTradingPlatformArtifacts, isTradingPlatformPrompt } from "./trading-platform-builder.js";
+import { buildRestaurantPlatformArtifacts, isRestaurantPlatformPrompt } from "./restaurant-platform-builder.js";
 
 function write(filePath: string, content: string) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -419,6 +420,10 @@ export async function buildArtifacts(run: any) {
 
   if (isTradingPlatformPrompt(run.prompt || "")) {
     return buildTradingPlatformArtifacts(run, outDir);
+  }
+
+  if (isRestaurantPlatformPrompt(run.prompt || "")) {
+    return buildRestaurantPlatformArtifacts(run, outDir);
   }
 
   const projectName = slug(run.prompt);
