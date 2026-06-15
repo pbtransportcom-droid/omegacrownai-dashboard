@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { runAgentChain } from "../agents/chain.js";
 import { buildArtifacts } from "../artifacts/builder.js";
 import { validateGeneratedArtifacts } from "../artifacts/generated-artifact-validator.js";
@@ -9,6 +11,68 @@ import type { RuntimeRun } from "./schema.js";
 
 function id(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+}
+
+function normalizeArtifactPath(value: string) {
+  return value.replace(/\\/g, "/").replace(/^.*\/data\/artifacts\/[^/]+\//, "");
+}
+
+function safeReadJson(file: string): any | null {
+  try {
+    if (!fs.existsSync(file)) return null;
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function writeDeliveryManifest(run: RuntimeRun) {
+  const projectId = run.projectId;
+  const runtimeRoot = path.resolve(process.cwd(), "services", "sovereign-runtime");
+  const artifactDir = path.join(runtimeRoot, "data", "artifacts", projectId);
+  const exportsDir = path.join(runtimeRoot, "data", "exports");
+  const deploymentsDir = path.join(runtimeRoot, "data", "deployments");
+  const deploymentPath = path.join(deploymentsDir, `${projectId}.json`);
+  const exportPath = path.join(exportsDir, `${projectId}.json`);
+
+  fs.mkdirSync(exportsDir, { recursive: true });
+
+  const deploymentRecord = safeReadJson(deploymentPath);
+  const metadata = safeReadJson(path.join(artifactDir, "metadata.json"));
+  const validation = (run as any).generatedArtifactValidation || run.validation?.generatedArtifacts || null;
+
+  const files = fs.existsSync(artifactDir)
+    ? fs.readdirSync(artifactDir, { recursive: true })
+        .map((file) => normalizeArtifactPath(String(file)))
+        .filter((file) => file.length > 0)
+        .sort()
+    : [];
+
+  const manifest = {
+    ok: true,
+    projectId,
+    runtimeId: run.runtimeId,
+    status: "delivered",
+    mode: metadata?.mode || run.mode || "general",
+    product: metadata?.product || metadata?.name || "Generated Artifact",
+    artifactDir,
+    deploymentRecordPath: fs.existsSync(deploymentPath) ? deploymentPath : null,
+    deploymentRecord,
+    previewUrl: deploymentRecord?.previewUrl || `/deployed/${projectId}`,
+    runtimePreviewUrl: `/runtime-preview/${projectId}`,
+    downloadUrl: `/api/runtime-proxy/runs/${projectId}/download`,
+    artifactHistoryUrl: `/artifacts/${projectId}`,
+    validationUrl: `/projects/${projectId}/validation`,
+    files,
+    fileCount: files.length,
+    validation,
+    delivery: run.delivery || null,
+    generatedArtifactQualityReport: metadata?.generatedArtifactQualityReport || null,
+    deliveredAt: new Date().toISOString(),
+  };
+
+  fs.writeFileSync(exportPath, JSON.stringify(manifest, null, 2));
+  return manifest;
 }
 
 export async function createRun(input: any) {
@@ -98,6 +162,10 @@ export async function executeRun(projectId: string, input: any) {
 
     const delivery = await prepareDelivery(run);
     run.delivery = delivery;
+
+    const deliveryManifest = writeDeliveryManifest(run);
+    (run as any).deliveryManifest = deliveryManifest;
+
     appendRunEvent(run, "Delivery prepared");
     appendTranscript(projectId, "Delivery prepared");
 
