@@ -130,10 +130,10 @@ export async function buildUniversalAnythingArtifacts(run: any, outDir: string) 
       <p class="eyebrow">Ask AI to add more features</p>
       <h2>Improve this build after delivery.</h2>
       <p>Request new sections, integrations, design changes, automations, dashboards, payment features, SEO content, or custom backend workflows.</p>
-      <form class="feature-form">
-        <textarea aria-label="Feature request" placeholder="Example: Add SMS order updates, loyalty rewards, customer account dashboard, and abandoned-cart emails."></textarea>
-        <button type="button">Send feature request</button>
-      </form>
+      <form class="feature-form" data-ai-feature-form>
+        <textarea data-ai-feature-input aria-label="Feature request" placeholder="Example: Add SMS order updates, loyalty rewards, customer account dashboard, and abandoned-cart emails."></textarea>
+        <button type="submit">Send feature request</button>
+      </form>\n      <p class="mini" data-ai-feature-output>Describe what you want AI to add, then submit.</p>
       <p class="mini">This generated package includes an API route and local store for feature requests.</p>
     </section>`;
   }
@@ -232,7 +232,59 @@ export async function buildUniversalAnythingArtifacts(run: any, outDir: string) 
       ${domainPreviewHtml}
     </section>
   </main>
-</body>
+
+    <script>
+      (function () {
+        function projectIdFromPath() {
+          var match = window.location.pathname.match(/OC-[A-Z0-9]+/i);
+          return match ? match[0].toUpperCase() : "";
+        }
+
+        var form = document.querySelector("[data-ai-feature-form]");
+        var input = document.querySelector("[data-ai-feature-input]");
+        var output = document.querySelector("[data-ai-feature-output]");
+
+        if (!form || !input || !output) return;
+
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          var request = String(input.value || "").trim();
+          if (!request) {
+            output.textContent = "Please describe the feature you want AI to add.";
+            return;
+          }
+
+          output.textContent = "AI is saving your feature request...";
+          var projectId = projectIdFromPath();
+
+          try {
+            if (projectId) {
+              var response = await fetch("/api/runtime-proxy/runs/" + projectId + "/feature-requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ request: request })
+              });
+              var data = await response.json();
+              if (data && data.ok) {
+                output.textContent = data.request.aiResponse || "Feature request saved for the next build cycle.";
+                input.value = "";
+                return;
+              }
+            }
+
+            var saved = JSON.parse(localStorage.getItem("generatedFeatureRequests") || "[]");
+            saved.unshift({ request: request, createdAt: new Date().toISOString() });
+            localStorage.setItem("generatedFeatureRequests", JSON.stringify(saved));
+            output.textContent = "Feature request saved locally. Open the editor to apply it to the next generated build.";
+            input.value = "";
+          } catch (error) {
+            output.textContent = "Feature request saved locally. The live API was not reachable from this preview.";
+          }
+        });
+      })();
+    </script>
+
+  </body>
 </html>`
     },
     {
