@@ -48,7 +48,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
             file: "index.html",
             title: "NexusFlow Landing Preview",
             type: "html",
-            content: `<!DOCTYPE html>
+            content: `.visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}.visual-grid img{width:100%;border:1px solid var(--line,#27272a);border-radius:20px;background:#111}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line,#27272a);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand,#38bdf8);color:#001018;font-weight:900;padding:12px 18px}<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -210,6 +210,7 @@ import { Pricing } from "../components/Pricing";
 import { Testimonials } from "../components/Testimonials";
 import { FAQ } from "../components/FAQ";
 import { Footer } from "../components/Footer";
+import { AskAIFeatures } from "../components/AskAIFeatures";
 
 export default function Page() {
   return (
@@ -221,6 +222,7 @@ export default function Page() {
       <Pricing />
       <Testimonials />
       <FAQ />
+      <AskAIFeatures />
       <Footer />
     </main>
   );
@@ -555,7 +557,7 @@ SIGNUP_NOTIFICATION_EMAIL="team@example.com"
 
 A prompt-led single-page SaaS landing site for an AI-powered productivity tool.
 
-## Sections
+## Generated visuals and AI feature requests\n\nThis package includes generated SVG image assets, data/asset-manifest.json, an AskAIFeatures component, /api/feature-requests, and lib/feature-request-store.ts so customers can request more features after initial delivery.\n\n## Sections
 - Hero with signup CTA
 - Features
 - How it Works
@@ -606,6 +608,202 @@ CMD ["npm", "run", "start"]
 `,
         },
     ];
+    files.push({
+        file: "components/AskAIFeatures.tsx",
+        title: "Ask AI Feature Request Panel",
+        content: `"use client";
+
+import { useState } from "react";
+
+export function AskAIFeatures() {
+  const [request, setRequest] = useState("");
+  const [status, setStatus] = useState("Ready");
+
+  async function submit() {
+    setStatus("Saving request...");
+    const response = await fetch("/api/feature-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request })
+    });
+    const data = await response.json();
+    setStatus(data.ok ? "Feature request saved for the next AI build cycle." : "Needs review.");
+  }
+
+  return (
+    <section className="px-8 py-12" id="ask-ai">
+      <div className="card">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Ask AI to add more features</p>
+        <h2 className="mt-3 text-4xl font-black">Keep improving this generated build.</h2>
+        <textarea className="input mt-6 min-h-32 w-full" placeholder="Ask for new pages, integrations, dashboards, automation, SEO content, payment features, or workflow upgrades." value={request} onChange={(event) => setRequest(event.target.value)} />
+        <button className="button mt-5" onClick={submit}>Save Feature Request</button>
+        <p className="mt-4 text-zinc-400">{status}</p>
+      </div>
+    </section>
+  );
+}
+`
+    }, {
+        file: "app/api/feature-requests/route.ts",
+        title: "Feature Requests API",
+        content: `import { NextResponse } from "next/server";
+import { saveFeatureRequest, listFeatureRequests } from "../../../lib/feature-request-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, requests: await listFeatureRequests() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const saved = await saveFeatureRequest({
+    request: String(body.request || ""),
+    status: "new"
+  });
+  return NextResponse.json({ ok: true, request: saved });
+}
+`
+    }, {
+        file: "lib/feature-request-store.ts",
+        title: "Feature Request Store",
+        content: `import fs from "fs/promises";
+import path from "path";
+
+const dataDir = path.join(process.cwd(), "data");
+const requestFile = path.join(dataDir, "feature-requests.json");
+
+export async function listFeatureRequests() {
+  try {
+    return JSON.parse(await fs.readFile(requestFile, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+export async function saveFeatureRequest(input: { request: string; status: string }) {
+  const requests = await listFeatureRequests();
+  const saved = {
+    id: "feature-" + Date.now(),
+    ...input,
+    createdAt: new Date().toISOString()
+  };
+  requests.unshift(saved);
+  await fs.mkdir(dataDir, { recursive: true });
+  await fs.writeFile(requestFile, JSON.stringify(requests, null, 2));
+  return saved;
+}
+`
+    }, {
+        file: "data/asset-manifest.json",
+        title: "Generated Asset Manifest",
+        type: "json",
+        content: JSON.stringify({
+            generatedAt: new Date().toISOString(),
+            domain: "saas",
+            imagePrompt: "Create polished, production-ready SaaS Product Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
+            assets: [
+                "public/images/hero.svg",
+                "public/images/feature-1.svg",
+                "public/images/feature-2.svg",
+                "public/images/admin.svg"
+            ]
+        }, null, 2)
+    }, {
+        file: "public/images/hero.svg",
+        title: "Generated Hero Visual",
+        type: "image",
+        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1200" height="800" rx="64" fill="url(#g)"/>
+  <circle cx="970" cy="130" r="180" fill="rgba(255,255,255,.18)"/>
+  <circle cx="180" cy="660" r="220" fill="rgba(0,0,0,.14)"/>
+  <g filter="url(#shadow)">
+    <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.9)"/>
+    <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">🚀</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">SaaS Product Experience</text>
+    <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated production visual</text>
+    <rect x="160" y="530" width="390" height="68" rx="34" fill="#111827"/>
+    <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
+  </g>
+</svg>`
+    }, {
+        file: "public/images/feature-1.svg",
+        title: "Generated Feature Visual One",
+        type: "image",
+        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1200" height="800" rx="64" fill="url(#g)"/>
+  <circle cx="970" cy="130" r="180" fill="rgba(255,255,255,.18)"/>
+  <circle cx="180" cy="660" r="220" fill="rgba(0,0,0,.14)"/>
+  <g filter="url(#shadow)">
+    <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.9)"/>
+    <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">🚀</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">Product Workflow</text>
+    <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated production visual</text>
+    <rect x="160" y="530" width="390" height="68" rx="34" fill="#111827"/>
+    <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
+  </g>
+</svg>`
+    }, {
+        file: "public/images/feature-2.svg",
+        title: "Generated Feature Visual Two",
+        type: "image",
+        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1200" height="800" rx="64" fill="url(#g)"/>
+  <circle cx="970" cy="130" r="180" fill="rgba(255,255,255,.18)"/>
+  <circle cx="180" cy="660" r="220" fill="rgba(0,0,0,.14)"/>
+  <g filter="url(#shadow)">
+    <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.9)"/>
+    <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">🚀</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">Growth Analytics</text>
+    <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated production visual</text>
+    <rect x="160" y="530" width="390" height="68" rx="34" fill="#111827"/>
+    <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
+  </g>
+</svg>`
+    }, {
+        file: "public/images/admin.svg",
+        title: "Generated Admin Visual",
+        type: "image",
+        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1200" height="800" rx="64" fill="url(#g)"/>
+  <circle cx="970" cy="130" r="180" fill="rgba(255,255,255,.18)"/>
+  <circle cx="180" cy="660" r="220" fill="rgba(0,0,0,.14)"/>
+  <g filter="url(#shadow)">
+    <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.9)"/>
+    <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">🚀</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">SaaS Admin Console</text>
+    <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated production visual</text>
+    <rect x="160" y="530" width="390" height="68" rx="34" fill="#111827"/>
+    <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
+  </g>
+</svg>`
+    });
     for (const file of files) {
         writeFile(outDir, file.file, file.content);
     }
