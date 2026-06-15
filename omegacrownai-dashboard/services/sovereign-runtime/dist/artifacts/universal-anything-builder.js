@@ -80,6 +80,83 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
     const brand = safeBrand(prompt, domain.product);
     const [primarySection, secondarySection, thirdSection, adminSection] = domain.sections;
     const [modelOne, modelTwo, modelThree, modelFour] = domain.models;
+    function svgAsset(title, emoji, bgA = "#fb923c", bgB = "#facc15") {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="${bgA}"/>
+      <stop offset="100%" stop-color="${bgB}"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-opacity=".28"/></filter>
+  </defs>
+  <rect width="1200" height="800" rx="64" fill="url(#g)"/>
+  <circle cx="980" cy="120" r="180" fill="rgba(255,255,255,.18)"/>
+  <circle cx="180" cy="660" r="220" fill="rgba(0,0,0,.12)"/>
+  <g filter="url(#shadow)">
+    <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.88)"/>
+    <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">${emoji}</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">${title}</text>
+    <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated visual asset</text>
+    <rect x="160" y="530" width="360" height="68" rx="34" fill="#111827"/>
+    <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Production-ready preview</text>
+  </g>
+</svg>`;
+    }
+    function askAiSection() {
+        return `<section id="ask-ai" class="panel ask-ai">
+      <p class="eyebrow">Ask AI to add more features</p>
+      <h2>Improve this build after delivery.</h2>
+      <p>Request new sections, integrations, design changes, automations, dashboards, payment features, SEO content, or custom backend workflows.</p>
+      <form class="feature-form">
+        <textarea aria-label="Feature request" placeholder="Example: Add SMS order updates, loyalty rewards, customer account dashboard, and abandoned-cart emails."></textarea>
+        <button type="button">Send feature request</button>
+      </form>
+      <p class="mini">This generated package includes an API route and local store for feature requests.</p>
+    </section>`;
+    }
+    function commercePreviewHtml() {
+        return `<section class="visual-split">
+      <div>
+        <p class="eyebrow">Fresh commerce experience</p>
+        <h2>Orange Shop storefront with catalog, cart, checkout, subscriptions, and admin operations.</h2>
+        <p>Built for fresh oranges, citrus packs, juices, gift baskets, subscription boxes, promo codes, wishlist, reviews, and order management.</p>
+      </div>
+      <img src="./public/images/commerce-hero.svg" alt="Orange Shop citrus hero visual" />
+    </section>
+    <section class="grid rich-grid">
+      <article><img src="./public/images/product-oranges.svg" alt="Fresh oranges" /><h2>Fresh Oranges</h2><p>Organic options, variants, origin filters, stock status, and premium citrus descriptions.</p></article>
+      <article><img src="./public/images/product-juice.svg" alt="Fresh orange juice" /><h2>Fresh Juice</h2><p>Cold-pressed juice products with checkout-ready catalog data.</p></article>
+      <article><img src="./public/images/product-gift.svg" alt="Gift baskets" /><h2>Gift Baskets</h2><p>Seasonal gift offers for families, health-conscious customers, and US gift buyers.</p></article>
+      <article><h2>Cart + Checkout</h2><p>Realtime cart preview, Stripe/Square placeholder, guest checkout, accounts, and order confirmation emails.</p></article>
+      <article><h2>Subscriptions</h2><p>Weekly and monthly delivery plan APIs with recurring citrus box options.</p></article>
+      <article><h2>Commerce Admin</h2><p>Manage products, inventory, orders, customers, promo codes, reviews, wishlist, and marketing campaigns.</p></article>
+    </section>
+    ${askAiSection()}`;
+    }
+    function fitnessPreviewHtml() {
+        return `<section class="visual-split">
+      <div>
+        <p class="eyebrow">Fitness studio platform</p>
+        <h2>Class schedules, memberships, trainers, leads, bookings, and studio admin.</h2>
+        <p>Built for a neighborhood fitness studio with production-ready frontend, APIs, Prisma schema, admin dashboard, delivery manifest, and downloadable package.</p>
+      </div>
+      <img src="./public/images/fitness-hero.svg" alt="Fitness studio hero visual" />
+    </section>
+    <section class="grid rich-grid">
+      <article><img src="./public/images/fitness-class.svg" alt="Fitness class" /><h2>Class Schedule</h2><p>Classes by time, trainer, level, days, and capacity.</p></article>
+      <article><img src="./public/images/fitness-trainer.svg" alt="Trainer profile" /><h2>Trainer Profiles</h2><p>Certified trainer cards with specialties and bios.</p></article>
+      <article><h2>Membership Signup</h2><p>Starter, unlimited, and family plans with membership activation API.</p></article>
+      <article><h2>Bookings API</h2><p>Class bookings, lead capture, and local persistence demo.</p></article>
+      <article><h2>Studio Admin</h2><p>Admin dashboard for classes, trainers, leads, bookings, and memberships.</p></article>
+      <article><h2>Production Package</h2><p>README, smoke test, Prisma models, delivery manifest, and deployment record.</p></article>
+    </section>
+    ${askAiSection()}`;
+    }
+    const domainPreviewHtml = domain.key === "ecommerce" || domain.key === "shop"
+        ? commercePreviewHtml()
+        : domain.key === "fitness" || domain.key === "gym"
+            ? fitnessPreviewHtml()
+            : `${domain.sections.map((section) => `<article><h2>${section}</h2><p>Prompt-aligned module for ${brand}, including customer-facing content, operational flow, and review-ready data capture.</p></article>`).join("\n      ")}${askAiSection()}`;
     const files = [
         {
             file: "index.html",
@@ -122,26 +199,8 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
       </div>
     </section>
 
-    <section id="features" class="grid">
-      ${domain.sections.map((section) => `<article><h2>${section}</h2><p>Prompt-aligned module for ${brand}, including customer-facing content, operational flow, and review-ready data capture.</p></article>`).join("\n      ")}
-    </section>
-
-    <section id="workflow" class="panel">
-      <p class="eyebrow">Workflow</p>
-      <h2>Customer action, backend capture, and admin review are included.</h2>
-      <p>The generated app includes an intake API, local persistence demo, Prisma models, admin dashboard, deployment notes, smoke test, and production checklist.</p>
-    </section>
-
-    <section id="intake" class="panel">
-      <p class="eyebrow">Customer Intake</p>
-      <h2>Lead and request capture</h2>
-      <p>Use the Next.js app package for the real interactive form and API route.</p>
-    </section>
-
-    <section id="admin" class="panel">
-      <p class="eyebrow">Admin Dashboard</p>
-      <h2>Operations command center</h2>
-      <p>Review submissions, status, service modules, and launch readiness from the generated admin page.</p>
+    <section id="features" class="domain-preview">
+      ${domainPreviewHtml}
     </section>
   </main>
 </body>
@@ -151,7 +210,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             file: "styles.css",
             title: "Universal Styles",
             type: "css",
-            content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2{font-size:30px;margin:8px 0}.panel p,.grid p{color:var(--muted);line-height:1.7}`
+            content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}}`
         },
         {
             file: "metadata.json",
@@ -615,6 +674,145 @@ CMD ["npm","run","start"]
 `
         }
     ];
+    files.push({
+        file: "components/AskAIFeatures.tsx",
+        title: "Ask AI Feature Request Panel",
+        content: `"use client";
+
+import { useState } from "react";
+
+export function AskAIFeatures() {
+  const [request, setRequest] = useState("");
+  const [status, setStatus] = useState("Ready");
+
+  async function submit() {
+    setStatus("Saving request...");
+    const response = await fetch("/api/feature-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request })
+    });
+    const data = await response.json();
+    setStatus(data.ok ? "Feature request saved for the next AI build cycle." : "Needs review.");
+  }
+
+  return (
+    <section className="px-8 py-12" id="ask-ai">
+      <div className="card">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Ask AI to add more features</p>
+        <h2 className="mt-3 text-4xl font-black">Keep improving this generated build.</h2>
+        <textarea className="input mt-6 min-h-32 w-full" placeholder="Ask for loyalty rewards, SMS alerts, dashboards, integrations, SEO pages, or workflow automation." value={request} onChange={(event) => setRequest(event.target.value)} />
+        <button className="button mt-5" onClick={submit}>Save Feature Request</button>
+        <p className="mt-4 text-zinc-400">{status}</p>
+      </div>
+    </section>
+  );
+}
+`
+    }, {
+        file: "app/api/feature-requests/route.ts",
+        title: "Feature Requests API",
+        content: `import { NextResponse } from "next/server";
+import { saveFeatureRequest, listFeatureRequests } from "../../../lib/feature-request-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, requests: await listFeatureRequests() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const saved = await saveFeatureRequest({
+    request: String(body.request || ""),
+    status: "new"
+  });
+  return NextResponse.json({ ok: true, request: saved });
+}
+`
+    }, {
+        file: "lib/feature-request-store.ts",
+        title: "Feature Request Store",
+        content: `import fs from "fs/promises";
+import path from "path";
+
+const dataDir = path.join(process.cwd(), "data");
+const requestFile = path.join(dataDir, "feature-requests.json");
+
+export async function listFeatureRequests() {
+  try {
+    return JSON.parse(await fs.readFile(requestFile, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+export async function saveFeatureRequest(input: { request: string; status: string }) {
+  const requests = await listFeatureRequests();
+  const saved = {
+    id: "feature-" + Date.now(),
+    ...input,
+    createdAt: new Date().toISOString()
+  };
+  requests.unshift(saved);
+  await fs.mkdir(dataDir, { recursive: true });
+  await fs.writeFile(requestFile, JSON.stringify(requests, null, 2));
+  return saved;
+}
+`
+    }, {
+        file: "data/asset-manifest.json",
+        title: "Generated Asset Manifest",
+        type: "json",
+        content: JSON.stringify({
+            generatedAt: now,
+            brand,
+            domain: domain.key,
+            assets: [
+                "public/images/commerce-hero.svg",
+                "public/images/product-oranges.svg",
+                "public/images/product-juice.svg",
+                "public/images/product-gift.svg",
+                "public/images/fitness-hero.svg",
+                "public/images/fitness-class.svg",
+                "public/images/fitness-trainer.svg"
+            ],
+            imagePrompt: `Create polished, production-ready visuals for ${brand}: modern, high-quality, brand-aligned, web hero and card imagery.`
+        }, null, 2)
+    }, {
+        file: "public/images/commerce-hero.svg",
+        title: "Commerce Hero SVG",
+        type: "image",
+        content: svgAsset("Fresh Citrus Storefront", "🍊", "#fb923c", "#facc15")
+    }, {
+        file: "public/images/product-oranges.svg",
+        title: "Fresh Oranges SVG",
+        type: "image",
+        content: svgAsset("Premium Oranges", "🍊", "#f97316", "#fde68a")
+    }, {
+        file: "public/images/product-juice.svg",
+        title: "Fresh Juice SVG",
+        type: "image",
+        content: svgAsset("Cold-Pressed Juice", "🥤", "#f59e0b", "#fed7aa")
+    }, {
+        file: "public/images/product-gift.svg",
+        title: "Gift Basket SVG",
+        type: "image",
+        content: svgAsset("Citrus Gift Basket", "🎁", "#fb7185", "#fdba74")
+    }, {
+        file: "public/images/fitness-hero.svg",
+        title: "Fitness Hero SVG",
+        type: "image",
+        content: svgAsset("Neighborhood Fitness Studio", "🏋️", "#22d3ee", "#8b5cf6")
+    }, {
+        file: "public/images/fitness-class.svg",
+        title: "Fitness Class SVG",
+        type: "image",
+        content: svgAsset("Class Schedule", "💪", "#06b6d4", "#a78bfa")
+    }, {
+        file: "public/images/fitness-trainer.svg",
+        title: "Trainer Profile SVG",
+        type: "image",
+        content: svgAsset("Trainer Profiles", "🏃", "#14b8a6", "#60a5fa")
+    });
     if (domain.key === "ecommerce" || domain.key === "shop") {
         const commerceProducts = [
             {
@@ -1022,6 +1220,7 @@ import { CheckoutPanel } from "../components/CheckoutPanel";
 import { SubscriptionPlans } from "../components/SubscriptionPlans";
 import { PromoWishlistReviews } from "../components/PromoWishlistReviews";
 import { Footer } from "../components/Footer";
+import { AskAIFeatures } from "../components/AskAIFeatures";
 
 export default function Page() {
   return (
@@ -1032,6 +1231,7 @@ export default function Page() {
       <CheckoutPanel />
       <SubscriptionPlans />
       <PromoWishlistReviews />
+      <AskAIFeatures />
       <Footer />
     </main>
   );
@@ -1468,6 +1668,7 @@ import { TrainerProfiles } from "../components/TrainerProfiles";
 import { FitnessLeadForm } from "../components/FitnessLeadForm";
 import { StudioAdminPreview } from "../components/StudioAdminPreview";
 import { Footer } from "../components/Footer";
+import { AskAIFeatures } from "../components/AskAIFeatures";
 
 export default function Page() {
   return (
@@ -1478,6 +1679,7 @@ export default function Page() {
       <TrainerProfiles />
       <FitnessLeadForm />
       <StudioAdminPreview />
+      <AskAIFeatures />
       <Footer />
     </main>
   );
