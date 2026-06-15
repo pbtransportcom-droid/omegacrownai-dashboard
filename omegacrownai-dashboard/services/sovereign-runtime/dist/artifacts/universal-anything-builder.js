@@ -202,6 +202,17 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
     <section id="features" class="domain-preview">
       ${domainPreviewHtml}
     </section>
+    <section class="panel active-experience">
+      <p class="eyebrow">Active Customer / Admin / Editor Experience</p>
+      <h2>This delivery includes clickable app areas, not only a front page.</h2>
+      <p>Open the customer flow, admin dashboard, or generated editor to update content and request more AI features.</p>
+      <div class="hero-actions">
+        <a class="primary" data-live-link="/customer" href="#customer">Open Customer Flow</a>
+        <a class="secondary" data-live-link="/admin" href="#admin">Open Admin Dashboard</a>
+        <a class="secondary" data-live-link="/editor" href="#editor">Open Editor</a>
+      </div>
+    </section>
+
   </main>
 
     <script>
@@ -255,6 +266,21 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
       })();
     </script>
 
+  
+    <script>
+      (function () {
+        var match = window.location.pathname.match(/OC-[A-Z0-9]+/i);
+        var projectId = match ? match[0].toUpperCase() : "";
+        if (!projectId) return;
+        document.querySelectorAll("[data-live-link]").forEach(function (link) {
+          var target = link.getAttribute("data-live-link") || "/";
+          link.setAttribute("href", "/generated-app/" + projectId + target);
+          link.setAttribute("target", "_blank");
+          link.setAttribute("rel", "noreferrer");
+        });
+      })();
+    </script>
+
   </body>
 </html>`
         },
@@ -262,7 +288,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             file: "styles.css",
             title: "Universal Styles",
             type: "css",
-            content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}}`
+            content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.active-experience{border-color:rgba(56,189,248,.45)}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}}`
         },
         {
             file: "metadata.json",
@@ -1813,6 +1839,241 @@ model ClassBooking {
 - Prisma models for FitnessClass, Trainer, MembershipPlan, FitnessLead, and ClassBooking
 - Delivery manifest and deployment record support
 `;
+        }
+    }
+    if (domain.key === "ecommerce" || domain.key === "shop" || domain.key === "fitness" || domain.key === "gym") {
+        const isCommerceEditable = domain.key === "ecommerce" || domain.key === "shop";
+        const editableSeed = isCommerceEditable
+            ? {
+                brand,
+                type: "commerce",
+                hero: {
+                    eyebrow: "Premium commerce experience",
+                    headline: `${brand} is a complete online store with catalog, cart, checkout, subscriptions, reviews, and admin operations.`,
+                    subheadline: "Customers can browse products, manage carts, start checkout, request subscriptions, save wishlist items, and ask AI for more features."
+                },
+                pages: [
+                    { label: "Customer", path: "/customer", purpose: "Shopping, cart, checkout, and subscriptions" },
+                    { label: "Admin", path: "/admin", purpose: "Products, orders, customers, campaigns, and operations" },
+                    { label: "Editor", path: "/editor", purpose: "Editable site content and AI feature requests" }
+                ]
+            }
+            : {
+                brand,
+                type: "fitness",
+                hero: {
+                    eyebrow: "Fitness studio experience",
+                    headline: `${brand} is a full-function studio platform with classes, memberships, trainers, leads, bookings, and admin operations.`,
+                    subheadline: "Members can view classes, review memberships, meet trainers, submit leads, book sessions, and ask AI for more features."
+                },
+                pages: [
+                    { label: "Customer", path: "/customer", purpose: "Class schedule, memberships, trainers, and bookings" },
+                    { label: "Admin", path: "/admin", purpose: "Classes, trainers, leads, bookings, and memberships" },
+                    { label: "Editor", path: "/editor", purpose: "Editable studio content and AI feature requests" }
+                ]
+            };
+        files.push({
+            file: "data/editable-content.json",
+            title: "Editable Site Content",
+            type: "json",
+            content: JSON.stringify(editableSeed, null, 2)
+        }, {
+            file: "lib/content-store.ts",
+            title: "Editable Content Store",
+            content: `import fs from "fs/promises";
+import path from "path";
+import seedContent from "../data/editable-content.json";
+
+const dataDir = path.join(process.cwd(), "data");
+const contentFile = path.join(dataDir, "editable-content.runtime.json");
+
+export async function getEditableContent() {
+  try {
+    return JSON.parse(await fs.readFile(contentFile, "utf8"));
+  } catch {
+    return seedContent;
+  }
+}
+
+export async function saveEditableContent(input: any) {
+  const current = await getEditableContent();
+  const next = {
+    ...current,
+    ...input,
+    updatedAt: new Date().toISOString()
+  };
+  await fs.mkdir(dataDir, { recursive: true });
+  await fs.writeFile(contentFile, JSON.stringify(next, null, 2));
+  return next;
+}
+`
+        }, {
+            file: "app/api/content/route.ts",
+            title: "Editable Content API",
+            content: `import { NextResponse } from "next/server";
+import { getEditableContent, saveEditableContent } from "../../../lib/content-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, content: await getEditableContent() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const content = await saveEditableContent(body);
+  return NextResponse.json({ ok: true, content });
+}
+`
+        }, {
+            file: "components/EditableContentPanel.tsx",
+            title: "Editable Content Panel",
+            content: `"use client";
+
+import { useEffect, useState } from "react";
+
+export function EditableContentPanel() {
+  const [content, setContent] = useState<any>(null);
+  const [status, setStatus] = useState("Loading editable content...");
+
+  useEffect(() => {
+    fetch("/api/content")
+      .then((response) => response.json())
+      .then((data) => {
+        setContent(data.content);
+        setStatus("Editable content loaded.");
+      })
+      .catch(() => setStatus("Unable to load content."));
+  }, []);
+
+  async function save() {
+    setStatus("Saving changes...");
+    const response = await fetch("/api/content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(content)
+    });
+    const data = await response.json();
+    setContent(data.content);
+    setStatus(data.ok ? "Changes saved. Refresh preview to see updates." : "Save failed.");
+  }
+
+  if (!content) {
+    return <p className="text-zinc-400">{status}</p>;
+  }
+
+  return (
+    <section className="grid gap-5">
+      <label className="grid gap-2">
+        <span className="font-bold">Hero headline</span>
+        <textarea className="input min-h-32" value={content.hero?.headline || ""} onChange={(event) => setContent({ ...content, hero: { ...content.hero, headline: event.target.value } })} />
+      </label>
+      <label className="grid gap-2">
+        <span className="font-bold">Hero subheadline</span>
+        <textarea className="input min-h-32" value={content.hero?.subheadline || ""} onChange={(event) => setContent({ ...content, hero: { ...content.hero, subheadline: event.target.value } })} />
+      </label>
+      <button className="button w-fit" onClick={save}>Save Editable Content</button>
+      <p className="text-zinc-400">{status}</p>
+    </section>
+  );
+}
+`
+        });
+        if (isCommerceEditable) {
+            files.push({
+                file: "app/customer/page.tsx",
+                title: "Commerce Customer Experience",
+                content: `import { Hero } from "../../components/Hero";
+import { ProductCatalog } from "../../components/ProductCatalog";
+import { CartDrawer } from "../../components/CartDrawer";
+import { CheckoutPanel } from "../../components/CheckoutPanel";
+import { SubscriptionPlans } from "../../components/SubscriptionPlans";
+import { PromoWishlistReviews } from "../../components/PromoWishlistReviews";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+import { Footer } from "../../components/Footer";
+
+export default function CustomerPage() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Hero />
+      <ProductCatalog />
+      <CartDrawer />
+      <CheckoutPanel />
+      <SubscriptionPlans />
+      <PromoWishlistReviews />
+      <AskAIFeatures />
+      <Footer />
+    </main>
+  );
+}
+`
+            }, {
+                file: "app/editor/page.tsx",
+                title: "Commerce Generated Editor",
+                content: `import { EditableContentPanel } from "../../components/EditableContentPanel";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+
+export default function EditorPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-orange-300">Generated App Editor</p>
+      <h1 className="mt-4 text-5xl font-black">Edit commerce content and request new AI features</h1>
+      <p className="mt-4 max-w-3xl text-zinc-400">Update storefront copy, then ask AI to add product filters, loyalty rewards, SMS updates, customer login, advanced checkout, or custom dashboards.</p>
+      <section className="mt-8 rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+        <EditableContentPanel />
+      </section>
+      <AskAIFeatures />
+    </main>
+  );
+}
+`
+            });
+        }
+        else {
+            files.push({
+                file: "app/customer/page.tsx",
+                title: "Fitness Customer Experience",
+                content: `import { Hero } from "../../components/Hero";
+import { ClassSchedule } from "../../components/ClassSchedule";
+import { MembershipPlans } from "../../components/MembershipPlans";
+import { TrainerProfiles } from "../../components/TrainerProfiles";
+import { FitnessLeadForm } from "../../components/FitnessLeadForm";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+import { Footer } from "../../components/Footer";
+
+export default function CustomerPage() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Hero />
+      <ClassSchedule />
+      <MembershipPlans />
+      <TrainerProfiles />
+      <FitnessLeadForm />
+      <AskAIFeatures />
+      <Footer />
+    </main>
+  );
+}
+`
+            }, {
+                file: "app/editor/page.tsx",
+                title: "Fitness Generated Editor",
+                content: `import { EditableContentPanel } from "../../components/EditableContentPanel";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+
+export default function EditorPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Generated App Editor</p>
+      <h1 className="mt-4 text-5xl font-black">Edit fitness studio content and request new AI features</h1>
+      <p className="mt-4 max-w-3xl text-zinc-400">Update studio copy, then ask AI to add member login, payments, SMS reminders, trainer calendar, challenge tracking, or analytics.</p>
+      <section className="mt-8 rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+        <EditableContentPanel />
+      </section>
+      <AskAIFeatures />
+    </main>
+  );
+}
+`
+            });
         }
     }
     const records = [];
