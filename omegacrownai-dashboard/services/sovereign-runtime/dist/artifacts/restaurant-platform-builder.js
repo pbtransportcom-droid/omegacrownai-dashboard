@@ -145,6 +145,28 @@ export async function buildRestaurantPlatformArtifacts(run, outDir) {
       <strong>Crown Table</strong>
       <span>Restaurant ordering, reservations, kitchen queue, and admin operations.</span>
     </footer>
+    <section class="panel visual-preview">
+      <p class="eyebrow">Generated Visual Assets</p>
+      <h2>Restaurant Ordering Experience</h2>
+      <p>This generated package includes SVG hero/card visuals, an asset manifest, and an AI feature-request workflow.</p>
+      <div class="visual-grid">
+        <img src="./public/images/hero.svg" alt="Restaurant Ordering Experience hero visual" />
+        <img src="./public/images/feature-1.svg" alt="Menu Ordering visual" />
+        <img src="./public/images/feature-2.svg" alt="Reservations visual" />
+        <img src="./public/images/admin.svg" alt="Restaurant Admin Dashboard visual" />
+      </div>
+    </section>
+
+    <section class="panel ask-ai">
+      <p class="eyebrow">Ask AI to add more features</p>
+      <h2>Improve this build after delivery.</h2>
+      <p>Request new pages, integrations, dashboards, automations, content, security hardening, or custom backend workflows.</p>
+      <form class="feature-form">
+        <textarea aria-label="Feature request" placeholder="Example: Add a customer portal, SMS alerts, advanced reporting, and role-based admin permissions."></textarea>
+        <button type="button">Save feature request</button>
+      </form>
+    </section>
+
   </main>
 </body>
 </html>`
