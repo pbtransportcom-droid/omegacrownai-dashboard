@@ -1203,6 +1203,434 @@ SQUARE_ACCESS_TOKEN=...
   }
 
 
+
+  if (domain.key === "fitness" || domain.key === "gym") {
+    const fitnessClasses = [
+      { id: "hiit-6am", name: "Sunrise HIIT", type: "HIIT", trainer: "Maya Johnson", time: "6:00 AM", days: ["Mon", "Wed", "Fri"], capacity: 18, level: "All levels" },
+      { id: "strength-7pm", name: "Strength Circuit", type: "Strength", trainer: "Andre Lewis", time: "7:00 PM", days: ["Tue", "Thu"], capacity: 16, level: "Intermediate" },
+      { id: "yoga-8am", name: "Recovery Yoga", type: "Yoga", trainer: "Sofia Chen", time: "8:00 AM", days: ["Sat"], capacity: 22, level: "Beginner" },
+      { id: "spin-530pm", name: "Citrus Spin", type: "Cycling", trainer: "Jordan Miles", time: "5:30 PM", days: ["Mon", "Wed"], capacity: 20, level: "All levels" }
+    ];
+
+    const trainers = [
+      { id: "maya-johnson", name: "Maya Johnson", specialty: "HIIT and mobility", bio: "Certified coach focused on high-energy conditioning and sustainable strength." },
+      { id: "andre-lewis", name: "Andre Lewis", specialty: "Strength training", bio: "Performance trainer helping members build confidence, form, and measurable progress." },
+      { id: "sofia-chen", name: "Sofia Chen", specialty: "Yoga and recovery", bio: "Recovery specialist blending breathwork, flexibility, and restorative movement." },
+      { id: "jordan-miles", name: "Jordan Miles", specialty: "Cycling and endurance", bio: "Endurance coach leading rhythm-driven rides and heart-rate training." }
+    ];
+
+    files.push(
+      {
+        file: "data/classes.json",
+        title: "Fitness Class Schedule Data",
+        type: "json",
+        content: JSON.stringify(fitnessClasses, null, 2)
+      },
+      {
+        file: "data/trainers.json",
+        title: "Trainer Profile Data",
+        type: "json",
+        content: JSON.stringify(trainers, null, 2)
+      },
+      {
+        file: "components/ClassSchedule.tsx",
+        title: "Class Schedule",
+        content: `import classes from "../data/classes.json";
+
+export function ClassSchedule() {
+  return (
+    <section className="px-8 py-12" id="schedule">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Class Schedule</p>
+      <h2 className="mt-3 text-4xl font-black">Book classes by time, level, trainer, and capacity.</h2>
+      <div className="mt-8 grid gap-5 md:grid-cols-2">
+        {classes.map((fitnessClass) => (
+          <article key={fitnessClass.id} className="card">
+            <p className="text-sm font-bold text-cyan-300">{fitnessClass.type} · {fitnessClass.level}</p>
+            <h3 className="mt-2 text-2xl font-black">{fitnessClass.name}</h3>
+            <p className="mt-3 text-zinc-400">Trainer: {fitnessClass.trainer}</p>
+            <p className="mt-2 text-zinc-400">Time: {fitnessClass.time} · {fitnessClass.days.join(", ")}</p>
+            <p className="mt-2 text-zinc-400">Capacity: {fitnessClass.capacity} members</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+`
+      },
+      {
+        file: "components/MembershipPlans.tsx",
+        title: "Membership Plans",
+        content: `const plans = [
+  { name: "Starter", price: "$39/mo", detail: "Two classes per week, app booking, and member updates." },
+  { name: "Unlimited", price: "$89/mo", detail: "Unlimited classes, priority booking, and progress check-ins." },
+  { name: "Family", price: "$149/mo", detail: "Household membership with shared scheduling and family-friendly classes." }
+];
+
+export function MembershipPlans() {
+  return (
+    <section className="px-8 py-12" id="memberships">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Memberships</p>
+      <h2 className="mt-3 text-4xl font-black">Plans for beginners, committed members, and families.</h2>
+      <div className="mt-8 grid gap-5 md:grid-cols-3">
+        {plans.map((plan) => (
+          <article key={plan.name} className="card">
+            <h3 className="text-2xl font-black">{plan.name}</h3>
+            <p className="mt-3 text-3xl font-black">{plan.price}</p>
+            <p className="mt-3 text-zinc-400">{plan.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+`
+      },
+      {
+        file: "components/TrainerProfiles.tsx",
+        title: "Trainer Profiles",
+        content: `import trainers from "../data/trainers.json";
+
+export function TrainerProfiles() {
+  return (
+    <section className="px-8 py-12" id="trainers">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Trainers</p>
+      <h2 className="mt-3 text-4xl font-black">Certified trainers for every fitness goal.</h2>
+      <div className="mt-8 grid gap-5 md:grid-cols-4">
+        {trainers.map((trainer) => (
+          <article key={trainer.id} className="card">
+            <div className="rounded-3xl bg-gradient-to-br from-cyan-300 to-violet-500 p-10 text-center text-5xl">🏋️</div>
+            <h3 className="mt-5 text-2xl font-black">{trainer.name}</h3>
+            <p className="mt-2 font-bold text-cyan-300">{trainer.specialty}</p>
+            <p className="mt-3 text-zinc-400">{trainer.bio}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+`
+      },
+      {
+        file: "components/FitnessLeadForm.tsx",
+        title: "Fitness Lead Form",
+        content: `"use client";
+
+import { useState } from "react";
+
+export function FitnessLeadForm() {
+  const [status, setStatus] = useState("Ready");
+  const [form, setForm] = useState({ name: "", email: "", goal: "", plan: "Unlimited" });
+
+  async function submit() {
+    setStatus("Submitting...");
+    const response = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
+    });
+    const data = await response.json();
+    setStatus(data.ok ? "Lead captured for membership follow-up." : "Needs review.");
+  }
+
+  return (
+    <section className="px-8 py-12" id="lead">
+      <div className="card">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Lead Capture</p>
+        <h2 className="mt-3 text-4xl font-black">Help new members choose a class or membership.</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input className="input" placeholder="Fitness goal" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} />
+          <select className="input" value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value })}>
+            <option>Starter</option>
+            <option>Unlimited</option>
+            <option>Family</option>
+          </select>
+        </div>
+        <button className="button mt-5" onClick={submit}>Submit Membership Interest</button>
+        <p className="mt-4 text-zinc-400">{status}</p>
+      </div>
+    </section>
+  );
+}
+`
+      },
+      {
+        file: "components/StudioAdminPreview.tsx",
+        title: "Studio Admin Preview",
+        content: `export function StudioAdminPreview() {
+  return (
+    <section className="px-8 py-12" id="admin">
+      <div className="card">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Studio Admin</p>
+        <h2 className="mt-3 text-4xl font-black">Manage classes, memberships, trainers, bookings, and leads.</h2>
+        <p className="mt-4 text-zinc-400">Includes admin dashboard, APIs, Prisma models, local persistence demo, README, smoke test, delivery manifest, and deployment record.</p>
+      </div>
+    </section>
+  );
+}
+`
+      },
+      {
+        file: "app/api/classes/route.ts",
+        title: "Classes API",
+        content: `import { NextResponse } from "next/server";
+import { listFitnessClasses } from "../../../lib/fitness-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, classes: await listFitnessClasses() });
+}
+`
+      },
+      {
+        file: "app/api/trainers/route.ts",
+        title: "Trainers API",
+        content: `import { NextResponse } from "next/server";
+import { listTrainers } from "../../../lib/fitness-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, trainers: await listTrainers() });
+}
+`
+      },
+      {
+        file: "app/api/leads/route.ts",
+        title: "Fitness Leads API",
+        content: `import { NextResponse } from "next/server";
+import { createFitnessLead, listFitnessLeads } from "../../../lib/fitness-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, leads: await listFitnessLeads() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const lead = await createFitnessLead(body);
+  return NextResponse.json({ ok: true, lead });
+}
+`
+      },
+      {
+        file: "app/api/bookings/route.ts",
+        title: "Class Bookings API",
+        content: `import { NextResponse } from "next/server";
+import { createClassBooking, listClassBookings } from "../../../lib/fitness-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, bookings: await listClassBookings() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const booking = await createClassBooking(body);
+  return NextResponse.json({ ok: true, booking });
+}
+`
+      },
+      {
+        file: "app/api/memberships/route.ts",
+        title: "Memberships API",
+        content: `import { NextResponse } from "next/server";
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  return NextResponse.json({ ok: true, membership: { ...body, status: "pending_activation" } });
+}
+`
+      },
+      {
+        file: "lib/fitness-store.ts",
+        title: "Fitness Store",
+        content: `import fs from "fs/promises";
+import path from "path";
+import classes from "../data/classes.json";
+import trainers from "../data/trainers.json";
+
+const dataDir = path.join(process.cwd(), "data");
+const leadsFile = path.join(dataDir, "fitness-leads.json");
+const bookingsFile = path.join(dataDir, "class-bookings.json");
+
+async function readJson<T>(file: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await fs.readFile(file, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+async function writeJson(file: string, value: unknown) {
+  await fs.mkdir(dataDir, { recursive: true });
+  await fs.writeFile(file, JSON.stringify(value, null, 2));
+}
+
+export async function listFitnessClasses() {
+  return classes;
+}
+
+export async function listTrainers() {
+  return trainers;
+}
+
+export async function listFitnessLeads() {
+  return readJson<any[]>(leadsFile, []);
+}
+
+export async function createFitnessLead(input: any) {
+  const leads = await listFitnessLeads();
+  const lead = { id: "lead-" + Date.now(), status: "new", ...input, createdAt: new Date().toISOString() };
+  leads.unshift(lead);
+  await writeJson(leadsFile, leads);
+  return lead;
+}
+
+export async function listClassBookings() {
+  return readJson<any[]>(bookingsFile, []);
+}
+
+export async function createClassBooking(input: any) {
+  const bookings = await listClassBookings();
+  const booking = { id: "booking-" + Date.now(), status: "confirmed_placeholder", ...input, createdAt: new Date().toISOString() };
+  bookings.unshift(booking);
+  await writeJson(bookingsFile, bookings);
+  return booking;
+}
+`
+      },
+      {
+        file: "app/admin/fitness/page.tsx",
+        title: "Fitness Admin Dashboard",
+        content: `import classes from "../../../data/classes.json";
+import trainers from "../../../data/trainers.json";
+import { listClassBookings, listFitnessLeads } from "../../../lib/fitness-store";
+
+export default async function FitnessAdminPage() {
+  const leads = await listFitnessLeads();
+  const bookings = await listClassBookings();
+
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Fitness Admin</p>
+      <h1 className="mt-4 text-5xl font-black">Studio Operations Dashboard</h1>
+      <section className="mt-8 grid gap-5 md:grid-cols-4">
+        <article className="card"><h2 className="text-3xl font-black">{classes.length}</h2><p className="text-zinc-400">Classes</p></article>
+        <article className="card"><h2 className="text-3xl font-black">{trainers.length}</h2><p className="text-zinc-400">Trainers</p></article>
+        <article className="card"><h2 className="text-3xl font-black">{leads.length}</h2><p className="text-zinc-400">Leads</p></article>
+        <article className="card"><h2 className="text-3xl font-black">{bookings.length}</h2><p className="text-zinc-400">Bookings</p></article>
+      </section>
+    </main>
+  );
+}
+`
+      }
+    );
+
+    const pageFile = files.find((entry) => entry.file === "app/page.tsx");
+    if (pageFile) {
+      pageFile.content = `import { Hero } from "../components/Hero";
+import { ClassSchedule } from "../components/ClassSchedule";
+import { MembershipPlans } from "../components/MembershipPlans";
+import { TrainerProfiles } from "../components/TrainerProfiles";
+import { FitnessLeadForm } from "../components/FitnessLeadForm";
+import { StudioAdminPreview } from "../components/StudioAdminPreview";
+import { Footer } from "../components/Footer";
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Hero />
+      <ClassSchedule />
+      <MembershipPlans />
+      <TrainerProfiles />
+      <FitnessLeadForm />
+      <StudioAdminPreview />
+      <Footer />
+    </main>
+  );
+}
+`;
+    }
+
+    const schemaFile = files.find((entry) => entry.file === "prisma/schema.prisma");
+    if (schemaFile) {
+      schemaFile.content = `generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model FitnessClass {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  trainer   String
+  time      String
+  capacity  Int
+  level     String
+  createdAt DateTime @default(now())
+}
+
+model Trainer {
+  id        String   @id @default(cuid())
+  name      String
+  specialty String
+  bio       String
+  createdAt DateTime @default(now())
+}
+
+model MembershipPlan {
+  id        String   @id @default(cuid())
+  name      String
+  price     String
+  detail    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model FitnessLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  goal      String
+  plan      String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+}
+
+model ClassBooking {
+  id        String   @id @default(cuid())
+  classId   String
+  memberName String
+  memberEmail String
+  status    String   @default("confirmed")
+  createdAt DateTime @default(now())
+}
+`;
+    }
+
+    const readmeFile = files.find((entry) => entry.file === "README.md");
+    if (readmeFile) {
+      readmeFile.content += `
+
+## Fitness studio capabilities
+
+- Class schedule with time, trainer, level, and capacity
+- Membership plan presentation and membership activation API
+- Trainer profile section
+- Fitness lead capture form
+- Class booking API
+- Fitness admin dashboard
+- Local persistence demo for leads and bookings
+- Prisma models for FitnessClass, Trainer, MembershipPlan, FitnessLead, and ClassBooking
+- Delivery manifest and deployment record support
+`;
+    }
+  }
+
+
   const records: ArtifactRecord[] = [];
 
   for (const file of files) {
