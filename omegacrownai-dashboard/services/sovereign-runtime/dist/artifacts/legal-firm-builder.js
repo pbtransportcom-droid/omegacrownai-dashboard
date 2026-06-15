@@ -46,7 +46,7 @@ export async function buildLegalFirmArtifacts(run, outDir) {
             file: "index.html",
             title: "Legal Firm Preview",
             type: "html",
-            content: `.visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}.visual-grid img{width:100%;border:1px solid var(--line,#27272a);border-radius:20px;background:#111}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line,#27272a);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand,#38bdf8);color:#001018;font-weight:900;padding:12px 18px}<!DOCTYPE html>
+            content: `.visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}.visual-grid img{width:100%;border:1px solid var(--line,#27272a);border-radius:20px;background:#111}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line,#27272a);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand,#38bdf8);color:#001018;font-weight:900;padding:12px 18px}.active-experience{border-color:rgba(56,189,248,.45)}<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -164,6 +164,17 @@ export async function buildLegalFirmArtifacts(run, outDir) {
       </form>\n      <p class="mini" data-ai-feature-output>Describe what you want AI to add, then submit.</p>
     </section>
 
+    <section class="panel active-experience">
+      <p class="eyebrow">Active Customer / Admin / Editor Experience</p>
+      <h2>This delivery includes clickable app areas, not only a front page.</h2>
+      <p>Open the customer flow, admin dashboard, or generated editor to update content and request more AI features.</p>
+      <div class="hero-actions">
+        <a class="primary" data-live-link="/customer" href="#customer">Open Customer Flow</a>
+        <a class="secondary" data-live-link="/admin" href="#admin">Open Admin Dashboard</a>
+        <a class="secondary" data-live-link="/editor" href="#editor">Open Editor</a>
+      </div>
+    </section>
+
   </main>
 
     <script>
@@ -213,6 +224,21 @@ export async function buildLegalFirmArtifacts(run, outDir) {
           } catch (error) {
             output.textContent = "Feature request saved locally. The live API was not reachable from this preview.";
           }
+        });
+      })();
+    </script>
+
+  
+    <script>
+      (function () {
+        var match = window.location.pathname.match(/OC-[A-Z0-9]+/i);
+        var projectId = match ? match[0].toUpperCase() : "";
+        if (!projectId) return;
+        document.querySelectorAll("[data-live-link]").forEach(function (link) {
+          var target = link.getAttribute("data-live-link") || "/";
+          link.setAttribute("href", "/generated-app/" + projectId + target);
+          link.setAttribute("target", "_blank");
+          link.setAttribute("rel", "noreferrer");
         });
       })();
     </script>
@@ -921,6 +947,167 @@ export async function saveFeatureRequest(input: { request: string; status: strin
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
   </g>
 </svg>`
+    });
+    files.push({
+        file: "data/editable-content.json",
+        title: "Editable Site Content",
+        type: "json",
+        content: JSON.stringify({
+            brand: "Apex Legal Group",
+            type: "legal",
+            hero: {
+                eyebrow: "Full-function generated application",
+                headline: "Apex Legal Group is a full-function legal client platform with consultation intake, practice areas, client portal, case review, and admin operations.",
+                subheadline: "Clients can explore services, request consultations, access client pages, and ask AI for more legal workflow features."
+            },
+            pages: [
+                { label: "Customer", path: "/customer", purpose: "Customer-facing active workflow" },
+                { label: "Admin", path: "/admin", purpose: "Operations dashboard and review center" },
+                { label: "Editor", path: "/editor", purpose: "Editable content and AI feature requests" }
+            ]
+        }, null, 2)
+    }, {
+        file: "lib/content-store.ts",
+        title: "Editable Content Store",
+        content: `import fs from "fs/promises";
+import path from "path";
+import seedContent from "../data/editable-content.json";
+
+const dataDir = path.join(process.cwd(), "data");
+const contentFile = path.join(dataDir, "editable-content.runtime.json");
+
+export async function getEditableContent() {
+  try {
+    return JSON.parse(await fs.readFile(contentFile, "utf8"));
+  } catch {
+    return seedContent;
+  }
+}
+
+export async function saveEditableContent(input: any) {
+  const current = await getEditableContent();
+  const next = {
+    ...current,
+    ...input,
+    updatedAt: new Date().toISOString()
+  };
+  await fs.mkdir(dataDir, { recursive: true });
+  await fs.writeFile(contentFile, JSON.stringify(next, null, 2));
+  return next;
+}
+`
+    }, {
+        file: "app/api/content/route.ts",
+        title: "Editable Content API",
+        content: `import { NextResponse } from "next/server";
+import { getEditableContent, saveEditableContent } from "../../../lib/content-store";
+
+export async function GET() {
+  return NextResponse.json({ ok: true, content: await getEditableContent() });
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const content = await saveEditableContent(body);
+  return NextResponse.json({ ok: true, content });
+}
+`
+    }, {
+        file: "components/EditableContentPanel.tsx",
+        title: "Editable Content Panel",
+        content: `"use client";
+
+import { useEffect, useState } from "react";
+
+export function EditableContentPanel() {
+  const [content, setContent] = useState<any>(null);
+  const [status, setStatus] = useState("Loading editable content...");
+
+  useEffect(() => {
+    fetch("/api/content")
+      .then((response) => response.json())
+      .then((data) => {
+        setContent(data.content);
+        setStatus("Editable content loaded.");
+      })
+      .catch(() => setStatus("Unable to load content."));
+  }, []);
+
+  async function save() {
+    setStatus("Saving changes...");
+    const response = await fetch("/api/content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(content)
+    });
+    const data = await response.json();
+    setContent(data.content);
+    setStatus(data.ok ? "Changes saved. Refresh preview to see updates." : "Save failed.");
+  }
+
+  if (!content) {
+    return <p className="text-zinc-400">{status}</p>;
+  }
+
+  return (
+    <section className="grid gap-5">
+      <label className="grid gap-2">
+        <span className="font-bold">Hero headline</span>
+        <textarea className="input min-h-32" value={content.hero?.headline || ""} onChange={(event) => setContent({ ...content, hero: { ...content.hero, headline: event.target.value } })} />
+      </label>
+      <label className="grid gap-2">
+        <span className="font-bold">Hero subheadline</span>
+        <textarea className="input min-h-32" value={content.hero?.subheadline || ""} onChange={(event) => setContent({ ...content, hero: { ...content.hero, subheadline: event.target.value } })} />
+      </label>
+      <button className="button w-fit" onClick={save}>Save Editable Content</button>
+      <p className="text-zinc-400">{status}</p>
+    </section>
+  );
+}
+`
+    }, {
+        file: "app/customer/page.tsx",
+        title: "Customer Experience Page",
+        content: `import { Hero } from "../../components/Hero";
+import { PracticeAreas } from "../../components/PracticeAreas";
+import { ConsultationIntake } from "../../components/ConsultationIntake";
+import { ClientPortalPreview } from "../../components/ClientPortalPreview";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+import { Footer } from "../../components/Footer";
+
+export default function CustomerPage() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Hero />
+      <PracticeAreas />
+      <ConsultationIntake />
+      <ClientPortalPreview />
+      <AskAIFeatures />
+      <Footer />
+    </main>
+  );
+}
+`
+    }, {
+        file: "app/editor/page.tsx",
+        title: "Generated App Editor",
+        content: `import { EditableContentPanel } from "../../components/EditableContentPanel";
+import { AskAIFeatures } from "../../components/AskAIFeatures";
+
+export default function EditorPage() {
+  return (
+    <main className="min-h-screen bg-black p-8 text-white">
+      <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-300">Generated App Editor</p>
+      <h1 className="mt-4 text-5xl font-black">Edit Apex Legal Group content and request new AI features</h1>
+      <p className="mt-4 max-w-3xl text-zinc-400">Update customer-facing copy, then ask AI to add deeper workflows, dashboards, automations, integrations, and role-based controls.</p>
+      <section className="mt-8 rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+        <EditableContentPanel />
+      </section>
+      <AskAIFeatures />
+    </main>
+  );
+}
+`
     });
     for (const file of files) {
         writeFile(outDir, file.file, file.content);
