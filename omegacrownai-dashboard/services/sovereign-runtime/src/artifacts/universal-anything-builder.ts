@@ -1045,7 +1045,7 @@ export default async function CommerceAdminPage() {
         {products.map((product) => (
           <article key={product.id} className="card">
             <h2 className="text-2xl font-black">{product.name}</h2>
-            <p className="text-zinc-400">{product.category} · {product.stock} in stock · ${product.price}</p>
+            <p className="text-zinc-400">{product.category} · {product.stock} in stock · $ {product.price}</p>
           </article>
         ))}
       </section>
