@@ -39,6 +39,10 @@
     "public/runtime-deployments",
     "public/runtime-deployments/**/*",
     "services/sovereign-runtime/data",
-    "services/sovereign-runtime/data/**/*"
+    "services/sovereign-runtime/data/**/*",
+    "services/sovereign-runtime/generated-apps",
+    "services/sovereign-runtime/generated-apps/**/*",
+    "services/sovereign-runtime/data/artifacts",
+    "services/sovereign-runtime/data/artifacts/**/*"
   ]
 }

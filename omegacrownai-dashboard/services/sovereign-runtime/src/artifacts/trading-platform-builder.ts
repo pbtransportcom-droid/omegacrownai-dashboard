@@ -1123,9 +1123,11 @@ export function EditableContentPanel() {
       file: "app/customer/page.tsx",
       title: "Customer Experience Page",
       content: `import { Hero } from "../../components/Hero";
-import { SignalBoard } from "../../components/SignalBoard";
-import { PortfolioRisk } from "../../components/PortfolioRisk";
+import { SignalReview } from "../../components/SignalReview";
+import { PortfolioTracker } from "../../components/PortfolioTracker";
+import { RiskControls } from "../../components/RiskControls";
 import { TradeJournal } from "../../components/TradeJournal";
+import { BrokerSetup } from "../../components/BrokerSetup";
 import { AskAIFeatures } from "../../components/AskAIFeatures";
 import { Footer } from "../../components/Footer";
 
@@ -1133,9 +1135,11 @@ export default function CustomerPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <Hero />
-      <SignalBoard />
-      <PortfolioRisk />
+      <SignalReview />
+      <PortfolioTracker />
+      <RiskControls />
       <TradeJournal />
+      <BrokerSetup />
       <AskAIFeatures />
       <Footer />
     </main>
