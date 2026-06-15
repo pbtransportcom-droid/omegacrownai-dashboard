@@ -19,23 +19,38 @@ function positivePromptSource(prompt) {
 }
 export function isRestaurantPlatformPrompt(prompt) {
     const source = positivePromptSource(prompt);
-    return [
+    const restaurantCoreTerms = [
         "restaurant",
-        "menu",
-        "online ordering",
-        "ordering",
-        "food",
-        "kitchen",
-        "reservation",
-        "dining",
+        "cafe",
+        "bistro",
+        "diner",
+        "food truck",
+        "bakery",
+        "bar and grill",
+        "pizzeria",
+        "coffee shop"
+    ];
+    const foodOperationTerms = [
+        "digital menu",
+        "food menu",
+        "menu items",
+        "dish",
+        "dishes",
         "chef",
-        "cart",
-        "checkout",
-        "pickup",
-        "delivery",
+        "kitchen",
+        "kitchen queue",
         "table booking",
-        "kitchen queue"
-    ].some((term) => source.includes(term));
+        "book a table",
+        "dining",
+        "takeout",
+        "pickup order",
+        "food delivery",
+        "online food ordering",
+        "restaurant reservation"
+    ];
+    const hasRestaurantCore = restaurantCoreTerms.some((term) => source.includes(term));
+    const hasFoodOps = foodOperationTerms.some((term) => source.includes(term));
+    return hasRestaurantCore || (source.includes("menu") && hasFoodOps);
 }
 export async function buildRestaurantPlatformArtifacts(run, outDir) {
     const now = new Date().toISOString();
