@@ -1,3 +1,5 @@
+import { RuntimePreviewShell } from "./RuntimePreviewShell";
+
 export default async function RuntimePreviewPage({
   params,
 }: {
@@ -5,12 +7,5 @@ export default async function RuntimePreviewPage({
 }) {
   const { projectId } = await params;
 
-  return (
-    <main className="min-h-screen bg-black">
-      <iframe
-        src={`/api/runtime-proxy/runs/${projectId}/preview`}
-        className="h-screen w-full border-0"
-      />
-    </main>
-  );
+  return <RuntimePreviewShell projectId={projectId} />;
 }
