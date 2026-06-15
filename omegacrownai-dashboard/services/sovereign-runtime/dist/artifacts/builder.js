@@ -4,9 +4,30 @@ import { buildSaasLandingArtifacts, isSaasLandingPrompt } from "./saas-landing-b
 import { buildLegalFirmArtifacts, isLegalFirmPrompt } from "./legal-firm-builder.js";
 import { buildTradingPlatformArtifacts, isTradingPlatformPrompt } from "./trading-platform-builder.js";
 import { buildRestaurantPlatformArtifacts, isRestaurantPlatformPrompt } from "./restaurant-platform-builder.js";
+import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./universal-anything-builder.js";
 function write(filePath, content) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
+}
+function isTransportPrompt(prompt) {
+    const source = String(prompt || "").toLowerCase();
+    return [
+        "limo",
+        "limousine",
+        "black car",
+        "chauffeur",
+        "airport transfer",
+        "airport pickup",
+        "airport transportation",
+        "fleet",
+        "ride booking",
+        "transportation company",
+        "sedan service",
+        "executive suv",
+        "o'hare",
+        "ord airport",
+        "midway airport"
+    ].some((term) => source.includes(term));
 }
 function slug(text) {
     return String(text || "project")
@@ -400,6 +421,9 @@ export async function buildArtifacts(run) {
     }
     if (isRestaurantPlatformPrompt(run.prompt || "")) {
         return buildRestaurantPlatformArtifacts(run, outDir);
+    }
+    if (isUniversalAnythingPrompt(run.prompt || "") && !isTransportPrompt(run.prompt || "")) {
+        return buildUniversalAnythingArtifacts(run, outDir);
     }
     const projectName = slug(run.prompt);
     const requestedMode = run.mode || "website";

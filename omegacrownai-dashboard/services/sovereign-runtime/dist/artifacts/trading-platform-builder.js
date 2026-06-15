@@ -19,25 +19,53 @@ function positivePromptSource(prompt) {
         .replace(/without[^.\n]*/g, " ");
 }
 export function isTradingPlatformPrompt(prompt) {
-    const source = positivePromptSource(prompt);
-    return [
-        "king trading system",
-        "stock prediction",
-        "trading",
-        "trade",
-        "portfolio",
+    const source = String(prompt || "").toLowerCase();
+    const ecommerceInventoryPhrases = [
+        "stock status",
+        "in stock",
+        "out of stock",
+        "stock quantity",
+        "inventory stock",
+        "product stock",
+        "stock level",
+        "stock levels"
+    ];
+    if (ecommerceInventoryPhrases.some((term) => source.includes(term))) {
+        const commerceContext = [
+            "e-commerce",
+            "ecommerce",
+            "online store",
+            "product catalog",
+            "shopping cart",
+            "checkout",
+            "stripe",
+            "square",
+            "inventory",
+            "orders",
+            "customers"
+        ].some((term) => source.includes(term));
+        if (commerceContext)
+            return false;
+    }
+    const strongTradingTerms = [
+        "stock trading",
+        "trade stocks",
+        "trading platform",
+        "market signals",
+        "ai signals",
+        "portfolio exposure",
         "broker",
-        "alpaca",
         "watchlist",
-        "signal",
-        "scanner",
-        "forecast",
-        "market",
-        "risk controls",
         "backtest",
-        "trade journal",
         "paper trading",
-    ].some((term) => source.includes(term));
+        "trade journal",
+        "risk controls",
+        "technical indicators",
+        "market scanner",
+        "options trading",
+        "crypto trading"
+    ];
+    return strongTradingTerms.some((term) => source.includes(term));
 }
 export async function buildTradingPlatformArtifacts(run, outDir) {
     const now = new Date().toISOString();
