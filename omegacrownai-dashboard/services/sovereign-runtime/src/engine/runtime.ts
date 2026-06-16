@@ -28,7 +28,10 @@ function safeReadJson(file: string): any | null {
 
 function writeDeliveryManifest(run: RuntimeRun) {
   const projectId = run.projectId;
-  const runtimeRoot = path.resolve(process.cwd(), "services", "sovereign-runtime");
+  const cwd = process.cwd();
+  const runtimeRoot = cwd.endsWith(path.join("services", "sovereign-runtime"))
+    ? cwd
+    : path.resolve(cwd, "services", "sovereign-runtime");
   const artifactDir = path.join(runtimeRoot, "data", "artifacts", projectId);
   const exportsDir = path.join(runtimeRoot, "data", "exports");
   const deploymentsDir = path.join(runtimeRoot, "data", "deployments");
@@ -36,8 +39,22 @@ function writeDeliveryManifest(run: RuntimeRun) {
   const exportPath = path.join(exportsDir, `${projectId}.json`);
 
   fs.mkdirSync(exportsDir, { recursive: true });
+  fs.mkdirSync(deploymentsDir, { recursive: true });
 
-  const deploymentRecord = safeReadJson(deploymentPath);
+  const deploymentRecord =
+    safeReadJson(deploymentPath) || {
+      ok: true,
+      projectId,
+      runtimeId: run.runtimeId,
+      status: "deployed",
+      artifactDir,
+      previewUrl: `/deployed/${projectId}`,
+      runtimePreviewUrl: `/runtime-preview/${projectId}`,
+      downloadUrl: `/api/runtime-proxy/runs/${projectId}/download`,
+      validationUrl: `/api/sovereign/runs/${projectId}/validate`,
+      deployedAt: new Date().toISOString(),
+    };
+  fs.writeFileSync(deploymentPath, JSON.stringify(deploymentRecord, null, 2));
   const metadata = safeReadJson(path.join(artifactDir, "metadata.json"));
   const validation = (run as any).generatedArtifactValidation || run.validation?.generatedArtifacts || null;
 
