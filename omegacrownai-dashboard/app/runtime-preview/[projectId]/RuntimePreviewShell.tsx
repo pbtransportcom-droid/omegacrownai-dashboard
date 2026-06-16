@@ -9,6 +9,13 @@ type ValidationResult = {
   error?: string;
 };
 
+type RuntimeFile = {
+  name: string;
+  path: string;
+  size: number;
+  modifiedAt: string;
+};
+
 export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const staticPreview = `/api/runtime-proxy/runs/${projectId}/preview`;
   const activeApp = `/generated-app/${projectId}`;
@@ -16,11 +23,23 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const [status, setStatus] = useState("Static preview loaded.");
   const [featureRequest, setFeatureRequest] = useState("");
   const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [files, setFiles] = useState<RuntimeFile[]>([]);
+  const [selectedFile, setSelectedFile] = useState("");
+  const [fileContent, setFileContent] = useState("");
+  const [filePanelOpen, setFilePanelOpen] = useState(false);
+  const [fileBusy, setFileBusy] = useState(false);
+  const [fileFilter, setFileFilter] = useState("");
 
   const downloadUrl = useMemo(
     () => `/api/runtime-proxy/runs/${projectId}/download`,
     [projectId]
   );
+
+  const visibleFiles = useMemo(() => {
+    const q = fileFilter.trim().toLowerCase();
+    if (!q) return files;
+    return files.filter((file) => file.path.toLowerCase().includes(q));
+  }, [fileFilter, files]);
 
   async function startApp(path = "") {
     setStatus("Starting active generated app...");
@@ -41,6 +60,29 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
       return true;
     } catch {
       setStatus("Active app start failed. Static preview remains available.");
+      return false;
+    }
+  }
+
+  async function restartActiveApp(path = "") {
+    setStatus("Restarting active generated app...");
+    try {
+      const response = await fetch(`/api/runtime-proxy/runs/${projectId}/restart-app`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data?.ok === false) {
+        setStatus(data?.error || "Active app restart failed.");
+        return false;
+      }
+
+      const nextUrl = `${activeApp}${path}`;
+      setFrameSrc(nextUrl);
+      setStatus("Active app restarted with latest saved files.");
+      return true;
+    } catch {
+      setStatus("Active app restart request failed.");
       return false;
     }
   }
@@ -95,6 +137,90 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
     } catch {
       setStatus("Feature request failed to save.");
     }
+  }
+
+  async function loadFiles() {
+    setFileBusy(true);
+    setStatus("Loading generated artifact files...");
+    try {
+      const response = await fetch(`/api/runtime-proxy/runs/${projectId}/files`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setStatus(data.error || "Could not load generated files.");
+        return;
+      }
+
+      setFiles(data.files || []);
+      setFilePanelOpen(true);
+      setStatus(`Loaded ${(data.files || []).length} generated files.`);
+    } catch {
+      setStatus("File list request failed.");
+    } finally {
+      setFileBusy(false);
+    }
+  }
+
+  async function openFile(filePath: string) {
+    setFileBusy(true);
+    setSelectedFile(filePath);
+    setStatus(`Opening ${filePath}...`);
+    try {
+      const response = await fetch(
+        `/api/runtime-proxy/runs/${projectId}/files/content?file=${encodeURIComponent(filePath)}`,
+        { cache: "no-store" }
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setStatus(data.error || "Could not open file.");
+        return;
+      }
+
+      setFileContent(data.content || "");
+      setStatus(`Opened ${filePath}.`);
+    } catch {
+      setStatus("File content request failed.");
+    } finally {
+      setFileBusy(false);
+    }
+  }
+
+  async function saveFile() {
+    if (!selectedFile) {
+      setStatus("Choose a file before saving.");
+      return;
+    }
+
+    setFileBusy(true);
+    setStatus(`Saving ${selectedFile}...`);
+    try {
+      const response = await fetch(`/api/runtime-proxy/runs/${projectId}/files/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file: selectedFile, content: fileContent }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setStatus(data.error || "File save failed.");
+        return;
+      }
+
+      setStatus(`Saved ${selectedFile}. Restart active app to preview changes.`);
+      await loadFiles();
+    } catch {
+      setStatus("File save request failed.");
+    } finally {
+      setFileBusy(false);
+    }
+  }
+
+  async function saveAndRestart() {
+    await saveFile();
+    await restartActiveApp(selectedFile.endsWith("page.tsx") ? "" : "/editor");
   }
 
   return (
@@ -152,6 +278,13 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
               >
                 Validate
               </button>
+              <button
+                type="button"
+                onClick={loadFiles}
+                className="rounded-full border border-yellow-300/40 px-4 py-2 text-sm font-bold text-yellow-100 hover:bg-yellow-300/10"
+              >
+                Edit Files
+              </button>
               <a
                 href={downloadUrl}
                 className="rounded-full bg-white px-4 py-2 text-sm font-black text-black hover:bg-zinc-200"
@@ -189,11 +322,111 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
         </div>
       </section>
 
+      {filePanelOpen ? (
+        <section className="border-b border-white/10 bg-zinc-950 px-4 py-4">
+          <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[360px_1fr]">
+            <aside className="rounded-3xl border border-white/10 bg-black p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-yellow-200">
+                    Artifact Files
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-400">{files.length} files available</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFilePanelOpen(false)}
+                  className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-zinc-300"
+                >
+                  Hide
+                </button>
+              </div>
+
+              <input
+                value={fileFilter}
+                onChange={(event) => setFileFilter(event.target.value)}
+                placeholder="Filter files..."
+                className="mt-4 w-full rounded-2xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-white outline-none placeholder:text-zinc-600"
+              />
+
+              <div className="mt-4 max-h-[360px] overflow-auto pr-1">
+                {visibleFiles.map((file) => (
+                  <button
+                    key={file.path}
+                    type="button"
+                    onClick={() => openFile(file.path)}
+                    className={`mb-2 block w-full rounded-2xl border px-3 py-2 text-left text-xs transition ${
+                      selectedFile === file.path
+                        ? "border-cyan-300 bg-cyan-300/10 text-cyan-100"
+                        : "border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
+                    }`}
+                  >
+                    <span className="block truncate font-bold">{file.path}</span>
+                    <span className="text-[10px] text-zinc-500">{file.size} bytes</span>
+                  </button>
+                ))}
+              </div>
+            </aside>
+
+            <section className="rounded-3xl border border-white/10 bg-black p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">
+                    File Editor
+                  </p>
+                  <h2 className="mt-1 text-sm font-black">{selectedFile || "Choose a file to edit"}</h2>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={!selectedFile || fileBusy}
+                    onClick={saveFile}
+                    className="rounded-full bg-white px-4 py-2 text-xs font-black text-black disabled:opacity-40"
+                  >
+                    Save File
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!selectedFile || fileBusy}
+                    onClick={saveAndRestart}
+                    className="rounded-full bg-emerald-300 px-4 py-2 text-xs font-black text-black disabled:opacity-40"
+                  >
+                    Save & Restart App
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => restartActiveApp("/editor")}
+                    className="rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-zinc-200"
+                  >
+                    Restart App
+                  </button>
+                  <a
+                    href={downloadUrl}
+                    className="rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-zinc-200"
+                  >
+                    Download Updated ZIP
+                  </a>
+                </div>
+              </div>
+
+              <textarea
+                value={fileContent}
+                onChange={(event) => setFileContent(event.target.value)}
+                spellCheck={false}
+                placeholder="Open a generated file to edit its source..."
+                className="mt-4 h-[420px] w-full rounded-2xl border border-white/10 bg-zinc-950 p-4 font-mono text-xs leading-6 text-zinc-100 outline-none placeholder:text-zinc-600"
+              />
+            </section>
+          </div>
+        </section>
+      ) : null}
+
       <iframe
         key={frameSrc}
         src={frameSrc}
         title={`${projectId} runtime preview`}
-        className="h-[calc(100vh-178px)] w-full border-0 bg-white"
+        className={`w-full border-0 bg-white ${filePanelOpen ? "h-[calc(100vh-610px)] min-h-[360px]" : "h-[calc(100vh-178px)]"}`}
       />
     </main>
   );
