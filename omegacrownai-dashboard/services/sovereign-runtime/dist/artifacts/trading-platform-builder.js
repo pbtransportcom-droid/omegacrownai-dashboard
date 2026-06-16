@@ -779,7 +779,7 @@ export function AskAIFeatures() {
 
   async function submit() {
     setStatus("Saving request...");
-    const response = await fetch("/api/feature-requests", {
+    const response = await fetch(runtimeApiBase() + "/api/feature-requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ request })
@@ -1033,12 +1033,18 @@ export async function POST(request: Request) {
 
 import { useEffect, useState } from "react";
 
+function runtimeApiBase() {
+  if (typeof window === "undefined") return "";
+  const match = window.location.pathname.match(/^\/generated-app\/OC-[A-Z0-9]+/i);
+  return match ? match[0] : "";
+}
+
 export function EditableContentPanel() {
   const [content, setContent] = useState<any>(null);
   const [status, setStatus] = useState("Loading editable content...");
 
   useEffect(() => {
-    fetch("/api/content")
+    fetch(runtimeApiBase() + "/api/content")
       .then((response) => response.json())
       .then((data) => {
         setContent(data.content);
@@ -1049,7 +1055,7 @@ export function EditableContentPanel() {
 
   async function save() {
     setStatus("Saving changes...");
-    const response = await fetch("/api/content", {
+    const response = await fetch(runtimeApiBase() + "/api/content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(content)
