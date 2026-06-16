@@ -12,7 +12,7 @@ async function waitForGeneratedApp(localUrl: string, timeoutMs = 70000) {
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      const response = await fetch(localUrl, {
+      const response = await fetch(localUrl.replace('localhost', '127.0.0.1'), {
         method: "GET",
         cache: "no-store",
       });

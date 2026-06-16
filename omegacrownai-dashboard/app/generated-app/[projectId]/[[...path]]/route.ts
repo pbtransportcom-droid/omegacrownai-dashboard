@@ -70,7 +70,7 @@ async function proxyGeneratedApp(
 
   const url = new URL(req.url);
   const targetPath = "/" + routeParts.join("/");
-  const targetUrl = `http://localhost:${manifest.port}${targetPath}${url.search}`;
+  const targetUrl = `http://127.0.0.1:${manifest.port}${targetPath}${url.search}`;
 
   const headers = new Headers();
   const accept = req.headers.get("accept");
