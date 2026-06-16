@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { spawn } from "child_process";
+import { execFileSync, spawn } from "child_process";
 import http from "http";
 
 const ROOT = process.cwd();
@@ -54,6 +54,15 @@ function checkPort(port: number, pathname = "/") {
 
     req.end();
   });
+}
+
+function killPort(port: number) {
+  try {
+    execFileSync("fuser", ["-k", `${port}/tcp`], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function waitForPortDown(port: number, timeoutMs = 20000) {
@@ -195,6 +204,10 @@ export async function stopGeneratedApp(projectId: string) {
 
   const pid = Number(manifest.pid);
 
+  if (manifest.port) {
+    killPort(Number(manifest.port));
+  }
+
   try {
     process.kill(-pid, "SIGTERM");
   } catch {
@@ -209,6 +222,10 @@ export async function stopGeneratedApp(projectId: string) {
   }
 
   if (!portDown.down) {
+    if (manifest.port) {
+      killPort(Number(manifest.port));
+    }
+
     try {
       process.kill(-pid, "SIGKILL");
     } catch {
