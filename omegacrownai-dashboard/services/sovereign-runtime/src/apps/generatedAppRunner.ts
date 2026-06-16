@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import http from "http";
 
 const ROOT = process.cwd();
 const RUNTIME_ROOT = path.join(ROOT, "services", "sovereign-runtime");
@@ -21,6 +22,34 @@ function portForProject(projectId: string) {
   let hash = 0;
   for (const char of projectId) hash = (hash + char.charCodeAt(0)) % 500;
   return 5200 + hash;
+}
+
+function checkPort(port: number, pathname = "/") {
+  return new Promise<{ reachable: boolean; status?: number; error?: string }>((resolve) => {
+    const req = http.request(
+      {
+        hostname: "127.0.0.1",
+        port,
+        path: pathname,
+        method: "GET",
+        timeout: 2500,
+      },
+      (res) => {
+        res.resume();
+        resolve({ reachable: true, status: res.statusCode });
+      }
+    );
+
+    req.on("timeout", () => {
+      req.destroy(new Error("timeout"));
+    });
+
+    req.on("error", (error) => {
+      resolve({ reachable: false, error: String(error) });
+    });
+
+    req.end();
+  });
 }
 
 export async function prepareGeneratedApp(projectId: string) {
@@ -107,25 +136,33 @@ export function getGeneratedAppManifest(projectId: string) {
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 }
 
-export function getGeneratedAppStatus(projectId: string) {
+export async function getGeneratedAppStatus(projectId: string) {
   const manifest = getGeneratedAppManifest(projectId);
 
   if (!manifest?.pid) {
     return { ok: false, projectId, status: "not-running" };
   }
 
-  let alive = false;
+  let processAlive = false;
   try {
     process.kill(manifest.pid, 0);
-    alive = true;
+    processAlive = true;
   } catch {
-    alive = false;
+    processAlive = false;
   }
+
+  const portCheck = manifest.port
+    ? await checkPort(Number(manifest.port), "/api/content")
+    : { reachable: false, error: "Missing port" };
 
   return {
     ok: true,
     ...manifest,
-    status: alive ? "running" : "stopped",
+    status: portCheck.reachable ? "running" : processAlive ? "starting" : "stopped",
+    processAlive,
+    portReachable: portCheck.reachable,
+    portStatus: portCheck.status,
+    portError: portCheck.error,
     checkedAt: new Date().toISOString(),
   };
 }

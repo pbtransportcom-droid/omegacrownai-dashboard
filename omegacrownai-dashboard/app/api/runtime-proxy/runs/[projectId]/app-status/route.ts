@@ -12,5 +12,5 @@ export async function GET(
     process.cwd() + "/services/sovereign-runtime/dist/apps/generatedAppRunner.js"
   );
 
-  return NextResponse.json(runner.getGeneratedAppStatus(projectId));
+  return NextResponse.json(await runner.getGeneratedAppStatus(projectId));
 }
