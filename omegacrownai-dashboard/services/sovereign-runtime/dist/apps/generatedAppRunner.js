@@ -21,6 +21,9 @@ function portForProject(projectId) {
         hash = (hash + char.charCodeAt(0)) % 500;
     return 5200 + hash;
 }
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 function checkPort(port, pathname = "/") {
     return new Promise((resolve) => {
         const req = http.request({
@@ -41,6 +44,17 @@ function checkPort(port, pathname = "/") {
         });
         req.end();
     });
+}
+async function waitForPortDown(port, timeoutMs = 20000) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+        const check = await checkPort(port, "/api/content");
+        if (!check.reachable) {
+            return { down: true, waitedMs: Date.now() - started };
+        }
+        await sleep(500);
+    }
+    return { down: false, waitedMs: Date.now() - started };
 }
 export async function prepareGeneratedApp(projectId) {
     const artifactDir = path.join(RUNTIME_ROOT, "data", "artifacts", projectId);
@@ -122,25 +136,50 @@ export async function getGeneratedAppStatus(projectId) {
         checkedAt: new Date().toISOString(),
     };
 }
-export function stopGeneratedApp(projectId) {
+export async function stopGeneratedApp(projectId) {
     const manifest = getGeneratedAppManifest(projectId);
     if (!manifest?.pid) {
         return { ok: false, projectId, status: "not-running" };
     }
+    const pid = Number(manifest.pid);
     try {
-        process.kill(manifest.pid, "SIGTERM");
+        process.kill(-pid, "SIGTERM");
     }
-    catch { }
+    catch {
+        try {
+            process.kill(pid, "SIGTERM");
+        }
+        catch { }
+    }
+    let portDown = { down: true, waitedMs: 0 };
+    if (manifest.port) {
+        portDown = await waitForPortDown(Number(manifest.port), 20000);
+    }
+    if (!portDown.down) {
+        try {
+            process.kill(-pid, "SIGKILL");
+        }
+        catch {
+            try {
+                process.kill(pid, "SIGKILL");
+            }
+            catch { }
+        }
+        if (manifest.port) {
+            portDown = await waitForPortDown(Number(manifest.port), 10000);
+        }
+    }
     const stopped = {
         ...manifest,
-        status: "stopped",
+        status: portDown.down ? "stopped" : "stopping-timeout",
+        portDown,
         stoppedAt: new Date().toISOString(),
     };
     fs.writeFileSync(path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`), JSON.stringify(stopped, null, 2));
     return stopped;
 }
 export async function restartGeneratedApp(projectId) {
-    stopGeneratedApp(projectId);
+    await stopGeneratedApp(projectId);
     return startGeneratedApp(projectId);
 }
 export function getGeneratedAppLogs(projectId) {

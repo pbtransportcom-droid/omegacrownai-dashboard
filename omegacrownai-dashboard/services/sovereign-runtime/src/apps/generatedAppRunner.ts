@@ -24,6 +24,10 @@ function portForProject(projectId: string) {
   return 5200 + hash;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function checkPort(port: number, pathname = "/") {
   return new Promise<{ reachable: boolean; status?: number; error?: string }>((resolve) => {
     const req = http.request(
@@ -50,6 +54,21 @@ function checkPort(port: number, pathname = "/") {
 
     req.end();
   });
+}
+
+async function waitForPortDown(port: number, timeoutMs = 20000) {
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const check = await checkPort(port, "/api/content");
+    if (!check.reachable) {
+      return { down: true, waitedMs: Date.now() - started };
+    }
+
+    await sleep(500);
+  }
+
+  return { down: false, waitedMs: Date.now() - started };
 }
 
 export async function prepareGeneratedApp(projectId: string) {
@@ -167,20 +186,46 @@ export async function getGeneratedAppStatus(projectId: string) {
   };
 }
 
-export function stopGeneratedApp(projectId: string) {
+export async function stopGeneratedApp(projectId: string) {
   const manifest = getGeneratedAppManifest(projectId);
 
   if (!manifest?.pid) {
     return { ok: false, projectId, status: "not-running" };
   }
 
+  const pid = Number(manifest.pid);
+
   try {
-    process.kill(manifest.pid, "SIGTERM");
-  } catch {}
+    process.kill(-pid, "SIGTERM");
+  } catch {
+    try {
+      process.kill(pid, "SIGTERM");
+    } catch {}
+  }
+
+  let portDown = { down: true, waitedMs: 0 };
+  if (manifest.port) {
+    portDown = await waitForPortDown(Number(manifest.port), 20000);
+  }
+
+  if (!portDown.down) {
+    try {
+      process.kill(-pid, "SIGKILL");
+    } catch {
+      try {
+        process.kill(pid, "SIGKILL");
+      } catch {}
+    }
+
+    if (manifest.port) {
+      portDown = await waitForPortDown(Number(manifest.port), 10000);
+    }
+  }
 
   const stopped = {
     ...manifest,
-    status: "stopped",
+    status: portDown.down ? "stopped" : "stopping-timeout",
+    portDown,
     stoppedAt: new Date().toISOString(),
   };
 
@@ -193,7 +238,7 @@ export function stopGeneratedApp(projectId: string) {
 }
 
 export async function restartGeneratedApp(projectId: string) {
-  stopGeneratedApp(projectId);
+  await stopGeneratedApp(projectId);
   return startGeneratedApp(projectId);
 }
 
