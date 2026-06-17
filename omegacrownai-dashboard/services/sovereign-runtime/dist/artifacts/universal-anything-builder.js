@@ -80,6 +80,160 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
     const brand = safeBrand(prompt, domain.product);
     const [primarySection, secondarySection, thirdSection, adminSection] = domain.sections;
     const [modelOne, modelTwo, modelThree, modelFour] = domain.models;
+    function isBookstorePrompt(prompt, brand) {
+        const value = `${prompt} ${brand}`.toLowerCase();
+        return (value.includes("bookhaven") ||
+            value.includes("bookstore") ||
+            value.includes("book store") ||
+            value.includes("book catalog") ||
+            value.includes("author page") ||
+            value.includes("author pages"));
+    }
+    function applyBookstoreCommerceSpecialization(files, prompt, brand) {
+        if (!isBookstorePrompt(prompt, brand))
+            return files;
+        const replacePairs = [
+            ["Orange Shop", brand],
+            ["Orange Shop storefront", `${brand} bookstore`],
+            ["Orange Shop Operations", `${brand} Bookstore Operations`],
+            ["Orange Shop order", `${brand} order`],
+            ["fresh oranges", "new releases and bestselling books"],
+            ["Fresh oranges", "New releases and bestselling books"],
+            ["Fresh Oranges", "Bestselling Books"],
+            ["fresh citrus", "curated books"],
+            ["Fresh citrus", "Curated books"],
+            ["citrus", "books"],
+            ["Citrus", "Books"],
+            ["oranges", "books"],
+            ["Oranges", "Books"],
+            ["juice", "audiobooks"],
+            ["Juice", "Audiobooks"],
+            ["gift baskets", "book bundles"],
+            ["Gift baskets", "Book bundles"],
+            ["subscription boxes", "reading subscriptions"],
+            ["Subscription boxes", "Reading subscriptions"],
+            ["Weekly Citrus Box", "Weekly Reading Box"],
+            ["Juice Lover Plan", "Audiobook Lover Plan"],
+            ["seasonal citrus", "seasonal reading picks"],
+            ["premium citrus", "premium book collections"],
+            ["artisan orange treats", "signed editions and reading accessories"],
+            ["fresh fruit", "curated books"],
+            ["product-oranges", "book-bestsellers"],
+            ["product-juice", "book-audiobooks"],
+            ["product-gift", "book-bundles"],
+            ["commerce-hero", "bookstore-hero"],
+            ["Organic options, variants, origin filters, stock status, and premium books descriptions.", "Hardcover, paperback, audiobook, author, genre, stock status, and curated descriptions."],
+            ["Organic options, variants, origin filters, stock status, and premium books descriptions", "Hardcover, paperback, audiobook, author, genre, stock status, and curated descriptions"],
+        ];
+        function rewriteText(input) {
+            let out = input;
+            for (const [from, to] of replacePairs) {
+                out = out.split(from).join(to);
+            }
+            return out;
+        }
+        for (const file of files) {
+            if (typeof file.content === "string") {
+                file.content = rewriteText(file.content);
+            }
+        }
+        const productData = [
+            {
+                id: "bookhaven-bestseller-pack",
+                name: "Bookhaven Bestseller Bundle",
+                category: "Bestsellers",
+                price: 49,
+                stock: 42,
+                format: "Hardcover + paperback",
+                author: "Curated Bookhaven Editors",
+                image: "/images/book-bestsellers.svg",
+                description: "A curated bundle of bestselling fiction, nonfiction, and staff picks for serious readers."
+            },
+            {
+                id: "author-spotlight-collection",
+                name: "Author Spotlight Collection",
+                category: "Author Picks",
+                price: 35,
+                stock: 28,
+                format: "Paperback",
+                author: "Featured Independent Authors",
+                image: "/images/book-author.svg",
+                description: "A rotating collection built around author pages, reader reviews, and signed-edition opportunities."
+            },
+            {
+                id: "audiobook-membership",
+                name: "Audiobook Membership",
+                category: "Audiobooks",
+                price: 19,
+                stock: 999,
+                format: "Digital audiobook",
+                author: "Multiple narrators",
+                image: "/images/book-audiobooks.svg",
+                description: "Monthly audiobook credits with personalized recommendations and reading-list management."
+            },
+            {
+                id: "book-club-box",
+                name: "Book Club Box",
+                category: "Subscriptions",
+                price: 29,
+                stock: 60,
+                format: "Monthly subscription",
+                author: "Bookhaven Book Club",
+                image: "/images/book-bundles.svg",
+                description: "Monthly book club shipment with discussion guide, themed recommendations, and member perks."
+            }
+        ];
+        const products = files.find((entry) => entry.file === "data/products.json");
+        if (products)
+            products.content = JSON.stringify(productData, null, 2);
+        const assetManifest = files.find((entry) => entry.file === "data/asset-manifest.json");
+        if (assetManifest) {
+            assetManifest.content = JSON.stringify({
+                generatedAt: new Date().toISOString(),
+                brand,
+                domain: "bookstore",
+                assets: [
+                    "public/images/bookstore-hero.svg",
+                    "public/images/book-bestsellers.svg",
+                    "public/images/book-author.svg",
+                    "public/images/book-audiobooks.svg",
+                    "public/images/book-bundles.svg"
+                ],
+                imagePrompt: `Create polished bookstore visuals for ${brand}: shelves, book covers, author pages, reading subscriptions, checkout, and admin operations.`
+            }, null, 2);
+        }
+        const heroSvg = files.find((entry) => entry.file === "public/images/commerce-hero.svg");
+        if (heroSvg) {
+            heroSvg.file = "public/images/bookstore-hero.svg";
+            heroSvg.title = "Bookstore Hero Visual";
+            heroSvg.content = svgAsset("Bookstore Hero", `${brand} shelves, featured books, author spotlight, cart, and checkout`, "#0f172a", "#fbbf24");
+        }
+        const orangesSvg = files.find((entry) => entry.file === "public/images/product-oranges.svg");
+        if (orangesSvg) {
+            orangesSvg.file = "public/images/book-bestsellers.svg";
+            orangesSvg.title = "Bestseller Books Visual";
+            orangesSvg.content = svgAsset("Bestsellers", "Hardcover and paperback bestseller collection", "#111827", "#60a5fa");
+        }
+        const juiceSvg = files.find((entry) => entry.file === "public/images/product-juice.svg");
+        if (juiceSvg) {
+            juiceSvg.file = "public/images/book-audiobooks.svg";
+            juiceSvg.title = "Audiobooks Visual";
+            juiceSvg.content = svgAsset("Audiobooks", "Digital audiobook membership and listening library", "#1e1b4b", "#a78bfa");
+        }
+        const giftSvg = files.find((entry) => entry.file === "public/images/product-gift.svg");
+        if (giftSvg) {
+            giftSvg.file = "public/images/book-bundles.svg";
+            giftSvg.title = "Book Bundles Visual";
+            giftSvg.content = svgAsset("Book Bundles", "Book club subscription box and curated reading gifts", "#431407", "#fb923c");
+        }
+        files.push({
+            file: "public/images/book-author.svg",
+            title: "Author Spotlight Visual",
+            type: "svg",
+            content: svgAsset("Author Pages", "Featured authors, bios, signed editions, and reader reviews", "#052e16", "#4ade80")
+        });
+        return files;
+    }
     function svgAsset(title, emoji, bgA = "#fb923c", bgB = "#facc15") {
         return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>

@@ -83,6 +83,155 @@ function artifactTextIncludes(artifacts: GeneratedArtifact[], file: string, term
   return terms.every((term) => content.includes(term.toLowerCase()));
 }
 
+function allArtifactText(artifacts: GeneratedArtifact[]): string {
+  return artifacts
+    .map((artifact) => artifactContent(artifact))
+    .join("\n")
+    .toLowerCase();
+}
+
+function metadataPrompt(artifacts: GeneratedArtifact[]): string {
+  const parsed = parseJsonArtifact(findArtifact(artifacts, "metadata.json"));
+  return String(parsed?.prompt || parsed?.brief || parsed?.description || "").toLowerCase();
+}
+
+function metadataBrand(artifacts: GeneratedArtifact[]): string {
+  const parsed = parseJsonArtifact(findArtifact(artifacts, "metadata.json"));
+  return String(parsed?.brand || parsed?.name || parsed?.product || "").toLowerCase();
+}
+
+function expectedPromptTerms(prompt: string): string[] {
+  const terms: string[] = [];
+
+  const quoted = prompt.match(/["“']([^"”']{3,80})["”']/);
+  if (quoted?.[1]) terms.push(quoted[1].toLowerCase());
+
+  const called = prompt.match(/\b(?:called|named|brand(?:ed)? as)\s+([a-z0-9][a-z0-9 -]{2,60})/i);
+  if (called?.[1]) terms.push(called[1].trim().toLowerCase());
+
+  if (prompt.includes("bookhaven")) terms.push("bookhaven");
+  if (prompt.includes("bookstore") || prompt.includes("book store") || prompt.includes("books")) {
+    terms.push("book");
+  }
+  if (prompt.includes("limo") || prompt.includes("chauffeur") || prompt.includes("airport transfer")) {
+    terms.push("limo");
+  }
+  if (prompt.includes("restaurant") || prompt.includes("menu") || prompt.includes("reservation")) {
+    terms.push("restaurant");
+  }
+  if (prompt.includes("fitness") || prompt.includes("gym") || prompt.includes("trainer")) {
+    terms.push("fitness");
+  }
+  if (prompt.includes("trading") || prompt.includes("stock") || prompt.includes("signals")) {
+    terms.push("trading");
+  }
+
+  return [...new Set(terms)].filter((term) => term.length >= 4);
+}
+
+const forbiddenCommerceDriftByPrompt: Array<{ promptTerms: string[]; forbidden: string[]; label: string }> = [
+  {
+    promptTerms: ["bookhaven", "bookstore", "book store", "books"],
+    forbidden: ["orange shop", "fresh oranges", "citrus", "juice cleanse", "orange crate"],
+    label: "bookstore prompt",
+  },
+  {
+    promptTerms: ["limo", "chauffeur", "airport transfer", "black car"],
+    forbidden: ["orange shop", "bookhaven", "fitness studio", "restaurant menu"],
+    label: "transport prompt",
+  },
+];
+
+function validatePromptMatch(artifacts: GeneratedArtifact[], errors: GeneratedArtifactValidationIssue[]) {
+  const prompt = metadataPrompt(artifacts);
+  const brand = metadataBrand(artifacts);
+  const text = allArtifactText(artifacts);
+  const promptAndBrand = `${prompt}\n${brand}`;
+  const expected = expectedPromptTerms(promptAndBrand);
+
+  for (const term of expected) {
+    if (!text.includes(term) && !brand.includes(term)) {
+      errors.push({
+        level: "error",
+        file: "metadata.json",
+        message: `Generated artifact does not visibly match prompt term: ${term}.`,
+      });
+    }
+  }
+
+  for (const rule of forbiddenCommerceDriftByPrompt) {
+    const applies = rule.promptTerms.some((term) => promptAndBrand.includes(term));
+    if (!applies) continue;
+
+    for (const term of rule.forbidden) {
+      if (text.includes(term)) {
+        errors.push({
+          level: "error",
+          file: "prompt-match",
+          message: `Generated artifact for ${rule.label} contains unrelated drift term: ${term}.`,
+        });
+      }
+    }
+  }
+
+  const isBookstore = ["bookhaven", "bookstore", "book store"].some((term) => promptAndBrand.includes(term));
+  if (isBookstore) {
+    for (const required of ["book", "author", "catalog"]) {
+      if (!text.includes(required)) {
+        errors.push({
+          level: "error",
+          file: "prompt-match",
+          message: `Generated bookstore artifact is missing required bookstore term: ${required}.`,
+        });
+      }
+    }
+  }
+}
+
+function validateVisualAssets(artifacts: GeneratedArtifact[], errors: GeneratedArtifactValidationIssue[]) {
+  const manifest = parseJsonArtifact(findArtifact(artifacts, "data/asset-manifest.json"));
+  const knownFiles = new Set(artifacts.map((artifact) => normalizeArtifactPath(artifactFile(artifact))));
+
+  if (!manifest) {
+    errors.push({
+      level: "error",
+      file: "data/asset-manifest.json",
+      message: "Generated artifact must include a valid visual asset manifest.",
+    });
+    return;
+  }
+
+  const serialized = JSON.stringify(manifest).toLowerCase();
+  if (!serialized.includes("hero")) {
+    errors.push({
+      level: "error",
+      file: "data/asset-manifest.json",
+      message: "Generated visual manifest is missing hero visual reference.",
+    });
+  }
+
+  const assetPaths = JSON.stringify(manifest)
+    .match(/public\/images\/[^"']+\.(?:svg|png|jpg|jpeg|webp)/gi) || [];
+
+  if (assetPaths.length < 3) {
+    errors.push({
+      level: "error",
+      file: "data/asset-manifest.json",
+      message: "Generated visual manifest must include at least three rendered visual assets.",
+    });
+  }
+
+  for (const assetPath of assetPaths) {
+    if (!knownFiles.has(assetPath)) {
+      errors.push({
+        level: "error",
+        file: "data/asset-manifest.json",
+        message: `Generated visual manifest references missing image asset: ${assetPath}.`,
+      });
+    }
+  }
+}
+
 function shouldCheckDrift(file: string): boolean {
   const normalized = normalizeArtifactPath(file);
   return (
@@ -136,6 +285,9 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
 
   const generatedMode = generatedModeFromArtifacts(artifacts);
   const rejectTransportDrift = generatedMode.length > 0 && generatedMode !== "transport";
+
+  validatePromptMatch(artifacts, errors);
+  validateVisualAssets(artifacts, errors);
 
   for (const artifact of artifacts) {
     const file = artifactFile(artifact);
