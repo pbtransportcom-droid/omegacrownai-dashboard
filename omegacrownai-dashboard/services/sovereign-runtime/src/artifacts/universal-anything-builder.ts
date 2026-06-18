@@ -2372,6 +2372,200 @@ export default function EditorPage() {
   }
 
 
+
+  function rewriteBookstoreCommerceFiles() {
+    const promptText = `${prompt} ${brand}`.toLowerCase();
+    const isBookstore =
+      promptText.includes("bookhaven") ||
+      promptText.includes("bookstore") ||
+      promptText.includes("book store") ||
+      promptText.includes("book catalog") ||
+      promptText.includes("author page") ||
+      promptText.includes("author pages");
+
+    if (!isBookstore) return;
+
+    const replacements: Array<[string, string]> = [
+      ["Orange Shop storefront with catalog, cart, checkout, subscriptions, and admin operations.", `${brand} bookstore with book catalog, author pages, cart, checkout, reading subscriptions, and admin operations.`],
+      ["Built for fresh oranges, citrus packs, juices, gift baskets, subscription boxes, promo codes, wishlist, reviews, and order management.", "Built for books, categories, author pages, audiobooks, book bundles, reading subscriptions, promo codes, wishlist, reviews, and order management."],
+      ["Orange Shop citrus hero visual", `${brand} bookstore hero visual`],
+      ["Fresh Oranges", "Bestselling Books"],
+      ["Fresh oranges", "Bestselling books"],
+      ["fresh oranges", "bestselling books"],
+      ["Fresh citrus", "Curated books"],
+      ["fresh citrus", "curated books"],
+      ["citrus packs", "book collections"],
+      ["citrus boxes", "reading lists"],
+      ["citrus box", "reading box"],
+      ["citrus add-ons", "audiobook add-ons"],
+      ["citrus descriptions", "book descriptions"],
+      ["fresh citrus delivery", "book order"],
+      ["fresh citrus", "curated books"],
+      ["seasonal citrus", "seasonal reading picks"],
+      ["premium citrus", "premium book collections"],
+      ["Curated US citrus", "Curated Bookhaven shelves"],
+      ["A colorful mix of oranges, mandarins, grapefruit, and seasonal citrus.", "A curated mix of bestselling fiction, nonfiction, author picks, and new releases."],
+      ["A premium citrus gift basket with fresh fruit, juice, and artisan orange treats.", "A premium book bundle with signed editions, reader accessories, audiobooks, and curated recommendations."],
+      ["Your Orange Shop order is confirmed", `Your ${brand} order is confirmed`],
+      ["Your fresh citrus delivery is being prepared.", "Your book order is being prepared."],
+      ["Weekly Citrus Box", "Weekly Reading Box"],
+      ["Fresh oranges and seasonal citrus delivered weekly.", "Curated books and seasonal reading picks delivered weekly."],
+      ["Juice Lover Plan", "Audiobook Lover Plan"],
+      ["Fresh juice plus rotating citrus add-ons.", "Audiobook credits plus rotating author recommendations."],
+      ["Recurring orange deliveries.", "Recurring reading subscriptions."],
+      ["Customers can save citrus boxes, juice, and gift baskets for later.", "Customers can save books, audiobooks, and book bundles for later."],
+      ["Orange Shop Operations", `${brand} Bookstore Operations`],
+      ["Product catalog with fresh oranges, citrus packs, juice, gift baskets, and subscription boxes", "Book catalog with categories, author pages, audiobooks, book bundles, and reading subscriptions"],
+      ["ORANGE10", "BOOK10"],
+      ["FAMILYBOX", "BOOKCLUB"],
+      ["navel-oranges-5lb", "bookhaven-bestseller-pack"],
+      ["product-oranges", "book-bestsellers"],
+      ["product-juice", "book-audiobooks"],
+      ["product-gift", "book-bundles"],
+      ["commerce-hero", "bookstore-hero"],
+      ["citrus-variety-pack", "bookhaven-bestseller-pack"],
+      ["/images/citrus-variety.jpg", "/images/book-bestsellers.svg"],
+      ["oranges", "books"],
+      ["Oranges", "Books"],
+      ["orange", "book"],
+      ["Orange", "Book"],
+      ["citrus", "books"],
+      ["Citrus", "Books"],
+      ["juice", "audiobooks"],
+      ["Juice", "Audiobooks"],
+      ["gift baskets", "book bundles"],
+      ["Gift baskets", "Book bundles"]
+    ];
+
+    for (const file of files) {
+      if (typeof file.content !== "string") continue;
+      for (const [from, to] of replacements) {
+        file.content = file.content.split(from).join(to);
+      }
+    }
+
+    const productFile = files.find((file) => file.file === "data/products.json");
+    if (productFile) {
+      productFile.content = JSON.stringify([
+        {
+          id: "bookhaven-bestseller-pack",
+          name: "Bookhaven Bestseller Bundle",
+          category: "Bestsellers",
+          price: 49,
+          stock: 42,
+          variants: ["Hardcover", "Paperback", "Signed edition"],
+          author: "Curated Bookhaven Editors",
+          image: "/images/book-bestsellers.svg",
+          description: "A curated bundle of bestselling fiction, nonfiction, author picks, and new releases."
+        },
+        {
+          id: "author-spotlight-collection",
+          name: "Author Spotlight Collection",
+          category: "Author Pages",
+          price: 35,
+          stock: 28,
+          variants: ["Paperback", "Signed edition", "Collector notes"],
+          author: "Featured Independent Authors",
+          image: "/images/book-author.svg",
+          description: "A rotating collection built around author pages, reader reviews, and signed-edition opportunities."
+        },
+        {
+          id: "audiobook-membership",
+          name: "Audiobook Membership",
+          category: "Audiobooks",
+          price: 19,
+          stock: 999,
+          variants: ["Monthly", "Annual", "Family plan"],
+          author: "Multiple narrators",
+          image: "/images/book-audiobooks.svg",
+          description: "Monthly audiobook credits with personalized recommendations and reading-list management."
+        },
+        {
+          id: "book-club-box",
+          name: "Book Club Box",
+          category: "Subscriptions",
+          price: 29,
+          stock: 60,
+          variants: ["Monthly", "Quarterly", "Gift"],
+          author: "Bookhaven Book Club",
+          image: "/images/book-bundles.svg",
+          description: "Monthly book club shipment with discussion guide, themed recommendations, and member perks."
+        }
+      ], null, 2);
+    }
+
+    const manifestFile = files.find((file) => file.file === "data/asset-manifest.json");
+    if (manifestFile) {
+      manifestFile.content = JSON.stringify({
+        generatedAt: new Date().toISOString(),
+        brand,
+        domain: "bookstore",
+        assets: [
+          "public/images/bookstore-hero.svg",
+          "public/images/book-bestsellers.svg",
+          "public/images/book-author.svg",
+          "public/images/book-audiobooks.svg",
+          "public/images/book-bundles.svg"
+        ],
+        imagePrompt: `Create polished bookstore visuals for ${brand}: shelves, book covers, author pages, reading subscriptions, checkout, and admin operations.`
+      }, null, 2);
+    }
+
+    const renameMap: Record<string, { file: string; title: string; label: string; description: string; bg: string; fg: string }> = {
+      "public/images/commerce-hero.svg": {
+        file: "public/images/bookstore-hero.svg",
+        title: "Bookstore Hero Visual",
+        label: "Bookstore Hero",
+        description: `${brand} shelves, book covers, featured authors, cart, and checkout`,
+        bg: "#0f172a",
+        fg: "#fbbf24"
+      },
+      "public/images/product-oranges.svg": {
+        file: "public/images/book-bestsellers.svg",
+        title: "Bestseller Books Visual",
+        label: "Bestsellers",
+        description: "Hardcover and paperback bestseller collection",
+        bg: "#111827",
+        fg: "#60a5fa"
+      },
+      "public/images/product-juice.svg": {
+        file: "public/images/book-audiobooks.svg",
+        title: "Audiobooks Visual",
+        label: "Audiobooks",
+        description: "Digital audiobook membership and listening library",
+        bg: "#1e1b4b",
+        fg: "#a78bfa"
+      },
+      "public/images/product-gift.svg": {
+        file: "public/images/book-bundles.svg",
+        title: "Book Bundles Visual",
+        label: "Book Bundles",
+        description: "Book club subscription box and curated reading gifts",
+        bg: "#431407",
+        fg: "#fb923c"
+      }
+    };
+
+    for (const file of files) {
+      const rename = renameMap[file.file];
+      if (!rename) continue;
+      file.file = rename.file;
+      file.title = rename.title;
+      file.content = svgAsset(rename.label, rename.description, rename.bg, rename.fg);
+    }
+
+    if (!files.some((file) => file.file === "public/images/book-author.svg")) {
+      files.push({
+        file: "public/images/book-author.svg",
+        title: "Author Spotlight Visual",
+        type: "svg",
+        content: svgAsset("Author Pages", "Featured authors, bios, signed editions, and reader reviews", "#052e16", "#4ade80")
+      });
+    }
+  }
+
+  rewriteBookstoreCommerceFiles();
+
   const records: ArtifactRecord[] = [];
 
   for (const file of files) {
