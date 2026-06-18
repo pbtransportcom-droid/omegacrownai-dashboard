@@ -156,6 +156,87 @@ function checkReadmeDelivery(readmeFile: string): ValidationResult {
   };
 }
 
+
+function readArtifactText(root: string, projectId: string) {
+  const artifactDir = path.join(root, "services", "sovereign-runtime", "data", "artifacts", projectId);
+  const chunks: string[] = [];
+
+  function walk(dir: string) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === "node_modules" || entry.name === ".next") continue;
+        walk(full);
+      } else if (/\.(html|tsx|ts|json|md|css)$/i.test(entry.name)) {
+        try {
+          chunks.push(fs.readFileSync(full, "utf8"));
+        } catch {}
+      }
+    }
+  }
+
+  walk(artifactDir);
+  return chunks.join("\n").toLowerCase();
+}
+
+function checkPromptDrift(root: string, projectId: string): ValidationResult {
+  const artifactDir = path.join(root, "services", "sovereign-runtime", "data", "artifacts", projectId);
+  const metadataPath = path.join(artifactDir, "metadata.json");
+  const metadata = readIfExists(metadataPath);
+  const text = readArtifactText(root, projectId);
+  const joined = `${metadata}\n${text}`.toLowerCase();
+
+  const isBookstore =
+    joined.includes("bookhaven") ||
+    joined.includes("bookstore") ||
+    joined.includes("book catalog") ||
+    joined.includes("author pages");
+
+  const forbidden = ["orange shop", "fresh oranges", "fresh citrus", "citrus", "weekly citrus box", "juice lover plan"];
+  const matched = isBookstore ? forbidden.filter((term) => text.includes(term)) : [];
+
+  return {
+    label: "Prompt-match and domain drift",
+    path: artifactDir,
+    exists: fs.existsSync(artifactDir),
+    ok: !isBookstore || matched.length === 0,
+    matched,
+    details: isBookstore
+      ? matched.length === 0
+        ? "Bookstore prompt matched without unrelated commerce drift."
+        : `Bookstore prompt contains unrelated drift terms: ${matched.join(", ")}`
+      : "No bookstore-specific prompt drift check required.",
+  };
+}
+
+function checkVisualManifestAssets(root: string, projectId: string): ValidationResult {
+  const artifactDir = path.join(root, "services", "sovereign-runtime", "data", "artifacts", projectId);
+  const manifestPath = path.join(artifactDir, "data", "asset-manifest.json");
+  const raw = readIfExists(manifestPath);
+  let assets: string[] = [];
+
+  try {
+    const parsed = JSON.parse(raw || "{}");
+    assets = Array.isArray(parsed.assets) ? parsed.assets : [];
+  } catch {}
+
+  const missing = assets.filter((asset) => !fs.existsSync(path.join(artifactDir, asset)));
+  const hasHero = assets.some((asset) => asset.toLowerCase().includes("hero"));
+  const ok = assets.length >= 3 && hasHero && missing.length === 0;
+
+  return {
+    label: "Visual asset manifest integrity",
+    path: manifestPath,
+    exists: fs.existsSync(manifestPath),
+    ok,
+    matched: assets,
+    details: ok
+      ? `${assets.length} visual asset(s) exist and hero visual is present.`
+      : `assets=${assets.length}, hasHero=${hasHero}, missing=${missing.join(", ") || "none"}`,
+  };
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ projectId: string }> }
@@ -215,6 +296,8 @@ export async function GET(
       /^scripts\/smoke-test\.ts$/,
     ]),
     checkReadmeDelivery(readmeFile),
+    checkPromptDrift(root, projectId),
+    checkVisualManifestAssets(root, projectId),
   ];
 
   const passed = results.filter((result) => result.ok).length;
