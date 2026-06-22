@@ -364,32 +364,41 @@ RUN npm run build
 CMD ["npm","run","start"]
 `);
 
-  writeFile(outDir, "README.md", `# ${appName} - Full-Scale Personal Finance App
+  writeFile(outDir, "README.md", `# ${appName} - Full-Stack Production Personal Finance App
 
-Prompt:
-${run.prompt}
+${appName} is a full-stack production package for personal finance management. It includes a customer dashboard, transaction CRUD, settings management, CSV/JSON import and export, Prisma database persistence, API routes, seed data, deployment instructions, admin/editor pages, and smoke tests.
 
-## Included
-- Polished responsive dashboard
-- Income, expense, and savings CRUD
-- Search, filter, sort, monthly navigation, and all-time view
-- Charts, analytics, smart insights, and category breakdowns
-- Settings, budget, savings goal, CSV export, JSON export
-- LocalStorage preview persistence
-- Next.js API scaffold
-- Prisma schema
-- Admin page
-- Editor page
-- Dockerfile
-- Smoke test
-- Asset manifest
+## Included Full-Stack Contract
+
+- Customer app: dashboard, transactions, analytics, insights, settings
+- API routes: transaction collection, transaction detail CRUD, settings, import, export
+- Database: Prisma SQLite schema with Transaction, Setting, Category, Budget, and SavingsGoal models
+- Server layer: Prisma client singleton and finance service layer
+- Operations: .env.example, Dockerfile, README, smoke tests, full-stack smoke test
 
 ## Run
-npm install
-npm run dev
-npm run smoke
-`);
 
+    npm install
+    cp .env.example .env
+    npm run db:generate
+    npm run db:push
+    npm run db:seed
+    npm run build
+    npm run smoke
+    npm run test:fullstack
+    npm run start
+
+## Deployment
+
+Set DATABASE_URL from .env.example, run prisma db push, run prisma db seed, verify npm run test:fullstack, then deploy with Docker or any Next.js hosting target.
+
+## Production Notes
+
+- Use DATABASE_URL for the deployed database connection.
+- Run db:push before first deployment.
+- Run db:seed only for demo or starter data.
+- Use test:fullstack to verify API route files, Prisma models, and backend package structure.
+`);
 
   writeFile(outDir, "lib/db.ts", `import { PrismaClient } from "@prisma/client";
 
