@@ -275,12 +275,12 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         <h2>Orange Shop storefront with catalog, cart, checkout, subscriptions, and admin operations.</h2>
         <p>Built for fresh oranges, citrus packs, juices, gift baskets, subscription boxes, promo codes, wishlist, reviews, and order management.</p>
       </div>
-      <img src="./public/images/commerce-hero.svg" alt="Orange Shop citrus hero visual" />
+      <img src="/runtime-preview/${run.projectId}/public/images/commerce-hero.svg" alt="Orange Shop citrus hero visual" />
     </section>
     <section class="grid rich-grid">
-      <article><img src="./public/images/product-oranges.svg" alt="Fresh oranges" /><h2>Fresh Oranges</h2><p>Organic options, variants, origin filters, stock status, and premium citrus descriptions.</p></article>
-      <article><img src="./public/images/product-juice.svg" alt="Fresh orange juice" /><h2>Fresh Juice</h2><p>Cold-pressed juice products with checkout-ready catalog data.</p></article>
-      <article><img src="./public/images/product-gift.svg" alt="Gift baskets" /><h2>Gift Baskets</h2><p>Seasonal gift offers for families, health-conscious customers, and US gift buyers.</p></article>
+      <article><img src="/runtime-preview/${run.projectId}/public/images/product-oranges.svg" alt="Fresh oranges" /><h2>Fresh Oranges</h2><p>Organic options, variants, origin filters, stock status, and premium citrus descriptions.</p></article>
+      <article><img src="/runtime-preview/${run.projectId}/public/images/product-juice.svg" alt="Fresh orange juice" /><h2>Fresh Juice</h2><p>Cold-pressed juice products with checkout-ready catalog data.</p></article>
+      <article><img src="/runtime-preview/${run.projectId}/public/images/product-gift.svg" alt="Gift baskets" /><h2>Gift Baskets</h2><p>Seasonal gift offers for families, health-conscious customers, and US gift buyers.</p></article>
       <article><h2>Cart + Checkout</h2><p>Realtime cart preview, Stripe/Square placeholder, guest checkout, accounts, and order confirmation emails.</p></article>
       <article><h2>Subscriptions</h2><p>Weekly and monthly delivery plan APIs with recurring citrus box options.</p></article>
       <article><h2>Commerce Admin</h2><p>Manage products, inventory, orders, customers, promo codes, reviews, wishlist, and marketing campaigns.</p></article>
@@ -294,11 +294,11 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         <h2>Class schedules, memberships, trainers, leads, bookings, and studio admin.</h2>
         <p>Built for a neighborhood fitness studio with production-ready frontend, APIs, Prisma schema, admin dashboard, delivery manifest, and downloadable package.</p>
       </div>
-      <img src="./public/images/fitness-hero.svg" alt="Fitness studio hero visual" />
+      <img src="/runtime-preview/${run.projectId}/public/images/fitness-hero.svg" alt="Fitness studio hero visual" />
     </section>
     <section class="grid rich-grid">
-      <article><img src="./public/images/fitness-class.svg" alt="Fitness class" /><h2>Class Schedule</h2><p>Classes by time, trainer, level, days, and capacity.</p></article>
-      <article><img src="./public/images/fitness-trainer.svg" alt="Trainer profile" /><h2>Trainer Profiles</h2><p>Certified trainer cards with specialties and bios.</p></article>
+      <article><img src="/runtime-preview/${run.projectId}/public/images/fitness-class.svg" alt="Fitness class" /><h2>Class Schedule</h2><p>Classes by time, trainer, level, days, and capacity.</p></article>
+      <article><img src="/runtime-preview/${run.projectId}/public/images/fitness-trainer.svg" alt="Trainer profile" /><h2>Trainer Profiles</h2><p>Certified trainer cards with specialties and bios.</p></article>
       <article><h2>Membership Signup</h2><p>Starter, unlimited, and family plans with membership activation API.</p></article>
       <article><h2>Bookings API</h2><p>Class bookings, lead capture, and local persistence demo.</p></article>
       <article><h2>Studio Admin</h2><p>Admin dashboard for classes, trainers, leads, bookings, and memberships.</p></article>
