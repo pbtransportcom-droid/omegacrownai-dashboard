@@ -189,8 +189,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTx()});
 
   writeFile(outDir, "data/asset-manifest.json", JSON.stringify({
     domain: "finance",
+    hero: "public/images/dashboard.svg",
     assets: [
-      { file: "public/images/dashboard.svg", role: "dashboard visual" },
+      { file: "public/images/dashboard.svg", role: "hero visual" },
       { file: "public/images/analytics.svg", role: "analytics visual" },
       { file: "public/images/settings.svg", role: "settings visual" }
     ]
@@ -271,6 +272,13 @@ model Transaction {
 }
 `);
 
+  writeFile(outDir, "global.d.ts", `declare module "*.css";
+declare module "*.svg" {
+  const src: string;
+  export default src;
+}
+`);
+
   writeFile(outDir, "scripts/smoke-test.mjs", `import fs from "fs";
 for (const file of ["index.html","metadata.json","README.md","package.json","app/page.tsx","app/api/transactions/route.ts","data/asset-manifest.json"]) {
   if (!fs.existsSync(file)) throw new Error("Missing " + file);
@@ -283,9 +291,24 @@ console.log("Finance artifact smoke test passed");
 `);
 
   writeFile(outDir, "package.json", JSON.stringify({
-    scripts: { dev: "next dev", build: "next build", start: "next start", smoke: "node scripts/smoke-test.mjs" },
-    dependencies: { "@prisma/client": "latest", "next": "latest", "react": "latest", "react-dom": "latest", "chart.js": "latest" },
-    devDependencies: { prisma: "latest", typescript: "latest" }
+    scripts: {
+      dev: "next dev",
+      build: "next build",
+      start: "next start",
+      smoke: "node scripts/smoke-test.mjs",
+      "db:generate": "prisma generate"
+    },
+    dependencies: {
+      "@prisma/client": "6.19.0",
+      "next": "latest",
+      "react": "latest",
+      "react-dom": "latest",
+      "chart.js": "latest"
+    },
+    devDependencies: {
+      "prisma": "6.19.0",
+      "typescript": "latest"
+    }
   }, null, 2));
 
   writeFile(outDir, "Dockerfile", `FROM node:20-alpine
@@ -337,6 +360,7 @@ npm run smoke
     ["lib/finance-store.ts", "Finance Store", "typescript"],
     ["prisma/schema.prisma", "Prisma Schema", "prisma"],
     ["scripts/smoke-test.mjs", "Smoke Test", "javascript"],
+    ["global.d.ts", "CSS Declaration File", "typescript"],
     ["package.json", "Package Manifest", "json"],
     ["Dockerfile", "Dockerfile", "docker"],
     ["README.md", "README", "markdown"]
