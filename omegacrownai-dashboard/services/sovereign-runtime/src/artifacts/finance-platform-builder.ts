@@ -218,7 +218,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTx()});
 `);
 
   writeFile(outDir, "app/api/transactions/route.ts", `import { NextResponse } from "next/server";
-import { listTransactions, createTransaction } from "../../../lib/finance-store";
+import { createTransaction, listTransactions } from "../../../lib/finance-service";
 
 export async function GET() {
   return NextResponse.json({ transactions: await listTransactions() });
@@ -259,15 +259,55 @@ export async function createTransaction(input: Partial<FinanceTransaction>) {
 }
 `);
 
-  writeFile(outDir, "prisma/schema.prisma", `datasource db { provider = "sqlite"; url = env("DATABASE_URL") }
-generator client { provider = "prisma-client-js" }
+  writeFile(outDir, "prisma/schema.prisma", `datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Transaction {
-  id String @id @default(cuid())
-  type String
-  category String
+  id          String   @id @default(cuid())
+  type        String
+  category    String
   description String
-  amount Float
-  date DateTime
+  amount      Float
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  month     String
+  category  String
+  amount    Float
+  createdAt DateTime @default(now())
+}
+
+model SavingsGoal {
+  id        String   @id @default(cuid())
+  name      String
+  target    Float
+  current   Float    @default(0)
+  deadline  DateTime?
   createdAt DateTime @default(now())
 }
 `);
@@ -296,7 +336,10 @@ console.log("Finance artifact smoke test passed");
       build: "next build",
       start: "next start",
       smoke: "node scripts/smoke-test.mjs",
-      "db:generate": "prisma generate"
+      "db:generate": "prisma generate",
+      "db:push": "prisma db push",
+      "db:seed": "tsx prisma/seed.ts",
+      "test:fullstack": "node scripts/fullstack-smoke.mjs"
     },
     dependencies: {
       "@prisma/client": "6.19.0",
@@ -307,7 +350,8 @@ console.log("Finance artifact smoke test passed");
     },
     devDependencies: {
       "prisma": "6.19.0",
-      "typescript": "latest"
+      "typescript": "latest",
+      "tsx": "latest"
     }
   }, null, 2));
 
@@ -346,6 +390,227 @@ npm run dev
 npm run smoke
 `);
 
+
+  writeFile(outDir, "lib/db.ts", `import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"]
+  });
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+`);
+
+  writeFile(outDir, "lib/finance-service.ts", `import { prisma } from "./db";
+
+export type TransactionInput = {
+  type?: string;
+  category?: string;
+  description?: string;
+  amount?: number;
+  date?: string;
+};
+
+export async function listTransactions() {
+  return prisma.transaction.findMany({ orderBy: { date: "desc" } });
+}
+
+export async function getTransaction(id: string) {
+  return prisma.transaction.findUnique({ where: { id } });
+}
+
+export async function createTransaction(input: TransactionInput) {
+  return prisma.transaction.create({
+    data: {
+      type: input.type || "expense",
+      category: input.category || "General",
+      description: input.description || "Finance transaction",
+      amount: Number(input.amount || 0),
+      date: input.date ? new Date(input.date) : new Date()
+    }
+  });
+}
+
+export async function updateTransaction(id: string, input: TransactionInput) {
+  return prisma.transaction.update({
+    where: { id },
+    data: {
+      ...(input.type ? { type: input.type } : {}),
+      ...(input.category ? { category: input.category } : {}),
+      ...(input.description ? { description: input.description } : {}),
+      ...(typeof input.amount === "number" ? { amount: input.amount } : {}),
+      ...(input.date ? { date: new Date(input.date) } : {})
+    }
+  });
+}
+
+export async function deleteTransaction(id: string) {
+  return prisma.transaction.delete({ where: { id } });
+}
+
+export async function getSettings() {
+  const settings = await prisma.setting.findMany();
+  return Object.fromEntries(settings.map((setting) => [setting.key, setting.value]));
+}
+
+export async function updateSettings(input: Record<string, string | number>) {
+  await Promise.all(
+    Object.entries(input).map(([key, value]) =>
+      prisma.setting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) }
+      })
+    )
+  );
+  return getSettings();
+}
+
+export async function importTransactions(transactions: TransactionInput[]) {
+  const created = [];
+  for (const transaction of transactions) {
+    created.push(await createTransaction(transaction));
+  }
+  return created.length;
+}
+`);
+
+  writeFile(outDir, "app/api/transactions/[id]/route.ts", `import { NextResponse } from "next/server";
+import { deleteTransaction, getTransaction, updateTransaction } from "../../../../lib/finance-service";
+
+export async function GET(_: Request, { params }: { params: { id: string } }) {
+  const transaction = await getTransaction(params.id);
+  if (!transaction) return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
+  return NextResponse.json({ transaction });
+}
+
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const body = await request.json();
+  return NextResponse.json({ transaction: await updateTransaction(params.id, body) });
+}
+
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  await deleteTransaction(params.id);
+  return NextResponse.json({ ok: true });
+}
+`);
+
+  writeFile(outDir, "app/api/settings/route.ts", `import { NextResponse } from "next/server";
+import { getSettings, updateSettings } from "../../../lib/finance-service";
+
+export async function GET() {
+  return NextResponse.json({ settings: await getSettings() });
+}
+
+export async function PATCH(request: Request) {
+  const body = await request.json();
+  return NextResponse.json({ settings: await updateSettings(body) });
+}
+`);
+
+  writeFile(outDir, "app/api/import/route.ts", `import { NextResponse } from "next/server";
+import { importTransactions } from "../../../lib/finance-service";
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  return NextResponse.json({ imported: await importTransactions(body.transactions || []) });
+}
+`);
+
+  writeFile(outDir, "app/api/export/route.ts", `import { NextResponse } from "next/server";
+import { listTransactions } from "../../../lib/finance-service";
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const format = url.searchParams.get("format") || "json";
+  const transactions = await listTransactions();
+
+  if (format === "csv") {
+    const rows = [["date", "type", "category", "description", "amount"], ...transactions.map((transaction) => [
+      transaction.date.toISOString(),
+      transaction.type,
+      transaction.category,
+      transaction.description,
+      String(transaction.amount)
+    ])];
+
+    return new NextResponse(rows.map((row) => row.join(",")).join("\\n"), {
+      headers: {
+        "content-type": "text/csv",
+        "content-disposition": "attachment; filename=transactions.csv"
+      }
+    });
+  }
+
+  return NextResponse.json({ transactions });
+}
+`);
+
+  writeFile(outDir, "prisma/seed.ts", `import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  await prisma.transaction.deleteMany();
+  await prisma.setting.deleteMany();
+
+  await prisma.setting.createMany({
+    data: [
+      { key: "currency", value: "$" },
+      { key: "monthlyBudget", value: "4500" },
+      { key: "savingsGoal", value: "1200" }
+    ]
+  });
+
+  await prisma.transaction.createMany({
+    data: [
+      { type: "income", category: "Salary", description: "Monthly salary", amount: 5400, date: new Date() },
+      { type: "income", category: "Freelance", description: "Consulting income", amount: 850, date: new Date() },
+      { type: "expense", category: "Housing", description: "Rent payment", amount: 1850, date: new Date() },
+      { type: "expense", category: "Food", description: "Groceries", amount: 420, date: new Date() },
+      { type: "expense", category: "Transport", description: "Transit and rides", amount: 210, date: new Date() },
+      { type: "savings", category: "Emergency Fund", description: "Monthly savings", amount: 700, date: new Date() }
+    ]
+  });
+}
+
+main().finally(() => prisma.$disconnect());
+`);
+
+  writeFile(outDir, ".env.example", `DATABASE_URL="file:./dev.db"
+NEXT_PUBLIC_APP_NAME="${appName}"
+`);
+
+  writeFile(outDir, "scripts/fullstack-smoke.mjs", `import fs from "fs";
+
+const required = [
+  "app/api/transactions/route.ts",
+  "app/api/transactions/[id]/route.ts",
+  "app/api/settings/route.ts",
+  "app/api/import/route.ts",
+  "app/api/export/route.ts",
+  "lib/db.ts",
+  "lib/finance-service.ts",
+  "prisma/schema.prisma",
+  "prisma/seed.ts",
+  ".env.example"
+];
+
+for (const file of required) {
+  if (!fs.existsSync(file)) throw new Error("Missing full-stack file: " + file);
+}
+
+const schema = fs.readFileSync("prisma/schema.prisma", "utf8");
+for (const model of ["Transaction", "Setting", "Category", "Budget", "SavingsGoal"]) {
+  if (!schema.includes("model " + model)) throw new Error("Missing Prisma model: " + model);
+}
+
+console.log("Finance full-stack smoke test passed");
+`);
+
   const files = [
     ["index.html", "Finance Full Preview", "html"],
     ["metadata.json", "Finance Metadata", "json"],
@@ -360,6 +625,15 @@ npm run smoke
     ["lib/finance-store.ts", "Finance Store", "typescript"],
     ["prisma/schema.prisma", "Prisma Schema", "prisma"],
     ["scripts/smoke-test.mjs", "Smoke Test", "javascript"],
+    ["scripts/fullstack-smoke.mjs", "Full-Stack Smoke Test", "javascript"],
+    ["app/api/transactions/[id]/route.ts", "Transaction Detail API", "typescript"],
+    ["app/api/settings/route.ts", "Settings API", "typescript"],
+    ["app/api/import/route.ts", "Import API", "typescript"],
+    ["app/api/export/route.ts", "Export API", "typescript"],
+    ["lib/db.ts", "Prisma Client", "typescript"],
+    ["lib/finance-service.ts", "Finance Service Layer", "typescript"],
+    ["prisma/seed.ts", "Database Seed", "typescript"],
+    [".env.example", "Environment Template", "text"],
     ["global.d.ts", "CSS Declaration File", "typescript"],
     ["package.json", "Package Manifest", "json"],
     ["Dockerfile", "Dockerfile", "docker"],
