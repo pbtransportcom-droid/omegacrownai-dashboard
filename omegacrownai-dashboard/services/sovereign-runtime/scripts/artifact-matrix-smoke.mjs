@@ -92,8 +92,8 @@ for (const item of prompts) {
 
   const smokeCandidates = ["scripts/fullstack-smoke.mjs", "scripts/smoke-test.mjs"];
   const runnableSmoke = smokeCandidates.find((file) => fs.existsSync(path.join(outDir, file)));
-  let smokeOk = true;
-  let smokeOutput = "NO_SMOKE_SCRIPT";
+  let smokeOk = Boolean(runnableSmoke);
+  let smokeOutput = runnableSmoke ? "" : "NO_SMOKE_SCRIPT_IS_FAILURE";
   if (runnableSmoke) {
     const { spawnSync } = await import("child_process");
     const result = spawnSync("node", [runnableSmoke], { cwd: outDir, encoding: "utf8" });
