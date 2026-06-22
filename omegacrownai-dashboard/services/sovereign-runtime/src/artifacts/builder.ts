@@ -7,6 +7,83 @@ import { buildRestaurantPlatformArtifacts, isRestaurantPlatformPrompt } from "./
 import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./universal-anything-builder.js";
 import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./finance-platform-builder.js";
 
+
+function ensureArtifactSmokeTest(artifacts: any[]) {
+  const hasSmoke = artifacts.some((artifact) => artifact.file === "scripts/smoke-test.mjs" || artifact.file === "scripts/fullstack-smoke.mjs");
+  if (hasSmoke) return ensureArtifactSmokeTest(artifacts);
+
+  artifacts.push({
+    file: "scripts/smoke-test.mjs",
+    title: "Generated Artifact Smoke Test",
+    type: "javascript",
+    content: `import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const requiredFiles = ["index.html", "metadata.json", "README.md"];
+
+for (const file of requiredFiles) {
+  if (!fs.existsSync(path.join(root, file))) {
+    throw new Error("Missing required file: " + file);
+  }
+}
+
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const refs = Array.from(
+  html.matchAll(/(?:src|href)=["']([^"']+\\.(?:svg|png|jpg|jpeg|webp|gif|json|css|js))["']/gi)
+).map((match) => match[1]);
+
+for (const ref of refs) {
+  if (ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("data:") || ref.startsWith("#")) {
+    continue;
+  }
+
+  const normalized = ref
+    .replace(/^\\/runtime-preview\\/[^/]+\\//, "")
+    .replace(/^\\.\\//, "")
+    .replace(/^\\/+/, "");
+
+  if (!fs.existsSync(path.join(root, normalized))) {
+    throw new Error("Missing referenced asset: " + ref + " -> " + normalized);
+  }
+}
+
+if (fs.existsSync(path.join(root, "data", "asset-manifest.json"))) {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "data", "asset-manifest.json"), "utf8"));
+  const assets = Array.isArray(manifest.assets) ? manifest.assets : [];
+  for (const asset of assets) {
+    if (!asset || typeof asset.file !== "string") continue;
+    const normalized = asset.file
+      .replace(/^\\/runtime-preview\\/[^/]+\\//, "")
+      .replace(/^\\.\\//, "")
+      .replace(/^\\/+/, "");
+    if (!fs.existsSync(path.join(root, normalized))) {
+      throw new Error("Missing manifest asset: " + asset.file + " -> " + normalized);
+    }
+  }
+}
+
+console.log("Generated artifact smoke test passed");`
+  });
+
+  const packageArtifact = artifacts.find((artifact) => artifact.file === "package.json");
+  if (packageArtifact?.content && !packageArtifact.content.includes('"smoke"')) {
+    try {
+      const pkg = JSON.parse(packageArtifact.content);
+      pkg.scripts = {
+        smoke: "node scripts/smoke-test.mjs",
+        ...(pkg.scripts || {})
+      };
+      packageArtifact.content = JSON.stringify(pkg, null, 2);
+    } catch {
+      // Leave non-JSON package artifacts untouched; the smoke file still exists.
+    }
+  }
+
+  return ensureArtifactSmokeTest(artifacts);
+}
+
+
 function write(filePath: string, content: string) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content);
