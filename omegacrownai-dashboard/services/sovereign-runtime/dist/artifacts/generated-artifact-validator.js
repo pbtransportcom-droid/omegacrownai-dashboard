@@ -371,8 +371,7 @@ export function validateGeneratedArtifacts(artifacts) {
         }
         const financePackageJson = parseJsonArtifact(findArtifact(artifacts, "package.json"));
         if (financePackageJson && !financePackageJson.error) {
-            const financePackageValue = financePackageJson.value || financePackageJson;
-            const scripts = financePackageValue.scripts || {};
+            const scripts = financePackageJson.value?.scripts || {};
             if (scripts["db:push"] !== "prisma db push") {
                 errors.push({
                     level: "error",
