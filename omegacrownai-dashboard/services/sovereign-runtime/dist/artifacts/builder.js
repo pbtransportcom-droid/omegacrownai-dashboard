@@ -5,6 +5,7 @@ import { buildLegalFirmArtifacts, isLegalFirmPrompt } from "./legal-firm-builder
 import { buildTradingPlatformArtifacts, isTradingPlatformPrompt } from "./trading-platform-builder.js";
 import { buildRestaurantPlatformArtifacts, isRestaurantPlatformPrompt } from "./restaurant-platform-builder.js";
 import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./universal-anything-builder.js";
+import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./finance-platform-builder.js";
 function write(filePath, content) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
@@ -424,6 +425,9 @@ export async function buildArtifacts(run) {
     }
     if (isUniversalAnythingPrompt(run.prompt || "") && !isTransportPrompt(run.prompt || "")) {
         return buildUniversalAnythingArtifacts(run, outDir);
+    }
+    if (isFinancePlatformPrompt(run.prompt || "")) {
+        return buildFinancePlatformArtifacts(run);
     }
     const projectName = slug(run.prompt);
     const requestedMode = run.mode || "website";
