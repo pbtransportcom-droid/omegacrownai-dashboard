@@ -321,6 +321,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/runtime-preview/${projectId}/" />
   <title>${brand} | ${domain.product}</title>
   <meta name="description" content="${brand} generated as a full-function customer-ready website and app package." />
   <link rel="stylesheet" href="./styles.css" />
