@@ -301,6 +301,107 @@ export function validateGeneratedArtifacts(artifacts) {
             }
         }
     }
+    // Finance full-stack contract: finance apps must ship a real backend package, not only static UI.
+    const isFinanceArtifact = artifactTextIncludes(artifacts, "index.html", ["Transactions", "Savings Rate", "Cash Flow"]) ||
+        artifactTextIncludes(artifacts, "prisma/schema.prisma", ["model Transaction"]);
+    if (isFinanceArtifact) {
+        const requiredFinanceFiles = [
+            "app/api/transactions/route.ts",
+            "app/api/transactions/[id]/route.ts",
+            "app/api/settings/route.ts",
+            "app/api/import/route.ts",
+            "app/api/export/route.ts",
+            "lib/db.ts",
+            "lib/finance-service.ts",
+            "prisma/schema.prisma",
+            "prisma/seed.ts",
+            ".env.example",
+            "scripts/fullstack-smoke.mjs"
+        ];
+        for (const file of requiredFinanceFiles) {
+            if (!findArtifact(artifacts, file)) {
+                errors.push({
+                    level: "error",
+                    file,
+                    message: `Finance full-stack contract is missing ${file}.`
+                });
+            }
+        }
+        if (!artifactTextIncludes(artifacts, "prisma/schema.prisma", ["model Transaction", "model Setting", "model Category", "model Budget", "model SavingsGoal"])) {
+            errors.push({
+                level: "error",
+                file: "prisma/schema.prisma",
+                message: "Finance Prisma schema must include Transaction, Setting, Category, Budget, and SavingsGoal models."
+            });
+        }
+        if (!artifactTextIncludes(artifacts, "lib/db.ts", ["PrismaClient", "prisma"])) {
+            errors.push({
+                level: "error",
+                file: "lib/db.ts",
+                message: "Finance full-stack package must include a Prisma client singleton in lib/db.ts."
+            });
+        }
+        if (!artifactTextIncludes(artifacts, "lib/finance-service.ts", ["listTransactions", "createTransaction", "updateTransaction", "deleteTransaction", "getSettings", "updateSettings", "importTransactions"])) {
+            errors.push({
+                level: "error",
+                file: "lib/finance-service.ts",
+                message: "Finance service layer must include transaction CRUD, settings, and import operations."
+            });
+        }
+        if (!artifactTextIncludes(artifacts, "app/api/transactions/[id]/route.ts", ["GET", "PATCH", "DELETE"])) {
+            errors.push({
+                level: "error",
+                file: "app/api/transactions/[id]/route.ts",
+                message: "Finance transaction detail route must expose GET, PATCH, and DELETE handlers."
+            });
+        }
+        if (!artifactTextIncludes(artifacts, "app/api/export/route.ts", ["text/csv", "NextResponse.json", "transactions"])) {
+            errors.push({
+                level: "error",
+                file: "app/api/export/route.ts",
+                message: "Finance export route must support CSV and JSON export."
+            });
+        }
+        if (!artifactTextIncludes(artifacts, "scripts/fullstack-smoke.mjs", ["Finance full-stack smoke test passed", "Transaction", "Setting", "Category", "Budget", "SavingsGoal"])) {
+            errors.push({
+                level: "error",
+                file: "scripts/fullstack-smoke.mjs",
+                message: "Finance full-stack smoke test must verify required API files and Prisma models."
+            });
+        }
+        const financePackageJson = parseJsonArtifact(findArtifact(artifacts, "package.json"));
+        if (financePackageJson && !financePackageJson.error) {
+            const scripts = financePackageJson.value?.scripts || {};
+            if (scripts["db:push"] !== "prisma db push") {
+                errors.push({
+                    level: "error",
+                    file: "package.json",
+                    message: "Finance package.json must include db:push script."
+                });
+            }
+            if (scripts["db:seed"] !== "tsx prisma/seed.ts") {
+                errors.push({
+                    level: "error",
+                    file: "package.json",
+                    message: "Finance package.json must include db:seed script."
+                });
+            }
+            if (scripts["test:fullstack"] !== "node scripts/fullstack-smoke.mjs") {
+                errors.push({
+                    level: "error",
+                    file: "package.json",
+                    message: "Finance package.json must include test:fullstack script."
+                });
+            }
+        }
+        if (!artifactTextIncludes(artifacts, "README.md", ["prisma", "db:push", "db:seed", "full-stack", "deployment"])) {
+            errors.push({
+                level: "error",
+                file: "README.md",
+                message: "Finance README must document full-stack database setup and deployment."
+            });
+        }
+    }
     const globalDts = findArtifact(artifacts, "global.d.ts");
     if (!globalDts) {
         errors.push({
