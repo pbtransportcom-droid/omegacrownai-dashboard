@@ -149,6 +149,52 @@ function validatePromptMatch(artifacts, errors) {
 }
 function validateVisualAssets(artifacts, errors) {
     const manifest = parseJsonArtifact(findArtifact(artifacts, "data/asset-manifest.json"));
+    const artifactFileSet = new Set(artifacts
+        .map((artifact) => artifact.file || artifact.path || "")
+        .filter(Boolean));
+    function normalizeReferencedAsset(file) {
+        return file
+            .replace(/^\/+/, "")
+            .replace(/^\.\//, "")
+            .replace(/^runtime-preview\/[^/]+\//, "");
+    }
+    function assertReferencedAssetExists(file, sourceFile) {
+        if (!file || file.startsWith("http://") || file.startsWith("https://") || file.startsWith("data:") || file.startsWith("#")) {
+            return;
+        }
+        const normalized = normalizeReferencedAsset(file);
+        if (!/\.(svg|png|jpg|jpeg|webp|gif|json|css|js)$/i.test(normalized)) {
+            return;
+        }
+        if (!artifactFileSet.has(normalized)) {
+            errors.push({
+                level: "error",
+                file: sourceFile,
+                message: `Referenced visual asset must exist as a generated artifact: ${normalized}.`
+            });
+        }
+    }
+    if (manifest && !manifest.error) {
+        const manifestValue = manifest.value || manifest;
+        for (const key of ["hero", "preview", "thumbnail"]) {
+            if (typeof manifestValue?.[key] === "string") {
+                assertReferencedAssetExists(manifestValue[key], "data/asset-manifest.json");
+            }
+        }
+        const manifestAssets = Array.isArray(manifestValue?.assets) ? manifestValue.assets : [];
+        for (const asset of manifestAssets) {
+            if (typeof asset?.file === "string") {
+                assertReferencedAssetExists(asset.file, "data/asset-manifest.json");
+            }
+        }
+    }
+    const htmlForReferencedAssets = findArtifact(artifacts, "index.html");
+    if (htmlForReferencedAssets?.content) {
+        const referencedAssets = Array.from(htmlForReferencedAssets.content.matchAll(/(?:src|href)=["']([^"']+\.(?:svg|png|jpg|jpeg|webp|gif|json|css|js))["']/gi)).map((match) => match[1]);
+        for (const file of referencedAssets) {
+            assertReferencedAssetExists(file, "index.html");
+        }
+    }
     const knownFiles = new Set(artifacts.map((artifact) => normalizeArtifactPath(artifactFile(artifact))));
     if (!manifest) {
         errors.push({
