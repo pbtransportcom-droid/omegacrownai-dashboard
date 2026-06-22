@@ -449,12 +449,12 @@ export async function buildArtifacts(run: any) {
     return buildRestaurantPlatformArtifacts(run, outDir);
   }
 
-  if (isUniversalAnythingPrompt(run.prompt || "") && !isTransportPrompt(run.prompt || "")) {
-    return buildUniversalAnythingArtifacts(run, outDir);
-  }
-
   if (isFinancePlatformPrompt(run.prompt || "")) {
     return buildFinancePlatformArtifacts(run);
+  }
+
+  if (isUniversalAnythingPrompt(run.prompt || "") && !isTransportPrompt(run.prompt || "")) {
+    return buildUniversalAnythingArtifacts(run, outDir);
   }
 
   const projectName = slug(run.prompt);
