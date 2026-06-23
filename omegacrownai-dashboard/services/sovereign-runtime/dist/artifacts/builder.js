@@ -9,7 +9,7 @@ import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./financ
 function ensureArtifactSmokeTest(artifacts) {
     const hasSmoke = artifacts.some((artifact) => artifact.file === "scripts/smoke-test.mjs" || artifact.file === "scripts/fullstack-smoke.mjs");
     if (hasSmoke)
-        return ensureArtifactSmokeTest(artifacts);
+        return artifacts;
     artifacts.push({
         file: "scripts/smoke-test.mjs",
         title: "Generated Artifact Smoke Test",
@@ -2959,10 +2959,10 @@ Tagline: ${tagline}
     for (const file of files) {
         write(path.join(outDir, file.file), file.content);
     }
-    return files.map((file) => ({
+    return ensureArtifactSmokeTest(files.map((file) => ({
         type: file.type,
         title: file.title,
         path: path.join(outDir, file.file),
         status: "generated"
-    }));
+    })));
 }
