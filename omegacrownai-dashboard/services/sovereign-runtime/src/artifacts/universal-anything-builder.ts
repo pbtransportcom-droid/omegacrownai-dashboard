@@ -2568,6 +2568,26 @@ export default function EditorPage() {
 
   const records: ArtifactRecord[] = [];
 
+
+  files.push({
+    file: "scripts/smoke-test.mjs",
+    title: "Universal Artifact Smoke Test",
+    type: "javascript",
+    content: `import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const requiredFiles = ["index.html", "metadata.json", "README.md"];
+
+for (const file of requiredFiles) {
+  if (!fs.existsSync(path.join(root, file))) {
+    throw new Error("Missing required file: " + file);
+  }
+}
+
+console.log("Universal artifact smoke test passed");`
+  });
+
   for (const file of files) {
     writeFile(outDir, file.file, file.content);
     records.push(artifact(outDir, file.file, file.title, file.type));
