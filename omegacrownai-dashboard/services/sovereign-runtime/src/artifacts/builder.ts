@@ -8,6 +8,67 @@ import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./un
 import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./finance-platform-builder.js";
 
 
+
+function ensureSmokeTestFileOnDisk(outDir: string) {
+  const scriptsDir = path.join(outDir, "scripts");
+  const smokeFile = path.join(scriptsDir, "smoke-test.mjs");
+  const fullstackSmokeFile = path.join(scriptsDir, "fullstack-smoke.mjs");
+
+  if (fs.existsSync(smokeFile) || fs.existsSync(fullstackSmokeFile)) {
+    return;
+  }
+
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  fs.writeFileSync(smokeFile, `import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const requiredFiles = ["index.html", "metadata.json", "README.md"];
+
+for (const file of requiredFiles) {
+  if (!fs.existsSync(path.join(root, file))) {
+    throw new Error("Missing required file: " + file);
+  }
+}
+
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const refs = Array.from(html.matchAll(/(?:src|href)=["']([^"']+\\.(?:svg|png|jpg|jpeg|webp|gif|json|css|js))["']/gi)).map((match) => match[1]);
+
+for (const ref of refs) {
+  if (ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("data:") || ref.startsWith("#")) continue;
+
+  const normalized = ref
+    .replace(/^\\/runtime-preview\\/[^/]+\\//, "")
+    .replace(/^\\.\\//, "")
+    .replace(/^\\/+/, "");
+
+  if (!fs.existsSync(path.join(root, normalized))) {
+    throw new Error("Missing referenced asset: " + ref + " -> " + normalized);
+  }
+}
+
+const manifestPath = path.join(root, "data", "asset-manifest.json");
+if (fs.existsSync(manifestPath)) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const assets = Array.isArray(manifest.assets) ? manifest.assets : [];
+
+  for (const asset of assets) {
+    if (!asset || typeof asset.file !== "string") continue;
+
+    const normalized = asset.file
+      .replace(/^\\/runtime-preview\\/[^/]+\\//, "")
+      .replace(/^\\.\\//, "")
+      .replace(/^\\/+/, "");
+
+    if (!fs.existsSync(path.join(root, normalized))) {
+      throw new Error("Missing manifest asset: " + asset.file + " -> " + normalized);
+    }
+  }
+}
+
+console.log("Generated artifact smoke test passed");`);
+}
+
 function ensureArtifactSmokeTest(artifacts: any[]) {
   const hasSmoke = artifacts.some((artifact) => artifact.file === "scripts/smoke-test.mjs" || artifact.file === "scripts/fullstack-smoke.mjs");
   if (hasSmoke) return artifacts;
@@ -3020,6 +3081,8 @@ Tagline: ${tagline}
   for (const file of filesWithSmoke) {
     write(path.join(outDir, file.file), file.content);
   }
+
+  ensureSmokeTestFileOnDisk(outDir);
 
   return filesWithSmoke.map((file) => ({
     type: file.type,
