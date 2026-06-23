@@ -2956,13 +2956,14 @@ Tagline: ${tagline}
             catch { }
         }
     }
-    for (const file of files) {
+    const filesWithSmoke = ensureArtifactSmokeTest(files);
+    for (const file of filesWithSmoke) {
         write(path.join(outDir, file.file), file.content);
     }
-    return ensureArtifactSmokeTest(files.map((file) => ({
+    return filesWithSmoke.map((file) => ({
         type: file.type,
         title: file.title,
         path: path.join(outDir, file.file),
         status: "generated"
-    })));
+    }));
 }
