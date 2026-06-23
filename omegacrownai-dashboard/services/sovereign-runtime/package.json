@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "qa:artifact-matrix": "node scripts/artifact-matrix-smoke.mjs",
     "qa:artifact-live-fast": "node scripts/artifact-live-fast-smoke.mjs",
-    "qa:artifact-live-fast:live": "LIVE_CHECK=1 node scripts/artifact-live-fast-smoke.mjs"
+    "qa:artifact-live-fast:live": "LIVE_CHECK=1 node scripts/artifact-live-fast-smoke.mjs",
+    "qa:artifact-release": "npm run build && npm run qa:artifact-matrix && npm run qa:artifact-live-fast:live"
   },
   "dependencies": {
     "bullmq": "^5.34.5",
