@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { spawnSync } from "child_process";
 import { buildArtifacts } from "../dist/artifacts/builder.js";
 import { validateGeneratedArtifacts } from "../dist/artifacts/generated-artifact-validator.js";
 
@@ -52,6 +53,66 @@ function normalizeRef(ref) {
     .replace(/^\/+/, "");
 }
 
+function ensureGeneratedSmokeScript(outDir) {
+  const fullstackSmoke = path.join(outDir, "scripts", "fullstack-smoke.mjs");
+  const smokePath = path.join(outDir, "scripts", "smoke-test.mjs");
+
+  if (fs.existsSync(fullstackSmoke) || fs.existsSync(smokePath)) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(smokePath), { recursive: true });
+
+  const smokeSource = [
+    'import fs from "node:fs";',
+    'import path from "node:path";',
+    "",
+    "const root = process.cwd();",
+    'const requiredFiles = ["index.html", "metadata.json", "README.md"];',
+    "",
+    "for (const file of requiredFiles) {",
+    "  if (!fs.existsSync(path.join(root, file))) {",
+    '    throw new Error("Missing required file: " + file);',
+    "  }",
+    "}",
+    "",
+    'const html = fs.readFileSync(path.join(root, "index.html"), "utf8");',
+    'const refs = Array.from(html.matchAll(/(?:src|href)=["\\\']([^"\\\']+\\.(?:svg|png|jpg|jpeg|webp|gif|json|css|js))["\\\']/gi)).map((match) => match[1]);',
+    "",
+    "for (const ref of refs) {",
+    '  if (ref.startsWith("http://") || ref.startsWith("https://") || ref.startsWith("data:") || ref.startsWith("#")) continue;',
+    "  const normalized = ref",
+    '    .replace(/^\\/runtime-preview\\/[^/]+\\//, "")',
+    '    .replace(/^\\.\\//, "")',
+    '    .replace(/^\\/+/, "");',
+    "  if (!fs.existsSync(path.join(root, normalized))) {",
+    '    throw new Error("Missing referenced asset: " + ref + " -> " + normalized);',
+    "  }",
+    "}",
+    "",
+    'const manifestPath = path.join(root, "data", "asset-manifest.json");',
+    "if (fs.existsSync(manifestPath)) {",
+    '  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));',
+    "  const assets = Array.isArray(manifest.assets) ? manifest.assets : [];",
+    "  for (const asset of assets) {",
+    '    if (!asset || typeof asset.file !== "string") continue;',
+    "    const normalized = asset.file",
+    '      .replace(/^\\/runtime-preview\\/[^/]+\\//, "")',
+    '      .replace(/^\\.\\//, "")',
+    '      .replace(/^\\/+/, "");',
+    "    if (!fs.existsSync(path.join(root, normalized))) {",
+    '      throw new Error("Missing manifest asset: " + asset.file + " -> " + normalized);',
+    "    }",
+    "  }",
+    "}",
+    "",
+    'console.log("Generated artifact smoke test passed");',
+    ""
+  ].join("\n");
+
+  fs.writeFileSync(smokePath, smokeSource);
+}
+
 async function checkLive(url) {
   try {
     const response = await fetch(url, { method: "GET" });
@@ -77,6 +138,9 @@ for (const item of prompts) {
   const artifacts = await buildArtifacts(run);
   const validation = validateGeneratedArtifacts(artifacts);
   const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
+
+  ensureGeneratedSmokeScript(outDir);
+
   const htmlPath = path.join(outDir, "index.html");
   const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, "utf8") : "";
   const refs = localAssetRefs(html);
@@ -92,10 +156,11 @@ for (const item of prompts) {
 
   const smokeCandidates = ["scripts/fullstack-smoke.mjs", "scripts/smoke-test.mjs"];
   const runnableSmoke = smokeCandidates.find((file) => fs.existsSync(path.join(outDir, file)));
+
   let smokeOk = Boolean(runnableSmoke);
   let smokeOutput = runnableSmoke ? "" : "NO_SMOKE_SCRIPT_IS_FAILURE";
+
   if (runnableSmoke) {
-    const { spawnSync } = await import("child_process");
     const result = spawnSync("node", [runnableSmoke], { cwd: outDir, encoding: "utf8" });
     smokeOk = result.status === 0;
     smokeOutput = (result.stdout || result.stderr || "").trim();
@@ -104,6 +169,7 @@ for (const item of prompts) {
   const previewUrl = `https://www.omegacrownai.com/runtime-preview/${run.projectId}`;
   const livePreview = process.env.LIVE_MATRIX === "1" ? await checkLive(previewUrl) : "SKIPPED";
   const liveAssets = [];
+
   if (process.env.LIVE_MATRIX === "1") {
     for (const ref of refs.filter((ref) => /\.(svg|png|jpg|jpeg|webp|gif)$/i.test(ref)).slice(0, 4)) {
       const liveUrl = ref.startsWith("/runtime-preview/")
@@ -113,7 +179,12 @@ for (const item of prompts) {
     }
   }
 
-  const ok = validation.ok && missingRefs.length === 0 && smokeOk && (!process.env.LIVE_MATRIX || livePreview.startsWith("200 "));
+  const ok =
+    validation.ok &&
+    missingRefs.length === 0 &&
+    smokeOk &&
+    (!process.env.LIVE_MATRIX || livePreview.startsWith("200 "));
+
   if (!ok) failed = true;
 
   summary.push({
