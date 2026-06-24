@@ -989,16 +989,16 @@ a {
           dependencies: {
             "@prisma/client": "6.19.0",
             "prisma": "6.19.0",
-            "@types/node": "latest",
-            "@types/react": "latest",
-            "@types/react-dom": "latest",
-            "autoprefixer": "latest",
-            "next": "latest",
-            "postcss": "latest",
-            "react": "latest",
-            "react-dom": "latest",
-            "tailwindcss": "latest",
-            "typescript": "latest",
+            "@types/node": "22.10.2",
+            "@types/react": "19.0.2",
+            "@types/react-dom": "19.0.2",
+            "autoprefixer": "10.4.20",
+            "next": "15.0.4",
+            "postcss": "8.4.49",
+            "react": "19.0.0",
+            "react-dom": "19.0.0",
+            "tailwindcss": "3.4.17",
+            "typescript": "5.7.2",
             "tsx": "latest"
           }
         },
@@ -1977,6 +1977,8 @@ main()
   { id: "VEH-SUV", name: "${profile.modeItemTwo}", status: "available" },
   { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree}", status: "available" },
 ];
+
+import fleet from "../../data/fleet.json";
 
 export function listFleet() {
   return fleet;

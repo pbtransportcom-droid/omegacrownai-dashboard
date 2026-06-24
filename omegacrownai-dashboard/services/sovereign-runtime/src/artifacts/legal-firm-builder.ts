@@ -302,13 +302,13 @@ export async function buildLegalFirmArtifacts(run: any, outDir: string) {
   "dependencies": {
     "@prisma/client": "6.19.0",
     "prisma": "6.19.0",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "typescript": "latest",
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "next": "15.0.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "5.7.2",
     "tsx": "latest"
   }
 }`,

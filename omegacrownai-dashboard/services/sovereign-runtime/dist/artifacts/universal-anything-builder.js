@@ -493,12 +493,12 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
                 dependencies: {
                     "@prisma/client": "6.19.0",
                     prisma: "6.19.0",
-                    "@types/node": "latest",
-                    "@types/react": "latest",
-                    "@types/react-dom": "latest",
+                    "@types/node": "22.10.2",
+                    "@types/react": "19.0.2",
+                    "@types/react-dom": "19.0.2",
                     next: "latest",
                     react: "latest",
-                    "react-dom": "latest",
+                    "react-dom": "19.0.0",
                     typescript: "latest",
                     tsx: "latest"
                 }
