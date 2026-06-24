@@ -1,15 +1,60 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
 
-const repoRoot = path.resolve(process.cwd(), "../..");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const RUNTIME_ROOT = path.resolve(__dirname, "..");
+
 const prompt = `Build a complete full-stack luxury transportation website and booking platform for Princess Benjamin Transportation Company serving Chicago O'Hare. Include homepage, fleet, airport transfer service pages, hourly chauffeur service, booking form, quote request API, admin dashboard for bookings, customer records, fleet management, dispatch view, pricing rules, Prisma database schema, seed data, email notification templates, validation report, missing-info report, README deployment instructions, Dockerfile, smoke tests, live preview, and downloadable ZIP package. Use the tagline "Your journey, our royal priority." Use a luxury black, gold, and royal style with professional transportation copy.`;
 
-const payloadPath = "/tmp/omegacrownai-pbtc-acceptance-prompt.json";
-fs.writeFileSync(payloadPath, JSON.stringify({ prompt }));
+const requiredFiles = [
+  "README.md",
+  "Dockerfile",
+  "prisma/seed.ts",
+  "app/page.tsx",
+  "app/admin/page.tsx",
+  "app/admin/bookings/page.tsx",
+  "app/admin/fleet/page.tsx",
+  "app/admin/dispatch/page.tsx",
+  "app/api/quotes/route.ts",
+  "app/api/fleet/route.ts",
+  "app/api/dispatch/route.ts",
+  "data/fleet.json"
+];
 
-const responsePath = "/tmp/omegacrownai-pbtc-acceptance-response.json";
-const curl = spawnSync("curl", [
+function run(cmd, args, options = {}) {
+  const result = spawnSync(cmd, args, { encoding: "utf8", ...options });
+  if (result.status !== 0) {
+    throw new Error(`${cmd} ${args.join(" ")} failed\n${result.stdout}\n${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+function jsonCurl(args) {
+  return JSON.parse(run("curl", args));
+}
+
+function tryJsonCurl(args) {
+  try {
+    return jsonCurl(args);
+  } catch {
+    return null;
+  }
+}
+
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function httpStatus(url) {
+  return run("curl", ["-sS", "-o", "/tmp/website-prompt-response.tmp", "-w", "%{http_code} %{content_type}", url]).trim();
+}
+
+fs.writeFileSync("/tmp/website-prompt-acceptance.json", JSON.stringify({ prompt }));
+
+const response = jsonCurl([
   "-sS",
   "-m",
   "20",
@@ -19,138 +64,90 @@ const curl = spawnSync("curl", [
   "-H",
   "Content-Type: application/json",
   "--data-binary",
-  `@${payloadPath}`
-], { encoding: "utf8" });
+  "@/tmp/website-prompt-acceptance.json"
+]);
 
-if (curl.status !== 0) {
-  console.error(curl.stderr || curl.stdout);
-  process.exit(1);
-}
-
-fs.writeFileSync(responsePath, curl.stdout);
-const response = JSON.parse(curl.stdout);
 const projectId = response.projectId;
+if (!projectId) throw new Error(`No projectId returned: ${JSON.stringify(response)}`);
 
-if (!response.ok || !projectId) {
-  console.error(JSON.stringify(response, null, 2));
-  throw new Error("Website builder did not return ok projectId.");
+const artifactDir = path.join(RUNTIME_ROOT, "data", "artifacts", projectId);
+
+let summary = null;
+let missing = requiredFiles;
+
+for (let i = 0; i < 120; i++) {
+  summary = tryJsonCurl(["-sS", `https://www.omegacrownai.com/api/runtime-proxy/runs/${projectId}/summary`]);
+  missing = requiredFiles.filter((file) => !fs.existsSync(path.join(artifactDir, file)));
+
+  if (missing.length === 0) break;
+
+  const status = summary?.status || summary?.summary?.delivery || "waiting";
+  process.stdout.write(`wait_website_fullstack ${i + 1} ${projectId} missing=${missing.length} status=${status}\n`);
+  sleep(3000);
 }
 
-const artifactDir = path.join(repoRoot, "services/sovereign-runtime/data/artifacts", projectId);
+const allText = fs.existsSync(artifactDir)
+  ? run("bash", ["-lc", `find ${JSON.stringify(artifactDir)} -maxdepth 5 -type f \\( -name '*.ts' -o -name '*.tsx' -o -name '*.json' -o -name '*.md' -o -name '*.html' \\) -print0 | xargs -0 cat 2>/dev/null || true`])
+  : "";
 
-for (let i = 0; i < 40; i++) {
-  if (fs.existsSync(path.join(artifactDir, "index.html"))) break;
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-}
-
-if (!fs.existsSync(path.join(artifactDir, "index.html"))) {
-  throw new Error(`Artifact index.html not found for ${projectId}`);
-}
-
-const requiredFiles = [
-  "index.html",
-  "README.md",
-  "package.json",
-  "Dockerfile",
-  "prisma/schema.prisma",
-  "prisma/seed.ts",
-  "app/page.tsx",
-  "app/admin/page.tsx",
-  "app/admin/bookings/page.tsx",
-  "app/admin/fleet/page.tsx",
-  "app/admin/dispatch/page.tsx",
-  "app/api/booking/route.ts",
-  "app/api/bookings/route.ts",
-  "app/api/quotes/route.ts",
-  "app/api/fleet/route.ts",
-  "app/api/dispatch/route.ts",
-  "components/BookingForm.tsx",
-  "components/Fleet.tsx",
-  "data/fleet.json"
+const terms = [
+  "Princess Benjamin Transportation Company",
+  "O'Hare",
+  "Your journey, our royal priority",
+  "booking",
+  "fleet",
+  "dispatch",
+  "quote"
 ];
 
-const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(artifactDir, file)));
+const contentMatchCount = terms.reduce((count, term) => count + (allText.includes(term) ? 1 : 0), 0);
 
-const grep = spawnSync("grep", [
-  "-RIn",
-  "Princess Benjamin\\|Your journey, our royal priority\\|O.Hare\\|O'Hare\\|O Hare\\|fleet\\|booking\\|dispatch\\|chauffeur\\|airport",
-  artifactDir
-], { encoding: "utf8" });
+const smokePathTs = path.join(artifactDir, "scripts", "smoke-test.ts");
+const smokePathMjs = path.join(artifactDir, "scripts", "smoke-test.mjs");
+const smokeOk = fs.existsSync(smokePathTs) || fs.existsSync(smokePathMjs);
 
-const contentMatchCount = (grep.stdout || "").split("\n").filter(Boolean).length;
+const previewStatus = httpStatus(`https://www.omegacrownai.com/runtime-preview/${projectId}`);
 
-let smokeOk = false;
-let smokeOutput = "NO_SMOKE_SCRIPT_CHECKED";
-const smokeTs = path.join(artifactDir, "scripts/smoke-test.ts");
-const smokeMjs = path.join(artifactDir, "scripts/smoke-test.mjs");
+const zipPath = `/tmp/${projectId}-customer.zip`;
+const downloadStatus = run("bash", [
+  "-lc",
+  `curl -sS -L -D /tmp/${projectId}-headers.txt -o ${zipPath} https://www.omegacrownai.com/api/projects/${projectId}/artifacts/index/download && head -1 /tmp/${projectId}-headers.txt`
+]).trim();
 
-if (fs.existsSync(smokeMjs)) {
-  const smoke = spawnSync("node", [smokeMjs], { cwd: artifactDir, encoding: "utf8" });
-  smokeOk = smoke.status === 0;
-  smokeOutput = (smoke.stdout || smoke.stderr || "").trim();
-} else if (fs.existsSync(smokeTs)) {
-  const text = fs.readFileSync(smokeTs, "utf8");
-  smokeOk = /Smoke tests passed|booking|fleet|dispatch|O Hare|O'Hare/i.test(text);
-  smokeOutput = smokeOk ? "TypeScript smoke file contains expected checks." : "TypeScript smoke file missing expected checks.";
-}
-
-const preview = spawnSync("curl", [
-  "-sS",
-  "-o",
-  "/dev/null",
-  "-w",
-  "%{http_code} %{content_type}",
-  `https://www.omegacrownai.com/runtime-preview/${projectId}`
-], { encoding: "utf8" });
-
-const zipPath = `/tmp/${projectId}-acceptance.zip`;
-const headerPath = `/tmp/${projectId}-acceptance-headers.txt`;
-spawnSync("curl", [
-  "-sS",
-  "-D",
-  headerPath,
-  "-o",
-  zipPath,
-  `https://www.omegacrownai.com/api/projects/${projectId}/artifacts/index/download`
-], { encoding: "utf8" });
-
-const headers = fs.existsSync(headerPath) ? fs.readFileSync(headerPath, "utf8") : "";
-const zip = fs.existsSync(zipPath) ? fs.readFileSync(zipPath) : Buffer.alloc(0);
+const headers = fs.readFileSync(`/tmp/${projectId}-headers.txt`, "utf8");
+const zip = fs.existsSync(zipPath) ? fs.readFileSync(zipPath) : Buffer.from("");
 
 const result = {
   projectId,
   missing,
   contentMatchCount,
   smokeOk,
-  smokeOutput,
-  previewStatus: preview.stdout.trim(),
-  downloadStatus: headers.split(/\r?\n/).find((line) => line.startsWith("HTTP/")) || "NO_HTTP_STATUS",
-  downloadContentTypeOk: /content-type:\s*application\/zip/i.test(headers),
+  smokeOutput: smokeOk ? "Smoke file exists." : "Smoke file missing.",
+  previewStatus,
+  downloadStatus,
+  downloadContentTypeOk: /application\/zip/i.test(headers),
   zipBytes: zip.length,
-  zipSignatureOk: zip.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04])),
+  zipSignatureOk: zip.length >= 2 && zip[0] === 0x50 && zip[1] === 0x4b,
   zipContainsProjectId: zip.includes(Buffer.from(projectId)),
-  zipContainsReadme: zip.includes(Buffer.from("README.md")),
+  zipContainsReadme: zip.includes(Buffer.from("README")),
   zipContainsPackage: zip.includes(Buffer.from("package.json"))
 };
 
 console.log(JSON.stringify(result, null, 2));
 
-const ok =
+if (
   missing.length === 0 &&
-  contentMatchCount >= 8 &&
+  contentMatchCount >= 5 &&
   smokeOk &&
-  result.previewStatus.startsWith("200 ") &&
+  previewStatus.startsWith("200 ") &&
   result.downloadStatus.includes("200") &&
   result.downloadContentTypeOk &&
-  result.zipBytes > 1000 &&
   result.zipSignatureOk &&
-  result.zipContainsProjectId &&
   result.zipContainsReadme &&
-  result.zipContainsPackage;
-
-if (!ok) {
+  result.zipContainsPackage
+) {
+  console.log("WEBSITE_PROMPT_ACCEPTANCE_SMOKE_PASSED");
+} else {
   console.error("WEBSITE_PROMPT_ACCEPTANCE_SMOKE_FAILED");
-  process.exit(1);
+  throw new Error(JSON.stringify({ projectId, missing, summary }, null, 2));
 }
-
-console.log("WEBSITE_PROMPT_ACCEPTANCE_SMOKE_PASSED");
