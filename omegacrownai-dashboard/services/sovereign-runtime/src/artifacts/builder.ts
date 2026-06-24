@@ -1241,6 +1241,117 @@ export function ${profile.actionComponent}() {
     },
     {
       type: "typescript",
+      title: "Live Backend Console",
+      file: "components/LiveBackendConsole.tsx",
+      content: `"use client";
+
+import { useState } from "react";
+
+type ApiResult = {
+  label: string;
+  ok: boolean;
+  status: string;
+  payload: any;
+};
+
+export function LiveBackendConsole() {
+  const [results, setResults] = useState<ApiResult[]>([]);
+  const [loading, setLoading] = useState("");
+
+  async function runCheck(label: string, path: string, init?: RequestInit) {
+    setLoading(label);
+    try {
+      const response = await fetch(path, init);
+      const payload = await response.json();
+      setResults((current) => [
+        {
+          label,
+          ok: response.ok && payload?.ok !== false,
+          status: response.status + " " + response.statusText,
+          payload
+        },
+        ...current
+      ].slice(0, 4));
+    } catch (error) {
+      setResults((current) => [
+        {
+          label,
+          ok: false,
+          status: "Request failed",
+          payload: error instanceof Error ? error.message : String(error)
+        },
+        ...current
+      ].slice(0, 4));
+    } finally {
+      setLoading("");
+    }
+  }
+
+  const demoBooking = {
+    name: "Demo Customer",
+    email: "customer@example.com",
+    phone: "773-510-1467",
+    pickup: "O Hare Airport",
+    dropoff: "Downtown Chicago",
+    vehicleType: "luxury-suv",
+    date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+    time: "10:00 AM"
+  };
+
+  return (
+    <section id="backend-console" className="mx-8 my-16 rounded-[2rem] border border-emerald-400/30 bg-emerald-950/20 p-8 shadow-2xl shadow-emerald-950/30">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.35em] text-emerald-300">Live Backend Console</p>
+          <h2 className="mt-3 text-4xl font-black text-white">Backend APIs are visible and testable</h2>
+          <p className="mt-3 max-w-3xl text-zinc-300">
+            This generated app includes live API routes for fleet, quotes, bookings, and dispatch. Use these controls to prove the backend is online without opening a terminal.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-emerald-400/30 bg-black/40 px-5 py-4 text-sm text-emerald-200">
+          Backend status: <strong>Online when checks return JSON</strong>
+        </div>
+      </div>
+
+      <div className="mt-8 grid gap-3 md:grid-cols-4">
+        <button className="rounded-2xl bg-emerald-400 px-4 py-3 font-black text-black disabled:opacity-60" disabled={Boolean(loading)} onClick={() => runCheck("Fleet API", "/api/fleet")}>
+          Test Fleet API
+        </button>
+        <button className="rounded-2xl bg-white px-4 py-3 font-black text-black disabled:opacity-60" disabled={Boolean(loading)} onClick={() => runCheck("Quote API", "/api/quotes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pickup: "O Hare Airport", dropoff: "Downtown Chicago", vehicleType: "luxury-suv", hours: 2 }) })}>
+          Create Demo Quote
+        </button>
+        <button className="rounded-2xl bg-white px-4 py-3 font-black text-black disabled:opacity-60" disabled={Boolean(loading)} onClick={() => runCheck("Booking API", "/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(demoBooking) })}>
+          Create Demo Booking
+        </button>
+        <button className="rounded-2xl bg-white px-4 py-3 font-black text-black disabled:opacity-60" disabled={Boolean(loading)} onClick={() => runCheck("Dispatch API", "/api/dispatch")}>
+          View Dispatch Queue
+        </button>
+      </div>
+
+      {loading ? <p className="mt-5 text-emerald-200">Running {loading}...</p> : null}
+
+      <div className="mt-8 grid gap-4">
+        {results.length === 0 ? (
+          <div className="rounded-2xl border border-zinc-800 bg-black/40 p-5 text-zinc-400">
+            No checks yet. Click a backend button above.
+          </div>
+        ) : results.map((result, index) => (
+          <article key={result.label + index} className="rounded-2xl border border-zinc-800 bg-black/60 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-xl font-black text-white">{result.label}</h3>
+              <span className={result.ok ? "text-emerald-300" : "text-red-300"}>{result.ok ? "Connected" : "Failed"} · {result.status}</span>
+            </div>
+            <pre className="mt-4 max-h-72 overflow-auto rounded-xl bg-zinc-950 p-4 text-xs text-zinc-200">{JSON.stringify(result.payload, null, 2)}</pre>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+`
+    },
+    {
+      type: "typescript",
       title: "Service Area Component",
       file: "components/ServiceAreaMap.tsx",
       content: `const areas = [
@@ -2528,6 +2639,7 @@ import { ServiceAreaMap } from "../components/ServiceAreaMap";
 import { ${profile.actionComponent} } from "${actionImportPath}";
 import { Testimonials } from "../components/Testimonials";
 import { Footer } from "../components/Footer";
+import { LiveBackendConsole } from "../components/LiveBackendConsole";
 
 export default function Page() {
   return (
@@ -2538,6 +2650,7 @@ export default function Page() {
       <ServiceAreaMap />
       <${profile.actionComponent} />
       <Testimonials />
+      <LiveBackendConsole />
       <Footer />
     </main>
   );
