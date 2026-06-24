@@ -1036,8 +1036,8 @@ export function ${profile.featureComponent}() {
   return (
     <section id="${isTransport ? "fleet" : "modules"}" className="grid gap-6 px-8 py-16 md:grid-cols-3">
       {generatedModules.map((item) => (
-        <article key={item.name || item.title || item.id} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
-          <h2 className="text-2xl font-black">{item.name || item.title || item.label || item.id || "Executive vehicle"}</h2>
+        <article key={item.name} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
+          <h2 className="text-2xl font-black">{item.name || "Executive vehicle"}</h2>
           <p className="mt-4 text-zinc-400">{item.detail}</p>
         </article>
       ))}
