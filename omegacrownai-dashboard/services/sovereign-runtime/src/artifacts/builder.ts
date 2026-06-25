@@ -604,7 +604,7 @@ export async function buildArtifacts(run: any) {
         <div class="quote-grid">
             ${isTransport
               ? "<span>Pickup: ORD Airport</span><span>Drop-off: Downtown Chicago</span><span>Vehicle: Luxury SUV</span><span>Status: Quote → Booking → Payment intent</span>"
-              : `<span>Workflow: ${profile.smokeService}</span><span>Module: ${profile.modeItemOne}</span><span>Admin: ${profile.adminTitle}</span><span>Status: Intake → Review → Delivery</span>`}
+              : `<span>Workflow: ${profile.smokeService}</span><span>Module: ${profile.modeItemOne || "Executive Sedan"}</span><span>Admin: ${profile.adminTitle}</span><span>Status: Intake → Review → Delivery</span>`}
           </div>
       </aside>
     </section>
@@ -612,7 +612,7 @@ export async function buildArtifacts(run: any) {
     <section class="trust-strip">
         ${isTransport
           ? "<span>Airport Transfers</span><span>Corporate Travel</span><span>Hourly Chauffeur</span><span>Customer Portal</span><span>Admin Dispatch</span>"
-          : `<span>${profile.modeItemOne}</span><span>${profile.modeItemTwo}</span><span>${profile.modeItemThree}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span>`}
+          : `<span>${profile.modeItemOne || "Executive Sedan"}</span><span>${profile.modeItemTwo || "Luxury SUV"}</span><span>${profile.modeItemThree || "Premium Group Van"}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span>`}
       </section>
 
     <section id="modules" class="module-layout">
@@ -622,15 +622,15 @@ export async function buildArtifacts(run: any) {
       </div>
       <div class="module-grid">
         <article>
-          <h3>${profile.modeItemOne}</h3>
+          <h3>${profile.modeItemOne || "Executive Sedan"}</h3>
           <p>${isTransport ? "Executive sedan experience for airport transfers, business meetings, and individual premium travel." : "Primary module generated from the requested prompt and domain workflow."}</p>
         </article>
         <article>
-          <h3>${profile.modeItemTwo}</h3>
+          <h3>${profile.modeItemTwo || "Luxury SUV"}</h3>
           <p>${isTransport ? "Spacious luxury SUV readiness for families, VIP guests, luggage-heavy airport rides, and corporate clients." : "Operational module for records, users, review flows, and admin visibility."}</p>
         </article>
         <article>
-          <h3>${profile.modeItemThree}</h3>
+          <h3>${profile.modeItemThree || "Premium Group Van"}</h3>
           <p>${isTransport ? "Hourly chauffeur and event transportation workflows with admin dispatch and customer-facing booking support." : "Delivery module for validation, reporting, exports, and launch readiness."}</p>
         </article>
       </div>
@@ -644,7 +644,7 @@ export async function buildArtifacts(run: any) {
       <div class="service-list">
           ${isTransport
             ? "<span>ORD / O Hare</span><span>Midway</span><span>Downtown Chicago</span><span>North Shore</span><span>Arlington Heights</span><span>Hotels & events</span>"
-            : `<span>${profile.navPrimary}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span><span>${profile.modeItemOne}</span><span>${profile.modeItemTwo}</span><span>${profile.modeItemThree}</span>`}
+            : `<span>${profile.navPrimary}</span><span>${profile.navSecondary}</span><span>${profile.navTertiary}</span><span>${profile.modeItemOne || "Executive Sedan"}</span><span>${profile.modeItemTwo || "Luxury SUV"}</span><span>${profile.modeItemThree || "Premium Group Van"}</span>`}
         </div>
     </section>
 
@@ -1064,16 +1064,16 @@ a {
       file: profile.featureFile,
       content: `const generatedModules = [
   {
-    name: "${profile.modeItemOne}",
+    name: "${profile.modeItemOne || "Executive Sedan"}",
     detail: "${isTransport ? "Luxury sedan service for airport transfers, business meetings, and private rides." : "Primary module for the requested domain workflow, records, and operational visibility."}"
   },
   {
-    name: "${profile.modeItemTwo}",
+    name: "${profile.modeItemTwo || "Luxury SUV"}",
     detail: "${isTransport ? "Spacious executive SUV service for families, luggage, VIP guests, and group travel." : "Operational module for users, review queues, status tracking, and admin readiness."}"
   },
   {
-    name: "${profile.modeItemThree}",
-    detail: "${isTransport ? profile.modeItemThree + " delivery plan with production milestones, approvals, and launch-ready assets." : "Delivery module for validation, reporting, export, and launch readiness."}"
+    name: "${profile.modeItemThree || "Premium Group Van"}",
+    detail: "${isTransport ? (profile.modeItemThree || "Premium Group Van") + " delivery plan with production milestones, approvals, and launch-ready assets." : "Delivery module for validation, reporting, export, and launch readiness."}"
   }
 ];
 
@@ -2084,9 +2084,9 @@ main()
       file: isTransport ? "lib/services/fleet-service.ts" : "lib/services/asset-service.ts",
       content: isTransport
         ? `export const generatedModules = [
-  { id: "VEH-SEDAN", name: "${profile.modeItemOne}", status: "available" },
-  { id: "VEH-SUV", name: "${profile.modeItemTwo}", status: "available" },
-  { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree}", status: "available" },
+  { id: "VEH-SEDAN", name: "${profile.modeItemOne || "Executive Sedan"}", status: "available" },
+  { id: "VEH-SUV", name: "${profile.modeItemTwo || "Luxury SUV"}", status: "available" },
+  { id: "VEH-CHAUFFEUR", name: "${profile.modeItemThree || "Premium Group Van"}", status: "available" },
 ];
 
 import fleet from "../../data/fleet.json";
@@ -2096,9 +2096,9 @@ export function listFleet() {
 }
 `
         : `export const assets = [
-  { id: "ASSET-001", name: "${profile.modeItemOne}", status: "ready" },
-  { id: "ASSET-002", name: "${profile.modeItemTwo}", status: "ready" },
-  { id: "ASSET-003", name: "${profile.modeItemThree}", status: "ready" },
+  { id: "ASSET-001", name: "${profile.modeItemOne || "Executive Sedan"}", status: "ready" },
+  { id: "ASSET-002", name: "${profile.modeItemTwo || "Luxury SUV"}", status: "ready" },
+  { id: "ASSET-003", name: "${profile.modeItemThree || "Premium Group Van"}", status: "ready" },
 ];
 
 export function listAssets() {
@@ -2274,7 +2274,7 @@ export async function POST(req: Request) {
       <p className="text-sm uppercase tracking-[0.35em] text-red-300">${isTransport ? "Fleet" : "Assets"}</p>
       <h1 className="mt-4 text-5xl font-black">${profile.featureTitle}</h1>
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {["${profile.modeItemOne}", "${profile.modeItemTwo}", "${profile.modeItemThree}"].map((vehicle) => (
+        {["${profile.modeItemOne || "Executive Sedan"}", "${profile.modeItemTwo || "Luxury SUV"}", "${profile.modeItemThree || "Premium Group Van"}"].map((vehicle) => (
           <article key={vehicle} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-8">
             <h2 className="text-2xl font-black">{vehicle}</h2>
             <p className="mt-3 text-zinc-400">Status: available</p>
