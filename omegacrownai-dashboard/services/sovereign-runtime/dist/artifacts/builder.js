@@ -951,7 +951,7 @@ a {
                     "@types/react": "19.0.2",
                     "@types/react-dom": "19.0.2",
                     "autoprefixer": "10.4.20",
-                    "next": "15.0.4",
+                    "next": "15.0.5",
                     "postcss": "8.4.49",
                     "react": "19.0.0",
                     "react-dom": "19.0.0",

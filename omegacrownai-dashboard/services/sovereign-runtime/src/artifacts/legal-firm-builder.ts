@@ -305,7 +305,7 @@ export async function buildLegalFirmArtifacts(run: any, outDir: string) {
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",
-    "next": "15.0.4",
+    "next": "15.0.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "typescript": "5.7.2",

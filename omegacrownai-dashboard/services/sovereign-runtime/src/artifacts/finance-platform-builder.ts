@@ -343,7 +343,7 @@ console.log("Finance artifact smoke test passed");
     },
     dependencies: {
       "@prisma/client": "6.19.0",
-      "next": "15.0.4",
+      "next": "15.0.5",
       "react": "19.0.0",
       "react-dom": "19.0.0",
       "chart.js": "latest"
