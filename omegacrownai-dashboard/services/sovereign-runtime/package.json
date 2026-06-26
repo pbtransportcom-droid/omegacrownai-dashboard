@@ -14,7 +14,8 @@
     "qa:artifact-download": "node scripts/artifact-download-route-smoke.mjs",
     "qa:artifact-download:live": "LIVE_CHECK=1 node scripts/artifact-download-route-smoke.mjs",
     "qa:website-prompt-acceptance": "node scripts/website-prompt-acceptance-smoke.mjs",
-    "qa:generated-backend-live": "node scripts/generated-backend-live-smoke.mjs"
+    "qa:generated-backend-live": "node scripts/generated-backend-live-smoke.mjs",
+    "live-proof": "node scripts/generated-live-proof.mjs"
   },
   "dependencies": {
     "bullmq": "^5.34.5",
