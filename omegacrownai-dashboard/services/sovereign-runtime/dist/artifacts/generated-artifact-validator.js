@@ -28,6 +28,13 @@ function findArtifact(artifacts, file) {
 function includesAnyProfileLeak(content) {
     return content.includes("${profile") || content.includes("{profile") || content.includes("process.env.${profile");
 }
+function includesGeneratedUndefinedLeak(content) {
+    return (content.includes("\"undefined\"") ||
+        content.includes(">undefined<") ||
+        content.includes("undefined delivery") ||
+        content.includes("name: \"undefined\"") ||
+        content.includes("name=\"undefined\""));
+}
 function parseJsonArtifact(artifact) {
     if (!artifact)
         return null;
@@ -338,6 +345,13 @@ export function validateGeneratedArtifacts(artifacts) {
                     message: "Generated package.json must pin prisma to 6.19.0.",
                 });
             }
+            if (dependencies.next === "15.0.4") {
+                errors.push({
+                    level: "error",
+                    file: "package.json",
+                    message: "Generated package.json must not pin vulnerable Next.js 15.0.4; use 15.0.5 or newer patched release.",
+                });
+            }
             if (scripts["db:generate"] !== "prisma generate") {
                 warnings.push({
                     level: "warning",
@@ -345,6 +359,17 @@ export function validateGeneratedArtifacts(artifacts) {
                     message: "Generated package.json should include db:generate script.",
                 });
             }
+        }
+    }
+    for (const artifact of artifacts) {
+        const file = normalizeArtifactPath(artifactFile(artifact));
+        const content = artifactContent(artifact);
+        if (includesGeneratedUndefinedLeak(content)) {
+            errors.push({
+                level: "error",
+                file,
+                message: "Generated artifact contains an undefined placeholder leak.",
+            });
         }
     }
     // Finance full-stack contract: finance apps must ship a real backend package, not only static UI.

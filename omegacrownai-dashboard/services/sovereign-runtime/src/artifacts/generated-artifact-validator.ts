@@ -57,6 +57,16 @@ function includesAnyProfileLeak(content: string): boolean {
   return content.includes("${profile") || content.includes("{profile") || content.includes("process.env.${profile");
 }
 
+function includesGeneratedUndefinedLeak(content: string): boolean {
+  return (
+    content.includes("\"undefined\"") ||
+    content.includes(">undefined<") ||
+    content.includes("undefined delivery") ||
+    content.includes("name: \"undefined\"") ||
+    content.includes("name=\"undefined\"")
+  );
+}
+
 function parseJsonArtifact(artifact: GeneratedArtifact | undefined): any | null {
   if (!artifact) return null;
 
@@ -412,6 +422,14 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
         });
       }
 
+      if (dependencies.next === "15.0.4") {
+        errors.push({
+          level: "error",
+          file: "package.json",
+          message: "Generated package.json must not pin vulnerable Next.js 15.0.4; use 15.0.5 or newer patched release.",
+        });
+      }
+
       if (scripts["db:generate"] !== "prisma generate") {
         warnings.push({
           level: "warning",
@@ -422,6 +440,18 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
     }
   }
 
+
+  for (const artifact of artifacts) {
+    const file = normalizeArtifactPath(artifactFile(artifact));
+    const content = artifactContent(artifact);
+    if (includesGeneratedUndefinedLeak(content)) {
+      errors.push({
+        level: "error",
+        file,
+        message: "Generated artifact contains an undefined placeholder leak.",
+      });
+    }
+  }
 
   // Finance full-stack contract: finance apps must ship a real backend package, not only static UI.
   const isFinanceArtifact =
