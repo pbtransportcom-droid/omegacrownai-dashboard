@@ -422,11 +422,11 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
         });
       }
 
-      if (dependencies.next === "15.0.4") {
+      if (["15.0.4", "15.0.5"].includes(dependencies.next)) {
         errors.push({
           level: "error",
           file: "package.json",
-          message: "Generated package.json must not pin vulnerable Next.js 15.0.4; use 15.0.5 or newer patched release.",
+          message: "Generated package.json must not pin vulnerable Next.js 15.0.4 or 15.0.5; use 15.5.19 or newer patched release.",
         });
       }
 
