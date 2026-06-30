@@ -137,6 +137,10 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
   const [logoUrl, setLogoUrl] = useState("");
   const [heroImageUrl, setHeroImageUrl] = useState("");
 
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState("");
+  const [deliveryResult, setDeliveryResult] = useState<any>(null);
+
   async function loadMessages() {
     const res = await fetch(`/api/projects/${project.id}/chat`);
     if (!res.ok) return;
@@ -179,6 +183,69 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
         setSugentEvents(data.events || []);
       }
     } catch {}
+  }
+
+  async function refreshDeliveryStatus() {
+    setDeliveryLoading(true);
+    setDeliveryStatus("Checking runtime delivery...");
+    try {
+      const [deliveryRes, statusRes] = await Promise.all([
+        fetch(`/api/runtime-proxy/runs/${project.id}/delivery`, { cache: "no-store" }),
+        fetch(`/api/runtime-proxy/runs/${project.id}/app-status`, { cache: "no-store" }),
+      ]);
+
+      const delivery = await deliveryRes.json().catch(() => null);
+      const appStatus = await statusRes.json().catch(() => null);
+
+      setDeliveryResult({ delivery, appStatus });
+      setDeliveryStatus(appStatus?.status ? `Preview status: ${appStatus.status}` : "Delivery status loaded.");
+    } catch (error: any) {
+      setDeliveryStatus(error?.message || "Unable to load delivery status.");
+    } finally {
+      setDeliveryLoading(false);
+    }
+  }
+
+  async function startRuntimePreview() {
+    setDeliveryLoading(true);
+    setDeliveryStatus("Starting live preview...");
+    try {
+      const res = await fetch(`/api/runtime-proxy/runs/${project.id}/start-app`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      setDeliveryResult((current: any) => ({ ...(current || {}), appStatus: data }));
+      setDeliveryStatus(data?.ready ? "Live preview is ready." : data?.note || "Preview is starting.");
+    } catch (error: any) {
+      setDeliveryStatus(error?.message || "Unable to start preview.");
+    } finally {
+      setDeliveryLoading(false);
+    }
+  }
+
+  async function stopRuntimePreview() {
+    setDeliveryLoading(true);
+    setDeliveryStatus("Stopping live preview...");
+    try {
+      const res = await fetch(`/api/runtime-proxy/runs/${project.id}/stop-app`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      setDeliveryResult((current: any) => ({ ...(current || {}), appStatus: data }));
+      setDeliveryStatus("Live preview stopped.");
+    } catch (error: any) {
+      setDeliveryStatus(error?.message || "Unable to stop preview.");
+    } finally {
+      setDeliveryLoading(false);
+    }
+  }
+
+  function openGeneratedApp() {
+    window.open(`/generated-app/${project.id}`, "_blank", "noopener,noreferrer");
+  }
+
+  function downloadRuntimeZip() {
+    window.open(`/api/runtime-proxy/runs/${project.id}/download`, "_blank", "noopener,noreferrer");
   }
 
   async function publishWebsite(executionId?: string) {
@@ -1561,6 +1628,80 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
               );
             })}
           </div>
+        )}
+      </div>
+
+      <div className="rounded-md border border-amber-500/20 bg-[#0f0f12] p-4 space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Delivery Actions</h2>
+            <p className="mt-1 text-sm text-gray-400">
+              Open, preview, download, and inspect the customer-ready runtime output for this project.
+            </p>
+          </div>
+
+          <div className="text-xs text-gray-500">
+            Project ID: <span className="font-mono text-gray-300">{project.id}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={openGeneratedApp}
+            className="rounded bg-amber-600 px-3 py-2 text-xs font-medium text-white hover:bg-amber-500"
+          >
+            Open Live App
+          </button>
+
+          <button
+            onClick={startRuntimePreview}
+            disabled={deliveryLoading}
+            className="rounded border border-emerald-500/40 px-3 py-2 text-xs text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+          >
+            Start Preview
+          </button>
+
+          <button
+            onClick={stopRuntimePreview}
+            disabled={deliveryLoading}
+            className="rounded border border-red-500/40 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Stop Preview
+          </button>
+
+          <button
+            onClick={downloadRuntimeZip}
+            className="rounded border border-blue-500/40 px-3 py-2 text-xs text-blue-200 hover:bg-blue-500/10"
+          >
+            Download ZIP
+          </button>
+
+          <Link
+            href={`/runtime-studio/${project.id}`}
+            className="rounded border border-purple-500/40 px-3 py-2 text-xs text-purple-200 hover:bg-purple-500/10"
+          >
+            Runtime Studio
+          </Link>
+
+          <button
+            onClick={refreshDeliveryStatus}
+            disabled={deliveryLoading}
+            className="rounded border border-[#2a2a33] px-3 py-2 text-xs text-gray-200 hover:bg-[#1c1c20] disabled:opacity-50"
+          >
+            {deliveryLoading ? "Checking..." : "View Delivery JSON"}
+          </button>
+        </div>
+
+        {deliveryStatus && (
+          <div className="rounded border border-[#2a2a33] bg-black/40 p-3 text-sm text-gray-300">
+            {deliveryStatus}
+          </div>
+        )}
+
+        {deliveryResult && (
+          <pre className="max-h-72 overflow-auto rounded border border-[#2a2a33] bg-black p-3 text-xs text-gray-300">
+            {JSON.stringify(deliveryResult, null, 2)}
+          </pre>
         )}
       </div>
 
