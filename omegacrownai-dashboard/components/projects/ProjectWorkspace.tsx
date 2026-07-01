@@ -206,6 +206,34 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
     }
   }
 
+  async function pollRuntimePreview(maxAttempts = 12) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      try {
+        const res = await fetch(`/api/runtime-proxy/runs/${project.id}/app-status`, {
+          cache: "no-store",
+        });
+        const data = await res.json();
+
+        setDeliveryResult((current: any) => ({ ...(current || {}), appStatus: data }));
+
+        if (data?.status === "running" && data?.portReachable) {
+          setDeliveryStatus("Preview ready — Open Live App.");
+          setDeliveryLoading(false);
+          return;
+        }
+
+        setDeliveryStatus(`Preview starting... check ${attempt}/${maxAttempts}`);
+      } catch (error: any) {
+        setDeliveryStatus(error?.message || "Still checking preview status...");
+      }
+    }
+
+    setDeliveryStatus("Preview is still starting. Check Delivery JSON again shortly.");
+    setDeliveryLoading(false);
+  }
+
   async function startRuntimePreview() {
     setDeliveryLoading(true);
     setDeliveryStatus("Starting live preview...");
@@ -215,10 +243,15 @@ export default function ProjectWorkspace({ project, initialPrompt = "" }: Projec
       });
       const data = await res.json();
       setDeliveryResult((current: any) => ({ ...(current || {}), appStatus: data }));
-      setDeliveryStatus(data?.ready ? "Live preview is ready." : data?.note || "Preview is starting.");
+
+      if (!res.ok && res.status !== 202) {
+        throw new Error(data?.error || "Unable to start preview.");
+      }
+
+      setDeliveryStatus(data?.note || "Preview starting...");
+      pollRuntimePreview();
     } catch (error: any) {
       setDeliveryStatus(error?.message || "Unable to start preview.");
-    } finally {
       setDeliveryLoading(false);
     }
   }
