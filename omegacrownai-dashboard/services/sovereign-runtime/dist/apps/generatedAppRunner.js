@@ -4,6 +4,7 @@ import { execFileSync, spawn } from "child_process";
 import http from "http";
 const ROOT = process.cwd();
 const RUNTIME_ROOT = path.join(ROOT, "services", "sovereign-runtime");
+const GENERATED_PREVIEW_TTL_MS = 30 * 60 * 1000;
 function copyDir(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -44,6 +45,9 @@ function checkPort(port, pathname = "/") {
         });
         req.end();
     });
+}
+function generatedAppManifestPath(projectId) {
+    return path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`);
 }
 function killPort(port) {
     try {
@@ -103,13 +107,25 @@ export async function startGeneratedApp(projectId) {
         stdio: ["ignore", out, err],
     });
     child.unref();
+    const now = Date.now();
+    const expiresAt = new Date(now + GENERATED_PREVIEW_TTL_MS).toISOString();
     const running = {
         ...manifest,
         pid: child.pid,
         status: "starting",
-        startedAt: new Date().toISOString(),
+        startedAt: new Date(now).toISOString(),
+        expiresAt,
+        ttlSeconds: Math.round(GENERATED_PREVIEW_TTL_MS / 1000),
     };
-    fs.writeFileSync(path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`), JSON.stringify(running, null, 2));
+    fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(running, null, 2));
+    const watchdog = spawn("bash", [
+        "-lc",
+        `sleep ${Math.ceil(GENERATED_PREVIEW_TTL_MS / 1000)}; node -e 'const fs=require("fs"); const p=${JSON.stringify(generatedAppManifestPath(projectId))}; if(!fs.existsSync(p)) process.exit(0); const m=JSON.parse(fs.readFileSync(p,"utf8")); if(String(m.pid)!=="${child.pid}") process.exit(0); require("child_process").spawnSync("fuser",["-k","${manifest.port}/tcp"],{stdio:"ignore"}); try{process.kill(-Number(m.pid),"SIGTERM")}catch(e){try{process.kill(Number(m.pid),"SIGTERM")}catch(e2){}} m.status="stopped"; m.autoStopped=true; m.stoppedAt=new Date().toISOString(); fs.writeFileSync(p,JSON.stringify(m,null,2));'`,
+    ], {
+        detached: true,
+        stdio: "ignore",
+    });
+    watchdog.unref();
     return running;
 }
 export function getGeneratedAppManifest(projectId) {
