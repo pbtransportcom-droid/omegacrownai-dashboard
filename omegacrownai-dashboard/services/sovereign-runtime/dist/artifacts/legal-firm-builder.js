@@ -760,7 +760,7 @@ CMD ["npm", "run", "start"]
 import { useState } from "react";
 
 function runtimeApiBase() {
-  if (typeof window === "undefined") return "";
+  if (typeof window !== "object") return "";
   const parts = window.location.pathname.split("/");
   if (parts[1] === "generated-app" && /^OC-[A-Z0-9]+$/i.test(parts[2] || "")) {
     return "/" + parts[1] + "/" + parts[2];
@@ -1029,7 +1029,7 @@ export async function POST(request: Request) {
 import { useEffect, useState } from "react";
 
 function runtimeApiBase() {
-  if (typeof window === "undefined") return "";
+  if (typeof window !== "object") return "";
   const parts = window.location.pathname.split("/");
   if (parts[1] === "generated-app" && /^OC-[A-Z0-9]+$/i.test(parts[2] || "")) {
     return "/" + parts[1] + "/" + parts[2];
