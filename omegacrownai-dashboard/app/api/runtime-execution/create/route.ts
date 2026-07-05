@@ -34,24 +34,45 @@ export async function POST(req: Request) {
     const body = await req.json();
     const mode = normalizeMode(body);
 
-    const response = await fetch(`${RUNTIME_URL}/runs`, {
+    const runtimePayload = {
+      ...body,
+      mode,
+      intent: body?.intent || mode,
+      type: body?.type || mode,
+      department: body?.department || mode,
+    };
+
+    const createResponse = await fetch(`${RUNTIME_URL}/runs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        ...body,
-        mode,
-        intent: body?.intent || mode,
-        type: body?.type || mode,
-        department: body?.department || mode,
-      }),
+      body: JSON.stringify(runtimePayload),
     });
 
-    const data = await response.json();
+    const created = await createResponse.json();
 
-    return NextResponse.json(data, {
-      status: response.status,
+    if (!createResponse.ok || !created?.projectId) {
+      return NextResponse.json(created, {
+        status: createResponse.status,
+      });
+    }
+
+    const executeResponse = await fetch(
+      `${RUNTIME_URL}/runs/${created.projectId}/execute`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(runtimePayload),
+      }
+    );
+
+    const executed = await executeResponse.json();
+
+    return NextResponse.json(executed, {
+      status: executeResponse.status,
     });
   } catch (error) {
     return NextResponse.json(
