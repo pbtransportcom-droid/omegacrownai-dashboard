@@ -27,6 +27,13 @@ function titleCase(value) {
 function inferDomain(prompt) {
     const source = prompt.toLowerCase();
     const matches = [
+        ["customer-ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
+        ["customer ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
+        ["strong copy", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
+        ["calls to action", "Conversion Website Platform", ["Hero CTA", "Services", "Trust Builders", "Admin Review"], ["WebsiteLead", "ServiceRequest", "CTAEvent", "AdminNote"]],
+        ["launch-ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
+        ["launch ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
+        ["mobile layout", "Launch-Ready Website", ["Hero Message", "Mobile Sections", "Customer Intake", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
         ["fitness", "Fitness Studio Operating Platform", ["Class Schedule", "Membership Signup", "Trainer Profiles", "Lead Capture"], ["Class", "Membership", "Trainer", "FitnessLead"]],
         ["gym", "Fitness Studio Operating Platform", ["Class Schedule", "Membership Signup", "Trainer Profiles", "Lead Capture"], ["Class", "Membership", "Trainer", "FitnessLead"]],
         ["church", "Church Ministry Platform", ["Service Times", "Ministries", "Giving", "Volunteer Intake"], ["Service", "Ministry", "Donation", "Volunteer"]],
@@ -68,6 +75,40 @@ function safeBrand(prompt, product) {
         .replace(/do not .*/gi, " ")
         .replace(/\s+/g, " ")
         .trim();
+    const normalizedSource = source.toLowerCase();
+    const genericDescriptorPattern = /customer ready|customer-ready|strong copy|sections|calls to action|call to action|mobile layout|launch ready|launch-ready|polish|modern|customer|ready|copy/i;
+    const words = normalizedSource
+        .split(/[^a-z0-9-]+/i)
+        .filter(Boolean)
+        .filter((word) => ![
+        "a",
+        "an",
+        "the",
+        "for",
+        "and",
+        "or",
+        "to",
+        "of",
+        "ready",
+        "customer",
+        "customer-ready",
+        "strong",
+        "copy",
+        "sections",
+        "calls",
+        "call",
+        "action",
+        "actions",
+        "mobile",
+        "layout",
+        "launch",
+        "launch-ready",
+        "polish",
+        "modern"
+    ].includes(word));
+    if (!source || genericDescriptorPattern.test(normalizedSource) || words.length < 2) {
+        return product;
+    }
     return titleCase(source || product);
 }
 export function isUniversalAnythingPrompt(prompt) {
@@ -268,6 +309,27 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
       <p class="mini">This generated package includes an API route and local store for feature requests.</p>
     </section>`;
     }
+    function liveIntakeSection() {
+        return `<section id="intake" class="panel live-intake">
+      <p class="eyebrow">Live customer intake</p>
+      <h2>Request a consultation</h2>
+      <p>Submit a customer request directly from this generated preview. The request is stored for admin review under this project.</p>
+      <form class="intake-form" data-live-intake-form>
+        <input data-intake-name aria-label="Name" placeholder="Name" />
+        <input data-intake-email aria-label="Email" placeholder="Email" />
+        <textarea data-intake-request aria-label="Request" placeholder="What do you need help with?"></textarea>
+        <button type="submit">Submit request</button>
+      </form>
+      <p class="mini" data-intake-output>Ready to collect customer requests.</p>
+    </section>
+    <section id="admin" class="panel live-admin">
+      <p class="eyebrow">Admin review</p>
+      <h2>Live request inbox</h2>
+      <p>Submitted requests are stored in this project artifact folder.</p>
+      <button type="button" data-load-intake>Load submissions</button>
+      <div class="mini" data-intake-list>No submissions loaded yet.</div>
+    </section>`;
+    }
     function commercePreviewHtml() {
         return `<section class="visual-split">
       <div>
@@ -285,7 +347,25 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
       <article><h2>Subscriptions</h2><p>Weekly and monthly delivery plan APIs with recurring citrus box options.</p></article>
       <article><h2>Commerce Admin</h2><p>Manage products, inventory, orders, customers, promo codes, reviews, wishlist, and marketing campaigns.</p></article>
     </section>
-    ${askAiSection()}`;
+    <section id="intake" class="panel live-intake">
+      <p class="eyebrow">Live customer intake</p>
+      <h2>Request a consultation</h2>
+      <p>Submit a customer request directly from this generated preview. The request is stored for admin review under this project.</p>
+      <form class="intake-form" data-live-intake-form>
+        <input data-intake-name aria-label="Name" placeholder="Name" />
+        <input data-intake-email aria-label="Email" placeholder="Email" />
+        <textarea data-intake-request aria-label="Request" placeholder="What do you need help with?"></textarea>
+        <button type="submit">Submit request</button>
+      </form>
+      <p class="mini" data-intake-output>Ready to collect customer requests.</p>
+    </section>
+    <section id="admin" class="panel live-admin">
+      <p class="eyebrow">Admin review</p>
+      <h2>Live request inbox</h2>
+      <p>Submitted requests are stored in this project artifact folder.</p>
+      <button type="button" data-load-intake>Load submissions</button>
+      <div class="mini" data-intake-list>No submissions loaded yet.</div>
+    </section>${askAiSection()}`;
     }
     function fitnessPreviewHtml() {
         return `<section class="visual-split">
@@ -310,7 +390,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         ? commercePreviewHtml()
         : domain.key === "fitness" || domain.key === "gym"
             ? fitnessPreviewHtml()
-            : `${domain.sections.map((section) => `<article><h2>${section}</h2><p>Prompt-aligned module for ${brand}, including customer-facing content, operational flow, and review-ready data capture.</p></article>`).join("\n      ")}${askAiSection()}`;
+            : `${domain.sections.map((section) => `<article><h2>${section}</h2><p>Launch-ready customer section for ${brand}, with polished copy, clear next steps, customer intake, and review-ready admin workflow.</p></article>`).join("\n      ")}${liveIntakeSection()}${askAiSection()}`;
     const files = [
         {
             file: "index.html",
@@ -339,8 +419,8 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
 
     <section class="hero">
       <p class="eyebrow">${domain.product}</p>
-      <h1>${brand} built as a complete, launch-ready digital platform.</h1>
-      <p class="lede">Generated from the customer prompt with frontend pages, backend API routes, database schema, admin dashboard, README, smoke test, preview path, and downloadable delivery package.</p>
+      <h1>${brand} built as a polished, customer-ready website that turns visitors into leads.</h1>
+      <p class="lede">A polished, mobile-ready website with clear messaging, strong calls to action, customer intake, admin review, and a downloadable launch package.</p>
       <div class="hero-actions">
         <a class="primary" href="#intake">Open Intake</a>
         <a class="secondary" href="#admin">Review Admin</a>
@@ -379,6 +459,63 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         var form = document.querySelector("[data-ai-feature-form]");
         var input = document.querySelector("[data-ai-feature-input]");
         var output = document.querySelector("[data-ai-feature-output]");
+
+        var intakeForm = document.querySelector("[data-live-intake-form]");
+        var intakeName = document.querySelector("[data-intake-name]");
+        var intakeEmail = document.querySelector("[data-intake-email]");
+        var intakeRequest = document.querySelector("[data-intake-request]");
+        var intakeOutput = document.querySelector("[data-intake-output]");
+        var intakeLoad = document.querySelector("[data-load-intake]");
+        var intakeList = document.querySelector("[data-intake-list]");
+
+        async function loadIntakeSubmissions() {
+          if (!intakeList) return;
+          intakeList.textContent = "Loading submissions...";
+          try {
+            var response = await fetch("/api/runtime-proxy/runs/" + projectId + "/intake", { method: "GET" });
+            var data = await response.json();
+            if (!data.ok) throw new Error(data.error || "Unable to load submissions.");
+            var submissions = Array.isArray(data.submissions) ? data.submissions : [];
+            intakeList.innerHTML = submissions.length
+              ? submissions.map(function (item) {
+                  return "<article class='mini-card'><strong>" + escapeHtml(item.name || "New request") + "</strong><br/>" + escapeHtml(item.email || "") + "<br/>" + escapeHtml(item.request || "") + "</article>";
+                }).join("")
+              : "No customer submissions yet.";
+          } catch (error) {
+            intakeList.textContent = "Could not load submissions.";
+          }
+        }
+
+        if (intakeForm && intakeName && intakeEmail && intakeRequest && intakeOutput) {
+          intakeForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            intakeOutput.textContent = "Submitting customer request...";
+            try {
+              var response = await fetch("/api/runtime-proxy/runs/" + projectId + "/intake", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: intakeName.value,
+                  email: intakeEmail.value,
+                  request: intakeRequest.value
+                })
+              });
+              var data = await response.json();
+              if (!data.ok) throw new Error(data.error || "Unable to submit request.");
+              intakeOutput.textContent = data.message || "Submitted and stored for admin review.";
+              intakeName.value = "";
+              intakeEmail.value = "";
+              intakeRequest.value = "";
+              loadIntakeSubmissions();
+            } catch (error) {
+              intakeOutput.textContent = "Could not submit request. Please try again.";
+            }
+          });
+        }
+
+        if (intakeLoad) {
+          intakeLoad.addEventListener("click", loadIntakeSubmissions);
+        }
 
         if (!form || !input || !output) return;
 
