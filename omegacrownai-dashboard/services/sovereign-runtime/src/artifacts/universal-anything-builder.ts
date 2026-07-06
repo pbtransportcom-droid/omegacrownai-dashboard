@@ -1110,6 +1110,124 @@ ${prompt}
 `
     },
     {
+      file: "DELIVERY.md",
+      title: "Customer Delivery Guide",
+      type: "markdown",
+      content: `# Delivery Guide - ${brand}
+
+This document summarizes what was generated, how to review it, and what should be completed before production launch.
+
+## Project identity
+
+- Project ID: ${run.projectId}
+- Runtime ID: ${run.runtimeId}
+- Product: ${domain.product}
+- Brand: ${brand}
+- Preview: /deployed/${run.projectId}
+- Runtime preview: /runtime-preview/${run.projectId}
+- Download: /api/runtime-proxy/runs/${run.projectId}/download
+
+## What was delivered
+
+This package includes a launch-ready Next.js foundation with:
+
+- Customer-facing website/app page
+- Reusable React components
+- Admin preview
+- Customer intake form
+- Intake API route
+- Local JSON persistence demo
+- Prisma schema
+- Docker deployment foundation
+- Smoke-test scripts
+- Metadata and asset manifest
+- README and launch checklist
+
+## Review steps
+
+1. Open the preview route.
+2. Review the homepage, calls to action, sections, and mobile layout.
+3. Submit a test customer intake request.
+4. Open the admin/intake review area.
+5. Download the ZIP package.
+6. Run the smoke test locally.
+7. Run the production build locally.
+8. Update business-specific content and credentials.
+9. Deploy behind HTTPS.
+
+## Production notes
+
+Before launch, replace demo/local storage with a real production database and protect admin pages with authentication. Connect intake submissions to email, CRM, booking, dispatch, payment, or support workflows as needed.
+
+## Client handoff notes
+
+Use README.md for setup instructions and LAUNCH_CHECKLIST.md for launch readiness.
+`
+    },
+    {
+      file: "LAUNCH_CHECKLIST.md",
+      title: "Launch Checklist",
+      type: "markdown",
+      content: `# Launch Checklist - ${brand}
+
+Use this checklist before publishing the generated project to customers.
+
+## Brand and content
+
+- [ ] Confirm business name, logo, tagline, and offer.
+- [ ] Update phone number, email, address, hours, and service area.
+- [ ] Replace placeholder copy with final customer-ready content.
+- [ ] Confirm pricing, package, booking, quote, or product information.
+- [ ] Add required legal pages, privacy policy, terms, and refund policy if needed.
+
+## Customer experience
+
+- [ ] Test homepage on desktop.
+- [ ] Test homepage on mobile.
+- [ ] Test all calls to action.
+- [ ] Submit a customer intake request.
+- [ ] Confirm success and error states are clear.
+- [ ] Confirm forms are accessible and easy to use.
+
+## Admin and operations
+
+- [ ] Review admin preview.
+- [ ] Protect admin pages with login before production.
+- [ ] Connect intake data to PostgreSQL, CRM, email, or operations workflow.
+- [ ] Add notification emails or SMS alerts for new customer requests.
+- [ ] Add rate limiting and spam protection.
+
+## Technical setup
+
+- [ ] Copy .env.example to .env.
+- [ ] Set DATABASE_URL.
+- [ ] Run npm install.
+- [ ] Run npm run db:generate.
+- [ ] Run npm run smoke.
+- [ ] Run npm run build.
+- [ ] Confirm Docker build if using Docker.
+
+## Deployment
+
+- [ ] Deploy behind HTTPS.
+- [ ] Configure domain and DNS.
+- [ ] Add process monitoring.
+- [ ] Add backup strategy.
+- [ ] Store secrets securely.
+- [ ] Test live deployed pages.
+- [ ] Test live intake submission.
+- [ ] Test download and delivery package.
+
+## Final approval
+
+- [ ] Customer-facing preview approved.
+- [ ] Admin workflow approved.
+- [ ] README reviewed.
+- [ ] Delivery guide reviewed.
+- [ ] Launch checklist completed.
+`
+    },
+    {
       file: "scripts/smoke-test.ts",
       title: "Smoke Test",
       content: `import fs from "fs";
@@ -1120,7 +1238,9 @@ const required = [
   "app/api/intake/route.ts",
   "lib/intake-store.ts",
   "prisma/schema.prisma",
-  "README.md"
+  "README.md",
+  "DELIVERY.md",
+  "LAUNCH_CHECKLIST.md"
 ];
 
 const missing = required.filter((file) => !fs.existsSync(file));
