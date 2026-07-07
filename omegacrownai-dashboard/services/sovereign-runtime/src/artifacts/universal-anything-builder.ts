@@ -654,6 +654,8 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
           databaseComplete: true,
           adminComplete: true,
           readmePresent: true,
+          deliveryGuidePresent: true,
+          launchChecklistPresent: true,
           smokeTestPresent: true,
           previewUrl: `/runtime-preview/${run.projectId}`,
           downloadUrl: `/api/runtime-proxy/runs/${run.projectId}/download`,

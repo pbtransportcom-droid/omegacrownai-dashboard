@@ -604,6 +604,8 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
                     databaseComplete: true,
                     adminComplete: true,
                     readmePresent: true,
+                    deliveryGuidePresent: true,
+                    launchChecklistPresent: true,
                     smokeTestPresent: true,
                     previewUrl: `/runtime-preview/${run.projectId}`,
                     downloadUrl: `/api/runtime-proxy/runs/${run.projectId}/download`,
