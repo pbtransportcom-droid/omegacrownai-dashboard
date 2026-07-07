@@ -582,6 +582,22 @@ export function validateGeneratedArtifacts(artifacts: GeneratedArtifact[]): Gene
     });
   }
 
+  if (!findArtifact(artifacts, "DELIVERY.md")) {
+    errors.push({
+      level: "error",
+      file: "DELIVERY.md",
+      message: "Generated artifact must include a customer delivery guide.",
+    });
+  }
+
+  if (!findArtifact(artifacts, "LAUNCH_CHECKLIST.md")) {
+    errors.push({
+      level: "error",
+      file: "LAUNCH_CHECKLIST.md",
+      message: "Generated artifact must include a launch checklist.",
+    });
+  }
+
   if (generatedMode === "transport") {
     const customerPage = findArtifact(artifacts, "app/customer/page.tsx");
     if (!customerPage || !artifactContent(customerPage).includes("await listBookingLeads()")) {
