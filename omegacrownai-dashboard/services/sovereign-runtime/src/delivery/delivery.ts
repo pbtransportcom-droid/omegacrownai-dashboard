@@ -16,9 +16,12 @@ export async function prepareDelivery(run: any) {
       "prisma/schema.prisma",
       "app/layout.tsx",
       "app/page.tsx",
-      "app/customer/page.tsx",
-      "app/admin/bookings/page.tsx",
-      "README.md"
+      "app/admin/page.tsx",
+      "app/api/intake/route.ts",
+      "lib/intake-store.ts",
+      "README.md",
+      "DELIVERY.md",
+      "LAUNCH_CHECKLIST.md"
     ]
   };
 
