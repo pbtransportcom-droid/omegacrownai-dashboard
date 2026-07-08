@@ -47,6 +47,30 @@ function LiveRuntimeInner() {
     runtime?.run?.events ||
     [];
   const transcript = runtime?.transcript || [];
+  const deliveryManifest = runtime?.deliveryManifest || runtime?.run?.deliveryManifest || null;
+  const qualityReport =
+    runtime?.generatedArtifactQualityReport ||
+    runtime?.run?.generatedArtifactQualityReport ||
+    deliveryManifest?.generatedArtifactQualityReport ||
+    null;
+  const deliveryProof =
+    runtime?.delivery?.buildProof ||
+    runtime?.run?.delivery?.buildProof ||
+    deliveryManifest?.delivery?.buildProof ||
+    null;
+  const requiredFiles: string[] = deliveryProof?.requiredFiles || [];
+  const fileList: string[] = deliveryManifest?.files || [];
+  const hasReadme = Boolean(qualityReport?.readmePresent || requiredFiles.includes("README.md") || fileList.includes("README.md"));
+  const hasDeliveryGuide = Boolean(qualityReport?.deliveryGuidePresent || requiredFiles.includes("DELIVERY.md") || fileList.includes("DELIVERY.md"));
+  const hasLaunchChecklist = Boolean(qualityReport?.launchChecklistPresent || requiredFiles.includes("LAUNCH_CHECKLIST.md") || fileList.includes("LAUNCH_CHECKLIST.md"));
+  const hasSmokeTest = Boolean(qualityReport?.smokeTestPresent || fileList.includes("scripts/smoke-test.ts") || fileList.includes("scripts/smoke-test.mjs"));
+  const validationPassed = Boolean(
+    runtime?.validation?.status === "passed" ||
+      runtime?.generatedArtifactValidation?.ok ||
+      deliveryManifest?.validation?.ok ||
+      deliveryProof?.generatedArtifactValidation?.ok
+  );
+  const downloadReady = Boolean(projectId && (runtime?.downloadUrl || deliveryManifest?.downloadUrl || runtime?.delivery?.download || deliveryManifest?.delivery?.download));
 
   return (
     <main className="min-h-screen bg-black text-white px-6 py-10">
@@ -114,34 +138,63 @@ function LiveRuntimeInner() {
 
         {runtime?.status === "completed" && (
           <div className="mt-8 rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-6 shadow-2xl shadow-emerald-500/10">
-            <div className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">
-              Delivery Ready
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">
+                  Production Package Ready
+                </div>
+
+                <h2 className="mt-3 text-3xl font-black text-white">
+                  Your production-ready package is ready.
+                </h2>
+
+                <p className="mt-3 max-w-4xl text-sm leading-7 text-emerald-100/80">
+                  OmegaCrownAI generated the customer preview, runtime preview, ZIP package,
+                  validation proof, delivery guide, and launch checklist. Review the preview,
+                  download the package, then use the included docs to prepare for launch.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-right">
+                <div className="text-xs uppercase tracking-[0.2em] text-white/50">Project ID</div>
+                <div className="mt-1 font-mono text-sm font-black text-white">{projectId}</div>
+                <div className="mt-2 text-xs text-emerald-200">{runtime?.mode || intent}</div>
+              </div>
             </div>
 
-            <h2 className="mt-3 text-3xl font-black text-white">
-              Your {runtime?.mode || intent} project has been generated.
-            </h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <ProofBadge ok={validationPassed} label="Validation passed" />
+              <ProofBadge ok={downloadReady} label="Download ready" />
+              <ProofBadge ok={hasReadme} label="README included" />
+              <ProofBadge ok={hasSmokeTest} label="Smoke test included" />
+              <ProofBadge ok={hasDeliveryGuide} label="Delivery guide included" />
+              <ProofBadge ok={hasLaunchChecklist} label="Launch checklist included" />
+              <ProofBadge ok={Boolean(qualityReport?.frontendComplete)} label="Frontend complete" />
+              <ProofBadge ok={Boolean(qualityReport?.adminComplete)} label="Admin complete" />
+            </div>
 
-            <p className="mt-3 max-w-4xl text-sm leading-7 text-emerald-100/80">
-              OmegaCrownAI completed the agent workflow, generated the project artifacts,
-              prepared validation, deployed the preview, and packaged the export files.
-              Use the buttons below to open the customer preview or download the full ZIP.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href={`/deployed/${projectId}`}
                 target="_blank"
                 className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-black hover:bg-emerald-300"
               >
-                Open Customer Preview
+                View Live Preview
+              </a>
+
+              <a
+                href={`/runtime-preview/${projectId}`}
+                target="_blank"
+                className="rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
+              >
+                View Runtime Preview
               </a>
 
               <a
                 href={`/api/runtime-proxy/runs/${projectId}/download`}
                 className="rounded-xl bg-white px-5 py-3 text-sm font-black text-black hover:bg-slate-200"
               >
-                Download Full ZIP
+                Download ZIP
               </a>
 
               <a
@@ -157,6 +210,15 @@ function LiveRuntimeInner() {
               >
                 View Validation
               </a>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-sm font-black text-white">Included delivery documents</div>
+              <div className="mt-3 grid gap-2 text-sm text-white/75 md:grid-cols-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">README.md setup guide</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">DELIVERY.md customer handoff</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">LAUNCH_CHECKLIST.md launch checklist</div>
+              </div>
             </div>
           </div>
         )}
@@ -278,6 +340,21 @@ function LiveRuntimeInner() {
         </section>
       </section>
     </main>
+  );
+}
+
+function ProofBadge({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 text-sm font-black ${
+        ok
+          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100"
+          : "border-white/10 bg-white/5 text-white/45"
+      }`}
+    >
+      <span className="mr-2">{ok ? "✓" : "○"}</span>
+      {label}
+    </div>
   );
 }
 
