@@ -143,6 +143,49 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-10">
+        <div className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-cyan-500/10 via-slate-900 to-violet-500/10 p-8 shadow-2xl shadow-black/30">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
+            Public trial access
+          </p>
+          <div className="mt-4 grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+            <div>
+              <h2 className="text-4xl font-black tracking-tight text-white md:text-6xl">
+                Try OmegaCrownAI before you register.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300">
+                Visitors can start a demo build, preview the generated product, and review the delivery package before creating an account. Registration is only needed when they are ready to save more projects, unlock higher limits, or manage production work.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/create?type=website" className="rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200">
+                  Try Website Builder
+                </Link>
+                <Link href="/create?type=app" className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/15">
+                  Try App Builder
+                </Link>
+                <Link href="/create?type=marketing" className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/15">
+                  Try Marketing AI
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              {[
+                "No credit card needed for demo creation",
+                "Generate a live preview from your prompt",
+                "Download ZIP package with source files",
+                "Open README, delivery guide, and launch checklist",
+                "Register later for more builds and saved workspace"
+              ].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-black/25 p-4 text-sm font-bold text-slate-100">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-10">
         <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 text-center">
           <p className="text-sm text-slate-300">
             Advanced tools are still available for operators and administrators.
