@@ -183,7 +183,13 @@ function CreatePageClient() {
         
      router.push(`/live-runtime?projectId=${data.projectId}&runtimeId=${data.runtimeId}&intent=${data.mode || data.intent || type}`);
       } else {
-        alert("OmegaCrownAI could not initialize the sovereign runtime.");
+        if (data?.requiresSignup) {
+          alert(data.error || "Create a free account to continue building with OmegaCrownAI.");
+          router.push(data.signupUrl || "/signup");
+          return;
+        }
+
+        alert(data?.error || "OmegaCrownAI could not initialize the sovereign runtime.");
       }
     } catch (error) {
       console.error(error);
