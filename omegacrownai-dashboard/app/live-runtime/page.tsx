@@ -215,9 +215,27 @@ function LiveRuntimeInner() {
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4">
               <div className="text-sm font-black text-white">Included delivery documents</div>
               <div className="mt-3 grid gap-2 text-sm text-white/75 md:grid-cols-3">
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">README.md setup guide</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">DELIVERY.md customer handoff</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">LAUNCH_CHECKLIST.md launch checklist</div>
+                <a
+                  href={`/api/runtime-proxy/runs/${projectId}/docs/README.md`}
+                  target="_blank"
+                  className="rounded-xl border border-white/10 bg-white/5 p-3 hover:border-cyan-300/50 hover:bg-cyan-500/10"
+                >
+                  README.md setup guide
+                </a>
+                <a
+                  href={`/api/runtime-proxy/runs/${projectId}/docs/DELIVERY.md`}
+                  target="_blank"
+                  className="rounded-xl border border-white/10 bg-white/5 p-3 hover:border-emerald-300/50 hover:bg-emerald-500/10"
+                >
+                  DELIVERY.md customer handoff
+                </a>
+                <a
+                  href={`/api/runtime-proxy/runs/${projectId}/docs/LAUNCH_CHECKLIST.md`}
+                  target="_blank"
+                  className="rounded-xl border border-white/10 bg-white/5 p-3 hover:border-yellow-300/50 hover:bg-yellow-500/10"
+                >
+                  LAUNCH_CHECKLIST.md launch checklist
+                </a>
               </div>
             </div>
           </div>
