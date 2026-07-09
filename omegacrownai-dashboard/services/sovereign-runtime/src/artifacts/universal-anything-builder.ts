@@ -433,12 +433,87 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
     ${askAiSection()}`;
   }
 
+  function standardWebsitePreviewHtml() {
+    const serviceCards = [
+      {
+        title: primarySection,
+        copy: `${brand} opens with a clear customer promise, direct call-to-action buttons, and mobile-first sections that explain what the business does fast.`
+      },
+      {
+        title: secondarySection,
+        copy: `Visitors see the strongest benefits, service details, proof points, and next steps without reading repeated placeholder text.`
+      },
+      {
+        title: thirdSection,
+        copy: `The page includes conversion blocks for inquiries, quotes, consultations, bookings, or lead capture depending on the customer's goal.`
+      },
+      {
+        title: adminSection,
+        copy: `The delivery includes an admin-ready review flow so submitted requests can be inspected and followed up from the project workspace.`
+      }
+    ];
+
+    const processSteps = [
+      "Clarify the offer",
+      "Capture qualified leads",
+      "Review requests in admin",
+      "Launch with delivery docs"
+    ];
+
+    return `<section class="visual-split">
+      <div>
+        <p class="eyebrow">Conversion-ready website</p>
+        <h2>${brand} gives visitors a clear reason to act.</h2>
+        <p>This generated preview is structured like a real launch page: headline, benefits, service cards, trust proof, customer intake, admin review, and delivery-ready documentation.</p>
+      </div>
+      <div class="proof-panel">
+        <strong>Built for launch</strong>
+        <span>Mobile-ready layout</span>
+        <span>Lead capture included</span>
+        <span>Admin review included</span>
+        <span>Downloadable source package</span>
+      </div>
+    </section>
+
+    <section class="grid rich-grid">
+      ${serviceCards.map((card) => `<article><h2>${card.title}</h2><p>${card.copy}</p></article>`).join("\n      ")}
+    </section>
+
+    <section class="panel trust-section">
+      <p class="eyebrow">Why customers choose ${brand}</p>
+      <h2>Clear messaging, fast next steps, and a complete delivery package.</h2>
+      <p>${brand} is generated with a practical customer journey instead of a blank template. The preview explains the offer, captures interest, and includes the operational pieces needed to move from demo to launch.</p>
+      <div class="hero-proof">
+        <span>Customer-ready copy</span>
+        <span>Working intake form</span>
+        <span>Admin inbox</span>
+        <span>README + launch checklist</span>
+      </div>
+    </section>
+
+    <section class="grid rich-grid process-grid">
+      ${processSteps.map((step, index) => `<article><p class="eyebrow">Step ${index + 1}</p><h2>${step}</h2><p>${index === 0 ? "Open with a specific offer and simple language customers understand." : index === 1 ? "Turn visitors into inquiries with focused forms and strong calls to action." : index === 2 ? "Store submissions so the business can review and respond quickly." : "Ship the preview with docs, validation, and package files for handoff."}</p></article>`).join("\n      ")}
+    </section>
+
+    <section class="panel faq-section">
+      <p class="eyebrow">Launch questions</p>
+      <h2>What this generated package includes</h2>
+      <div class="grid rich-grid">
+        <article><h2>Can customers submit requests?</h2><p>Yes. The live intake form stores customer requests under this generated project.</p></article>
+        <article><h2>Can admins review leads?</h2><p>Yes. The admin review panel loads submissions for follow-up.</p></article>
+        <article><h2>Can this become production?</h2><p>Yes. The package includes source files, metadata, README, delivery guide, and launch checklist.</p></article>
+      </div>
+    </section>
+
+    ${liveIntakeSection()}${askAiSection()}`;
+  }
+
   const domainPreviewHtml =
     domain.key === "ecommerce" || domain.key === "shop"
       ? commercePreviewHtml()
       : domain.key === "fitness" || domain.key === "gym"
         ? fitnessPreviewHtml()
-        : `${domain.sections.map((section) => `<article><h2>${section}</h2><p>Launch-ready customer section for ${brand}, with polished copy, clear next steps, customer intake, and review-ready admin workflow.</p></article>`).join("\n      ")}${liveIntakeSection()}${askAiSection()}`;
+        : standardWebsitePreviewHtml();
 
 
   const files: Array<{ file: string; title: string; type?: string; content: string }> = [
@@ -469,8 +544,8 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
 
     <section class="hero">
       <p class="eyebrow">${domain.product}</p>
-      <h1>${brand} built as a polished, customer-ready website that turns visitors into leads.</h1>
-      <p class="lede">A polished, mobile-ready website with clear messaging, strong calls to action, customer intake, admin review, and a downloadable launch package.</p>
+      <h1>${brand} is ready to present, capture customers, and move work into action.</h1>
+      <p class="lede">A mobile-ready launch page with specific service sections, trust proof, working customer intake, admin review, delivery documents, and a downloadable source package.</p>
       <div class="hero-actions">
         <a class="primary" href="#intake">Open Intake</a>
         <a class="secondary" href="#admin">Review Admin</a>
@@ -629,7 +704,7 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
       file: "styles.css",
       title: "Universal Styles",
       type: "css",
-      content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.live-intake,.live-admin{border-color:rgba(56,189,248,.28);box-shadow:0 24px 80px rgba(0,0,0,.28)}.intake-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;align-items:start}.intake-form input,.intake-form textarea{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(5,5,5,.82);color:var(--text);padding:16px 18px;font:inherit;font-size:15px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}.intake-form textarea{grid-column:1/-1;min-height:130px;resize:vertical;line-height:1.55}.intake-form input:focus,.intake-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(56,189,248,.14);background:#050505}.intake-form input::placeholder,.intake-form textarea::placeholder{color:#71717a}.intake-form button,[data-load-intake]{border:0;border-radius:999px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#001018;font-weight:950;padding:15px 22px;min-height:52px;cursor:pointer;box-shadow:0 18px 40px rgba(56,189,248,.2);transition:transform .18s ease,filter .18s ease}.intake-form button{grid-column:1/-1;justify-self:start}.intake-form button:hover,[data-load-intake]:hover{transform:translateY(-1px);filter:brightness(1.05)}[data-intake-output]{display:block;margin-top:14px;color:#c4b5fd}.live-admin [data-load-intake]{margin-top:12px}.mini-card{margin-top:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(5,5,5,.72);padding:14px 16px;color:#e5e7eb;line-height:1.55}.active-experience{border-color:rgba(56,189,248,.45)}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}.intake-form{grid-template-columns:1fr}.intake-form button{width:100%}}`
+      content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.proof-panel{border:1px solid var(--line);border-radius:28px;background:rgba(5,5,5,.72);padding:28px;display:grid;gap:12px}.proof-panel strong{font-size:28px}.proof-panel span{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:12px 16px;color:#e5e7eb}.trust-section{border-color:rgba(167,139,250,.35)}.process-grid article{background:linear-gradient(180deg,rgba(56,189,248,.12),rgba(16,16,20,.86))}.faq-section .grid{padding:18px 0 0}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.live-intake,.live-admin{border-color:rgba(56,189,248,.28);box-shadow:0 24px 80px rgba(0,0,0,.28)}.intake-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;align-items:start}.intake-form input,.intake-form textarea{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(5,5,5,.82);color:var(--text);padding:16px 18px;font:inherit;font-size:15px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}.intake-form textarea{grid-column:1/-1;min-height:130px;resize:vertical;line-height:1.55}.intake-form input:focus,.intake-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(56,189,248,.14);background:#050505}.intake-form input::placeholder,.intake-form textarea::placeholder{color:#71717a}.intake-form button,[data-load-intake]{border:0;border-radius:999px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#001018;font-weight:950;padding:15px 22px;min-height:52px;cursor:pointer;box-shadow:0 18px 40px rgba(56,189,248,.2);transition:transform .18s ease,filter .18s ease}.intake-form button{grid-column:1/-1;justify-self:start}.intake-form button:hover,[data-load-intake]:hover{transform:translateY(-1px);filter:brightness(1.05)}[data-intake-output]{display:block;margin-top:14px;color:#c4b5fd}.live-admin [data-load-intake]{margin-top:12px}.mini-card{margin-top:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(5,5,5,.72);padding:14px 16px;color:#e5e7eb;line-height:1.55}.active-experience{border-color:rgba(56,189,248,.45)}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}.intake-form{grid-template-columns:1fr}.intake-form button{width:100%}}`
     },
     {
       file: "metadata.json",
