@@ -3058,6 +3058,91 @@ Secondary phone: ${secondaryPhone}
 Website: ${companyWebsite}
 Tagline: ${tagline}
 `);
+        upsertFile("DELIVERY.md", "Transport Delivery Guide", `# ${companyName} Delivery Guide
+
+## Project
+${companyName} transport platform
+
+## Runtime
+- Runtime ID: ${run.runtimeId}
+- Project ID: ${run.projectId}
+- Generated mode: transport
+- Delivery standard: full-function
+
+## Customer-facing experience
+- Launch-ready homepage for airport rides, corporate travel, weddings, events, and executive transportation
+- Fleet gallery backed by data/fleet.json
+- Quote and booking request APIs
+- Customer portal for booking lead review
+- Admin dispatch dashboard for operations
+- Generated editor page for updating transport content
+
+## Backend/API coverage
+- app/api/bookings/route.ts
+- app/api/quotes/route.ts
+- app/api/content/route.ts
+- app/api/dispatch/route.ts
+- app/api/fleet/route.ts
+- app/api/availability/route.ts
+- app/api/invoices/route.ts
+- app/api/payments/create-intent/route.ts
+
+## Data and operations
+- Prisma schema included
+- Fleet data included
+- Editable content store included
+- Booking, dispatch, fleet, customer, invoice, pricing, availability, payment, and notification service files included
+
+## Visual assets
+- public/images/hero.svg
+- public/images/feature-1.svg
+- public/images/feature-2.svg
+- public/images/admin.svg
+
+## Handoff notes
+Use README.md for setup, LAUNCH_CHECKLIST.md for final launch review, and scripts/smoke-test.ts for validation.
+`);
+        upsertFile("LAUNCH_CHECKLIST.md", "Transport Launch Checklist", `# ${companyName} Launch Checklist
+
+## Brand and content
+- [ ] Confirm company name: ${companyName}
+- [ ] Confirm tagline: ${tagline}
+- [ ] Confirm primary phone: ${primaryPhone}
+- [ ] Confirm secondary phone: ${secondaryPhone}
+- [ ] Confirm website: ${companyWebsite}
+- [ ] Review homepage airport, corporate, wedding, and event transportation copy
+
+## Booking and customer flow
+- [ ] Test quote request API
+- [ ] Test booking request API
+- [ ] Confirm customer page loads persisted booking leads
+- [ ] Confirm admin booking dashboard is available
+- [ ] Confirm dispatcher page is available
+
+## Fleet and operations
+- [ ] Review data/fleet.json vehicle list
+- [ ] Confirm availability route
+- [ ] Confirm fleet route
+- [ ] Confirm dispatch route
+- [ ] Confirm invoice route
+
+## Deployment
+- [ ] Copy .env.example to .env
+- [ ] Set DATABASE_URL
+- [ ] Run npm install
+- [ ] Run npm run db:generate
+- [ ] Run npm run build
+- [ ] Run npm run smoke
+- [ ] Start production server
+
+## Delivery proof
+- [ ] README.md present
+- [ ] DELIVERY.md present
+- [ ] LAUNCH_CHECKLIST.md present
+- [ ] data/asset-manifest.json present
+- [ ] Visual assets present
+- [ ] Required routes present
+`);
         const metadataFile = files.find((entry) => entry.file === "metadata.json");
         if (metadataFile) {
             try {
