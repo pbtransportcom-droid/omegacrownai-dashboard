@@ -484,29 +484,49 @@ export async function buildArtifacts(run) {
     // Ensure regenerated projects do not keep stale files from older artifact schemas.
     fs.rmSync(outDir, { recursive: true, force: true });
     fs.mkdirSync(outDir, { recursive: true });
-    if (isSaasLandingPrompt(run.prompt || "")) {
-        return buildSaasLandingArtifacts(run, outDir);
-    }
-    if (isLegalFirmPrompt(run.prompt || "")) {
-        return buildLegalFirmArtifacts(run, outDir);
-    }
-    if (isTradingPlatformPrompt(run.prompt || "")) {
-        return buildTradingPlatformArtifacts(run, outDir);
-    }
-    if (isRestaurantPlatformPrompt(run.prompt || "")) {
-        return buildRestaurantPlatformArtifacts(run, outDir);
-    }
-    if (isFinancePlatformPrompt(run.prompt || "")) {
-        return buildFinancePlatformArtifacts(run);
-    }
     const buildSpec = run.buildSpec || null;
     const specIndustry = String(buildSpec?.industry || "").toLowerCase();
     const specProductType = String(buildSpec?.productType || "").toLowerCase();
     const normalizedPrompt = String(run.normalizedPrompt || buildSpec?.normalizedPrompt || run.prompt || "");
+    const routingPrompt = normalizedPrompt || run.prompt || "";
     const transportFromSpec = specIndustry === "transportation" ||
         specProductType.includes("transportation") ||
         specProductType.includes("dispatch") ||
-        isTransportPrompt(normalizedPrompt);
+        isTransportPrompt(routingPrompt);
+    const restaurantFromSpec = specIndustry === "restaurant" ||
+        specProductType.includes("restaurant") ||
+        specProductType.includes("ordering") ||
+        isRestaurantPlatformPrompt(routingPrompt);
+    const legalFromSpec = specIndustry === "legal" ||
+        specProductType.includes("legal") ||
+        specProductType.includes("law firm") ||
+        isLegalFirmPrompt(routingPrompt);
+    const saasFromSpec = specIndustry === "saas" ||
+        specProductType.includes("saas") ||
+        specProductType.includes("software") ||
+        isSaasLandingPrompt(routingPrompt);
+    const financeFromSpec = specIndustry === "finance" ||
+        specProductType.includes("finance") ||
+        specProductType.includes("financial") ||
+        isFinancePlatformPrompt(routingPrompt);
+    const tradingFromSpec = specIndustry === "trading" ||
+        specProductType.includes("trading") ||
+        isTradingPlatformPrompt(routingPrompt);
+    if (saasFromSpec) {
+        return buildSaasLandingArtifacts(run, outDir);
+    }
+    if (legalFromSpec) {
+        return buildLegalFirmArtifacts(run, outDir);
+    }
+    if (tradingFromSpec) {
+        return buildTradingPlatformArtifacts(run, outDir);
+    }
+    if (restaurantFromSpec) {
+        return buildRestaurantPlatformArtifacts(run, outDir);
+    }
+    if (financeFromSpec) {
+        return buildFinancePlatformArtifacts(run);
+    }
     if (isUniversalAnythingPrompt(run.prompt || "") && !transportFromSpec) {
         return buildUniversalAnythingArtifacts(run, outDir);
     }
