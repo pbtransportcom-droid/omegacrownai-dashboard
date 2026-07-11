@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ValidationResult = {
   ok?: boolean;
@@ -16,6 +16,39 @@ type RuntimeFile = {
   modifiedAt: string;
 };
 
+type BuildSpecSummary = {
+  buildSpec?: {
+    industry?: string;
+    brandName?: string;
+    productType?: string;
+    isIncomplete?: boolean;
+    pages?: string[];
+    features?: string[];
+    customerWorkflow?: string[];
+    adminWorkflow?: string[];
+    deliveryFiles?: string[];
+    missingFields?: string[];
+  } | null;
+  originalPrompt?: string;
+  normalizedPrompt?: string;
+  missingFields?: string[];
+  suggestedPrompt?: string;
+  deliveryManifest?: {
+    files?: string[];
+  } | null;
+};
+
+function asText(value: unknown, fallback = "Not provided") {
+  const text = String(value || "").trim();
+  return text || fallback;
+}
+
+function asTextList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+}
+
 export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const staticPreview = `/api/runtime-proxy/runs/${projectId}/preview`;
   const activeApp = `/generated-app/${projectId}`;
@@ -29,17 +62,55 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const [filePanelOpen, setFilePanelOpen] = useState(false);
   const [fileBusy, setFileBusy] = useState(false);
   const [fileFilter, setFileFilter] = useState("");
+  const [summary, setSummary] = useState<BuildSpecSummary | null>(null);
 
   const downloadUrl = useMemo(
     () => `/api/runtime-proxy/runs/${projectId}/download`,
     [projectId]
   );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSummary() {
+      try {
+        const response = await fetch(`/api/runtime-proxy/runs/${projectId}/summary`, {
+          cache: "no-store",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && response.ok) {
+          setSummary(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setSummary(null);
+        }
+      }
+    }
+
+    loadSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   const visibleFiles = useMemo(() => {
     const q = fileFilter.trim().toLowerCase();
     if (!q) return files;
     return files.filter((file) => file.path.toLowerCase().includes(q));
   }, [fileFilter, files]);
+
+  const buildSpec = summary?.buildSpec || null;
+  const originalPrompt = asText(summary?.originalPrompt, "");
+  const normalizedPrompt = asText(summary?.normalizedPrompt, "");
+  const missingFields = asTextList(summary?.missingFields || buildSpec?.missingFields);
+  const pagesGenerated = asTextList(buildSpec?.pages);
+  const featuresGenerated = asTextList(buildSpec?.features);
+  const customerWorkflow = asTextList(buildSpec?.customerWorkflow);
+  const adminWorkflow = asTextList(buildSpec?.adminWorkflow);
+  const deliveryFiles = asTextList(buildSpec?.deliveryFiles || summary?.deliveryManifest?.files);
+  const buildSpecReportVisible = Boolean(buildSpec || summary?.originalPrompt || summary?.normalizedPrompt);
 
   async function startApp(path = "") {
     setStatus("Starting active generated app...");
@@ -321,6 +392,116 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
           </div>
         </div>
       </section>
+
+      {buildSpecReportVisible ? (
+        <section className="border-b border-white/10 bg-black px-4 py-5">
+          <div className="mx-auto max-w-7xl rounded-3xl border border-cyan-300/20 bg-zinc-950 p-5 shadow-2xl shadow-cyan-950/20">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-200">
+                  Build Spec Report
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-white">
+                  OmegaCrownAI turned the prompt into a full product brief.
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
+                  Review the original prompt, smart defaults, generated pages, workflows,
+                  and delivery files before opening the active app or downloading the ZIP.
+                </p>
+              </div>
+              <a
+                href={downloadUrl}
+                className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-black hover:bg-cyan-200"
+              >
+                Download Package
+              </a>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-black p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                  Original Prompt
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-200">
+                  {originalPrompt || "Not provided"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black p-4 lg:col-span-2">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                  Normalized Build Spec
+                </p>
+                <p className="mt-2 line-clamp-6 text-sm leading-6 text-zinc-200">
+                  {normalizedPrompt || "No normalized prompt available."}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Industry</p>
+                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.industry)}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Product Type</p>
+                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.productType)}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Brand / Default</p>
+                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.brandName)}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Completeness</p>
+                <p className="mt-2 text-sm font-bold text-white">
+                  {buildSpec?.isIncomplete ? "Smart defaults applied" : "Complete prompt"}
+                </p>
+              </div>
+            </div>
+
+            {missingFields.length ? (
+              <div className="mt-4 rounded-2xl border border-yellow-300/20 bg-yellow-300/5 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-yellow-100">
+                  Missing Fields Filled With Smart Defaults
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {missingFields.map((field) => (
+                    <span key={field} className="rounded-full border border-yellow-300/20 px-3 py-1 text-xs font-bold text-yellow-100">
+                      {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              {[
+                ["Pages Generated", pagesGenerated],
+                ["Features Generated", featuresGenerated],
+                ["Customer Workflow", customerWorkflow],
+                ["Admin Workflow", adminWorkflow],
+                ["Delivery Files", deliveryFiles],
+              ].map(([title, items]) => (
+                <div key={String(title)} className="rounded-2xl border border-white/10 bg-black p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                    {String(title)}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(items as string[]).length ? (
+                      (items as string[]).map((item) => (
+                        <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-200">
+                          {item}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-zinc-500">Not available</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {filePanelOpen ? (
         <section className="border-b border-white/10 bg-zinc-950 px-4 py-4">

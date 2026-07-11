@@ -27,6 +27,12 @@ export async function GET(
     artifacts: run.artifacts || [],
     validation: run.validation || null,
     delivery: run.delivery || null,
+    deliveryManifest: run.deliveryManifest || null,
+    buildSpec: run.buildSpec || null,
+    originalPrompt: run.originalPrompt || run.buildSpec?.originalPrompt || run.prompt || "",
+    normalizedPrompt: run.normalizedPrompt || run.buildSpec?.normalizedPrompt || "",
+    missingFields: run.buildSpec?.missingFields || [],
+    suggestedPrompt: run.buildSpec?.suggestedPrompt || "",
     events: run.events || [],
   });
 }
