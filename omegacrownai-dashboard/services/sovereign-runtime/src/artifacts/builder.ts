@@ -531,16 +531,26 @@ export async function buildArtifacts(run: any) {
     return buildFinancePlatformArtifacts(run);
   }
 
-  if (isUniversalAnythingPrompt(run.prompt || "") && !isTransportPrompt(run.prompt || "")) {
+  const buildSpec = (run as any).buildSpec || null;
+  const specIndustry = String(buildSpec?.industry || "").toLowerCase();
+  const specProductType = String(buildSpec?.productType || "").toLowerCase();
+  const normalizedPrompt = String((run as any).normalizedPrompt || buildSpec?.normalizedPrompt || run.prompt || "");
+  const transportFromSpec =
+    specIndustry === "transportation" ||
+    specProductType.includes("transportation") ||
+    specProductType.includes("dispatch") ||
+    isTransportPrompt(normalizedPrompt);
+
+  if (isUniversalAnythingPrompt(run.prompt || "") && !transportFromSpec) {
     return buildUniversalAnythingArtifacts(run, outDir);
   }
 
-  const projectName = slug(run.prompt);
-  const requestedMode = run.mode || "website";
-  const mode = detectPromptMode(run.prompt || "", requestedMode);
+  const projectName = slug(normalizedPrompt || run.prompt);
+  const requestedMode = transportFromSpec ? "transport" : run.mode || "website";
+  const mode = transportFromSpec ? "transport" : detectPromptMode(normalizedPrompt || run.prompt || "", requestedMode);
   const isTransport = mode === "transport";
 
-  const baseProfile = modeProfile(mode, run.prompt || "", isTransport);
+  const baseProfile = modeProfile(mode, normalizedPrompt || run.prompt || "", isTransport);
   const profile = { ...baseProfile, ...domainProfile(mode) };
 
   const companyName = isTransport
