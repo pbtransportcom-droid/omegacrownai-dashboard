@@ -128,10 +128,21 @@ function safeBrand(prompt: string, product: string) {
     ].includes(word));
 
   if (!source || genericDescriptorPattern.test(normalizedSource) || words.length < 2) {
+    if (/launch-ready website|conversion website platform/i.test(product)) {
+      return "Custom Launch Website";
+    }
+    if (/custom business platform/i.test(product)) {
+      return "Custom Business Website";
+    }
     return product;
   }
 
-  return titleCase(source || product);
+  const candidate = titleCase(source || product);
+  if (/launch ready website|customer ready website|strong copy|hero message|value proposition/i.test(candidate)) {
+    return "Custom Launch Website";
+  }
+
+  return candidate;
 }
 
 export function isUniversalAnythingPrompt(prompt: string) {
@@ -143,7 +154,24 @@ export async function buildUniversalAnythingArtifacts(run: any, outDir: string) 
   const prompt = cleanPrompt(run.prompt || "");
   const domain = inferDomain(prompt);
   const brand = safeBrand(prompt, domain.product);
-  const [primarySection, secondarySection, thirdSection, adminSection] = domain.sections;
+  const [rawPrimarySection, rawSecondarySection, rawThirdSection, rawAdminSection] = domain.sections;
+  const normalizeSectionLabel = (label: string) => {
+    const value = String(label || "").trim();
+    const replacements: Record<string, string> = {
+      "Hero Message": "Services",
+      "Value Proposition": "Customer Trust",
+      "Conversion Sections": "Booking Request",
+      "Launch Review": "Launch Plan",
+      "Mobile Sections": "Mobile Experience",
+      "Customer Intake": "Booking Request",
+      "Admin Review": "Admin Review"
+    };
+    return replacements[value] || value || "Services";
+  };
+  const primarySection = normalizeSectionLabel(rawPrimarySection);
+  const secondarySection = normalizeSectionLabel(rawSecondarySection);
+  const thirdSection = normalizeSectionLabel(rawThirdSection);
+  const adminSection = normalizeSectionLabel(rawAdminSection);
   const [modelOne, modelTwo, modelThree, modelFour] = domain.models;
 
 
@@ -479,7 +507,7 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
       ${serviceCards.map((card) => `<article><h2>${card.title}</h2><p>${card.copy}</p></article>`).join("\n      ")}
     </section>
 
-    <section class="panel trust-section">
+    <section id="trust" class="panel trust-section">
       <p class="eyebrow">Why customers choose ${brand}</p>
       <h2>Clear messaging, fast next steps, and a complete delivery package.</h2>
       <p>${brand} is generated with a practical customer journey instead of a blank template. The preview explains the offer, captures interest, and includes the operational pieces needed to move from demo to launch.</p>
@@ -536,16 +564,17 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
       <strong>${brand}</strong>
       <div>
         <a href="#features">${primarySection}</a>
-        <a href="#workflow">${secondarySection}</a>
+        <a href="#trust">${secondarySection}</a>
+        <a href="#intake">${thirdSection}</a>
         <a href="#admin">${adminSection}</a>
       </div>
       <a class="nav-cta" href="#intake">Start Now</a>
     </nav>
 
     <section class="hero">
-      <p class="eyebrow">${domain.product}</p>
-      <h1>${brand} is ready to present, capture customers, and move work into action.</h1>
-      <p class="lede">A mobile-ready launch page with specific service sections, trust proof, working customer intake, admin review, delivery documents, and a downloadable source package.</p>
+      <p class="eyebrow">${domain.product === brand ? "Generated Website Package" : domain.product}</p>
+      <h1>${brand} is ready to capture leads and convert visitors.</h1>
+      <p class="lede">A mobile-ready launch page with clear service sections, customer trust proof, working intake, admin review, delivery documents, and a downloadable source package.</p>
       <div class="hero-actions">
         <a class="primary" href="#intake">Open Intake</a>
         <a class="secondary" href="#admin">Review Admin</a>
