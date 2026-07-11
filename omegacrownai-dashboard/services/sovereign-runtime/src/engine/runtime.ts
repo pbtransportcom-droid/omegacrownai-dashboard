@@ -8,7 +8,7 @@ import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
 import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
 import type { RuntimeRun } from "./schema.js";
-import { createBuildSpec } from "../intelligence/build-spec";
+import { createBuildSpec } from "../intelligence/build-spec.js";
 
 function id(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
