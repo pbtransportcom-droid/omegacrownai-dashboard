@@ -151,10 +151,16 @@ export function isUniversalAnythingPrompt(prompt: string) {
 
 export async function buildUniversalAnythingArtifacts(run: any, outDir: string) {
   const now = new Date().toISOString();
-  const prompt = cleanPrompt(run.prompt || "");
+  const buildSpec = run.buildSpec || null;
+  const prompt = cleanPrompt(buildSpec?.normalizedPrompt || run.prompt || "");
   const domain = inferDomain(prompt);
-  const brand = safeBrand(prompt, domain.product);
-  const [rawPrimarySection, rawSecondarySection, rawThirdSection, rawAdminSection] = domain.sections;
+  const brand = cleanPrompt(buildSpec?.brandName || "") || safeBrand(prompt, domain.product);
+  const specPages = Array.isArray(buildSpec?.pages) ? buildSpec.pages : [];
+  const specFeatures = Array.isArray(buildSpec?.features) ? buildSpec.features : [];
+  const specServices = Array.isArray(buildSpec?.services) ? buildSpec.services : [];
+  const specAdminWorkflow = Array.isArray(buildSpec?.adminWorkflow) ? buildSpec.adminWorkflow : [];
+  const specCustomerWorkflow = Array.isArray(buildSpec?.customerWorkflow) ? buildSpec.customerWorkflow : [];
+  const [rawPrimarySection, rawSecondarySection, rawThirdSection, rawAdminSection] = specPages.length >= 4 ? specPages : domain.sections;
   const normalizeSectionLabel = (label: string) => {
     const value = String(label || "").trim();
     const replacements: Record<string, string> = {
@@ -465,19 +471,19 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
     const serviceCards = [
       {
         title: primarySection,
-        copy: `${brand} opens with a clear customer promise, direct call-to-action buttons, and mobile-first sections that explain what the business does fast.`
+        copy: `${brand} presents ${specServices.length ? specServices.slice(0, 3).join(", ") : "core services"} with clear calls to action and a customer-ready structure.`
       },
       {
         title: secondarySection,
-        copy: `Visitors see the strongest benefits, service details, proof points, and next steps without reading repeated placeholder text.`
+        copy: `Visitors see ${specFeatures.length ? specFeatures.slice(0, 4).join(", ") : "trust proof, service details, and next steps"} instead of repeated placeholder text.`
       },
       {
         title: thirdSection,
-        copy: `The page includes conversion blocks for inquiries, quotes, consultations, bookings, or lead capture depending on the customer's goal.`
+        copy: `The customer workflow is ${specCustomerWorkflow.length ? specCustomerWorkflow.join(" → ") : "review services → submit request → receive follow-up"}.`
       },
       {
         title: adminSection,
-        copy: `The delivery includes an admin-ready review flow so submitted requests can be inspected and followed up from the project workspace.`
+        copy: `The admin workflow is ${specAdminWorkflow.length ? specAdminWorkflow.join(" → ") : "review requests → manage follow-up → update content"}.`
       }
     ];
 
@@ -743,9 +749,13 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
         projectId: run.projectId,
         runtimeId: run.runtimeId,
         mode: "universal",
-        product: domain.product,
-        title: `${brand} | ${domain.product}`,
-        inferredDomain: domain.key,
+        product: buildSpec?.productType || domain.product,
+        title: `${brand} | ${buildSpec?.productType || domain.product}`,
+        inferredDomain: buildSpec?.industry || domain.key,
+        buildSpec,
+        originalPrompt: buildSpec?.originalPrompt || run.prompt || "",
+        normalizedPrompt: buildSpec?.normalizedPrompt || prompt,
+        missingFields: buildSpec?.missingFields || [],
         generatedAt: now,
         engine: "sovereign-runtime",
         generatedArtifactQualityReport: {

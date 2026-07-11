@@ -1,18 +1,24 @@
 export async function runAgentChain(run: any, input: any) {
   const mode = run.mode || "general";
+  const buildSpec = run.buildSpec || null;
+  const planSummary = buildSpec
+    ? `Planned ${mode} execution for ${run.projectId}: ${buildSpec.productType} for ${buildSpec.brandName}. Pages: ${(buildSpec.pages || []).join(", ")}.`
+    : `Planned ${mode} execution for ${run.projectId}.`;
 
   return [
     {
       name: "Planner Agent",
       role: "Plans execution",
-      output: `Planned ${mode} execution for ${run.projectId}.`,
+      output: planSummary,
       status: "completed",
       timestamp: new Date().toISOString()
     },
     {
       name: "Builder Agent",
       role: "Builds artifacts",
-      output: `Built artifact plan from prompt: ${run.prompt}`,
+      output: buildSpec
+        ? `Built artifact plan from normalized build spec. Industry: ${buildSpec.industry}. Features: ${(buildSpec.features || []).join(", ")}. Missing fields handled: ${(buildSpec.missingFields || []).join(", ") || "none"}.`
+        : `Built artifact plan from prompt: ${run.prompt}`,
       status: "completed",
       timestamp: new Date().toISOString()
     },

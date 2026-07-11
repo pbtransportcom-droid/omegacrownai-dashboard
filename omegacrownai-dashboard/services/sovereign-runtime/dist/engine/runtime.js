@@ -114,6 +114,12 @@ export async function executeRun(projectId, input) {
     }
     try {
         run.status = "running";
+        const buildSpec = createBuildSpec({ prompt: run.prompt, mode: run.mode, projectId: run.projectId });
+        run.buildSpec = buildSpec;
+        run.originalPrompt = buildSpec.originalPrompt;
+        run.normalizedPrompt = buildSpec.normalizedPrompt;
+        appendRunEvent(run, buildSpec.isIncomplete ? "Prompt normalized with smart defaults" : "Prompt normalized into build spec");
+        appendTranscript(projectId, buildSpec.isIncomplete ? `Prompt was incomplete. Smart defaults applied: ${buildSpec.missingFields.join(", ")}` : "Prompt normalized into full build spec.");
         appendRunEvent(run, "Execution started");
         appendTranscript(projectId, "Execution started");
         run.status = "agent_chain";
