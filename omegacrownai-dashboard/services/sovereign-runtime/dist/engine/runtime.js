@@ -7,6 +7,7 @@ import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
 import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
+import { createBuildSpec } from "../intelligence/build-spec";
 function id(prefix) {
     return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
