@@ -629,6 +629,93 @@ RESERVATION_NOTIFICATION_EMAIL="host@example.com"
 `
         },
         {
+            file: "DELIVERY.md",
+            title: "Customer Delivery Guide",
+            type: "markdown",
+            content: `# Restaurant Platform Delivery Guide
+
+This delivery is a customer-ready restaurant ordering and reservation platform package.
+
+## Included
+
+- Public restaurant website
+- Menu showcase
+- Online ordering request flow
+- Reservation request flow
+- Customer portal
+- Admin review dashboard
+- Editor area
+- Generated image assets
+- README setup guide
+- Launch checklist
+- Metadata and asset manifest
+- Smoke test script
+
+## Customer workflow
+
+1. Visitor reviews the restaurant brand, menu, and service promise.
+2. Visitor submits an order request or reservation request.
+3. Customer request is stored through the generated backend flow.
+4. Admin reviews requests from the dashboard.
+5. Owner updates content through the editor area.
+
+## Admin workflow
+
+1. Review incoming order and reservation requests.
+2. Update menu/content.
+3. Review feature requests.
+4. Prepare launch checks.
+5. Deploy the generated package.
+
+## Launch notes
+
+Use README.md for setup instructions and LAUNCH_CHECKLIST.md before publishing.
+`
+        },
+        {
+            file: "LAUNCH_CHECKLIST.md",
+            title: "Launch Checklist",
+            type: "markdown",
+            content: `# Restaurant Platform Launch Checklist
+
+## Required files
+
+- [ ] README.md present
+- [ ] DELIVERY.md present
+- [ ] LAUNCH_CHECKLIST.md present
+- [ ] metadata.json present
+- [ ] data/asset-manifest.json present
+- [ ] .env.example present
+- [ ] Smoke test script present
+
+## Website review
+
+- [ ] Homepage loads
+- [ ] Menu section is visible
+- [ ] Ordering flow is visible
+- [ ] Reservation flow is visible
+- [ ] Customer portal is visible
+- [ ] Admin dashboard is visible
+- [ ] Editor page is visible
+- [ ] Footer/contact details reviewed
+
+## Backend review
+
+- [ ] Order request API reviewed
+- [ ] Reservation/customer data store reviewed
+- [ ] Admin review flow tested
+- [ ] Feature request flow tested
+
+## Final customer handoff
+
+- [ ] Business name updated
+- [ ] Menu items updated
+- [ ] Contact info updated
+- [ ] Payment/invoice preference confirmed
+- [ ] Domain/deployment target confirmed
+`
+        },
+        {
             file: "README.md",
             title: "Delivery README",
             type: "markdown",

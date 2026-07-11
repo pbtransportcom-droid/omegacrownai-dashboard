@@ -649,6 +649,94 @@ CASE_INQUIRY_NOTIFICATION_EMAIL="intake@example.com"
 `,
         },
         {
+            file: "DELIVERY.md",
+            title: "Customer Delivery Guide",
+            type: "markdown",
+            content: `# Legal Firm Platform Delivery Guide
+
+This delivery is a customer-ready legal firm website and client intake platform package.
+
+## Included
+
+- Public legal firm website
+- Practice areas section
+- Attorney profiles
+- Consultation intake flow
+- Client portal preview
+- Admin review dashboard
+- Editor area
+- Generated image assets
+- README setup guide
+- Launch checklist
+- Metadata and asset manifest
+- Smoke test script
+
+## Customer workflow
+
+1. Visitor reviews practice areas and firm positioning.
+2. Visitor reviews attorney/profile information.
+3. Visitor submits a consultation or case inquiry.
+4. Inquiry is stored through the generated backend flow.
+5. Admin reviews requests from the dashboard.
+
+## Admin workflow
+
+1. Review consultation and case inquiries.
+2. Update practice areas and page content.
+3. Review feature requests.
+4. Prepare launch checks.
+5. Deploy the generated package.
+
+## Launch notes
+
+Use README.md for setup instructions and LAUNCH_CHECKLIST.md before publishing. This package is a software delivery and does not provide legal advice.
+`
+        },
+        {
+            file: "LAUNCH_CHECKLIST.md",
+            title: "Launch Checklist",
+            type: "markdown",
+            content: `# Legal Firm Platform Launch Checklist
+
+## Required files
+
+- [ ] README.md present
+- [ ] DELIVERY.md present
+- [ ] LAUNCH_CHECKLIST.md present
+- [ ] metadata.json present
+- [ ] data/asset-manifest.json present
+- [ ] .env.example present
+- [ ] Smoke test script present
+
+## Website review
+
+- [ ] Homepage loads
+- [ ] Practice areas are visible
+- [ ] Attorney profiles are visible
+- [ ] Consultation intake is visible
+- [ ] Client portal preview is visible
+- [ ] Admin dashboard is visible
+- [ ] Editor page is visible
+- [ ] Footer/contact details reviewed
+
+## Backend review
+
+- [ ] Consultation intake API reviewed
+- [ ] Case inquiry store reviewed
+- [ ] Admin review flow tested
+- [ ] Feature request flow tested
+
+## Final customer handoff
+
+- [ ] Firm name updated
+- [ ] Practice areas updated
+- [ ] Attorney details updated
+- [ ] Contact info updated
+- [ ] Compliance/legal disclaimer reviewed
+- [ ] Domain/deployment target confirmed
+`
+        },
+        {
             file: "README.md",
             title: "Delivery README",
             type: "markdown",
