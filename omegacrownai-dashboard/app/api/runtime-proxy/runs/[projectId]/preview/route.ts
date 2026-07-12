@@ -27,9 +27,15 @@ export async function GET(
     );
   }
 
-  return new NextResponse(fs.readFileSync(file, "utf8"), {
+  const html = fs
+    .readFileSync(file, "utf8")
+    .replace(/href=["']\.\/([^"']+)["']/g, `href="/runtime-preview/${projectId}/$1"`)
+    .replace(/src=["']\.\/([^"']+)["']/g, `src="/runtime-preview/${projectId}/$1"`);
+
+  return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
     },
   });
 }
