@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { Readable } from "stream";
-import archiver from "archiver";
+import * as archiverModule from "archiver";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+
+const archiver = (archiverModule as any).default || archiverModule;
 
 const RUNTIME_ROOT = path.join(process.cwd(), "services", "sovereign-runtime");
 

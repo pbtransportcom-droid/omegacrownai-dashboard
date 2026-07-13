@@ -48,7 +48,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
             file: "index.html",
             title: "NexusFlow Landing Preview",
             type: "html",
-            content: `.visual-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}.visual-grid img{width:100%;border:1px solid var(--line,#27272a);border-radius:20px;background:#111}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line,#27272a);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand,#38bdf8);color:#001018;font-weight:900;padding:12px 18px}.active-experience{border-color:rgba(56,189,248,.45)}<!DOCTYPE html>
+            content: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
