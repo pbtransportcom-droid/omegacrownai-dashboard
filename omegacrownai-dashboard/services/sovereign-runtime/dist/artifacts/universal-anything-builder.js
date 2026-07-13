@@ -130,6 +130,16 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
     const prompt = cleanPrompt(buildSpec?.normalizedPrompt || run.prompt || "");
     const domain = inferDomain(prompt);
     const brand = cleanPrompt(buildSpec?.brandName || "") || safeBrand(prompt, domain.product);
+    const designPreset = buildSpec?.designPreset || null;
+    const palette = designPreset?.palette || {
+        background: "#050505",
+        surface: "#111113",
+        primary: "#38bdf8",
+        secondary: "#8b5cf6",
+        accent: "#22c55e",
+        text: "#ffffff",
+        muted: "#d4d4d8"
+    };
     const specPages = Array.isArray(buildSpec?.pages) ? buildSpec.pages : [];
     const specFeatures = Array.isArray(buildSpec?.features) ? buildSpec.features : [];
     const specServices = Array.isArray(buildSpec?.services) ? buildSpec.services : [];
@@ -699,6 +709,21 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
                 title: `${brand} | ${buildSpec?.productType || domain.product}`,
                 inferredDomain: buildSpec?.industry || domain.key,
                 buildSpec,
+                designPreset,
+                designSystem: designPreset
+                    ? {
+                        id: designPreset.id,
+                        name: designPreset.name,
+                        mood: designPreset.mood,
+                        palette: designPreset.palette,
+                        typography: designPreset.typography,
+                        layout: designPreset.layout,
+                        heroStyle: designPreset.heroStyle,
+                        sectionStyle: designPreset.sectionStyle,
+                        imageDirection: designPreset.imageDirection,
+                        motionDirection: designPreset.motionDirection
+                    }
+                    : null,
                 originalPrompt: buildSpec?.originalPrompt || run.prompt || "",
                 normalizedPrompt: buildSpec?.normalizedPrompt || prompt,
                 missingFields: buildSpec?.missingFields || [],

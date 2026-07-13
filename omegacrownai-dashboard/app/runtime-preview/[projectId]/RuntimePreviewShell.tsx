@@ -28,6 +28,18 @@ type BuildSpecSummary = {
     adminWorkflow?: string[];
     deliveryFiles?: string[];
     missingFields?: string[];
+    designPreset?: {
+      id?: string;
+      name?: string;
+      mood?: string;
+      palette?: Record<string, string>;
+      typography?: string;
+      layout?: string;
+      heroStyle?: string;
+      sectionStyle?: string;
+      imageDirection?: string;
+      motionDirection?: string;
+    };
   } | null;
   originalPrompt?: string;
   normalizedPrompt?: string;
@@ -110,6 +122,8 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const customerWorkflow = asTextList(buildSpec?.customerWorkflow);
   const adminWorkflow = asTextList(buildSpec?.adminWorkflow);
   const deliveryFiles = asTextList(buildSpec?.deliveryFiles || summary?.deliveryManifest?.files);
+  const designPreset = buildSpec?.designPreset || null;
+  const designPalette: Record<string, string> = designPreset?.palette || {};
   const buildSpecReportVisible = Boolean(buildSpec || summary?.originalPrompt || summary?.normalizedPrompt);
 
   async function startApp(path = "") {
@@ -457,6 +471,68 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
                 </p>
               </div>
             </div>
+
+            {designPreset ? (
+              <div className="mt-5 rounded-2xl border border-fuchsia-300/20 bg-fuchsia-500/10 p-4">
+                <div className="text-xs font-black uppercase tracking-[0.28em] text-fuchsia-200">
+                  Prompt-Fit Design System
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  {[
+                    ["Design Preset", designPreset.name],
+                    ["Mood", designPreset.mood],
+                    ["Typography", designPreset.typography],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                      <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
+                      <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {[
+                    ["Layout", designPreset.layout],
+                    ["Hero Style", designPreset.heroStyle],
+                    ["Section Style", designPreset.sectionStyle],
+                    ["Image Direction", designPreset.imageDirection],
+                    ["Motion Direction", designPreset.motionDirection],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                      <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
+                      <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {Object.keys(designPalette).length ? (
+                  <div className="mt-4">
+                    <div className="text-xs font-black uppercase tracking-[0.2em] text-white/50">
+                      Palette
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      {Object.entries(designPalette).map(([name, value]) => (
+                        <div key={name} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="h-5 w-5 rounded-full border border-white/20"
+                              style={{ backgroundColor: value }}
+                            />
+                            <span className="text-xs font-black uppercase tracking-[0.16em] text-white/50">
+                              {name}
+                            </span>
+                          </div>
+                          <div className="mt-2 font-mono text-xs font-bold text-white">
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {missingFields.length ? (
               <div className="mt-4 rounded-2xl border border-yellow-300/20 bg-yellow-300/5 p-4">

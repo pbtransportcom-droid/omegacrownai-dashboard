@@ -1,3 +1,5 @@
+import { selectDesignPreset, type DesignPreset } from "./design-inventory.js";
+
 export type BuildSpec = {
   originalPrompt: string;
   normalizedPrompt: string;
@@ -16,6 +18,7 @@ export type BuildSpec = {
   customerWorkflow: string[];
   deliveryFiles: string[];
   visualDirection: string;
+  designPreset: DesignPreset;
   executionStandard: "full-function";
   suggestedPrompt: string;
 };
@@ -128,6 +131,24 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
 
   const isIncomplete = missingFields.length >= 3 || originalPrompt.split(/\s+/).length < 18;
 
+  const designPreset = selectDesignPreset({
+    prompt: originalPrompt,
+    industry,
+    visualDirection
+  });
+
+  visualDirection = [
+    visualDirection,
+    `Design preset: ${designPreset.name}.`,
+    `Mood: ${designPreset.mood}.`,
+    `Palette: background ${designPreset.palette.background}, surface ${designPreset.palette.surface}, primary ${designPreset.palette.primary}, secondary ${designPreset.palette.secondary}, accent ${designPreset.palette.accent}.`,
+    `Typography: ${designPreset.typography}.`,
+    `Layout: ${designPreset.layout}.`,
+    `Hero style: ${designPreset.heroStyle}.`,
+    `Section style: ${designPreset.sectionStyle}.`,
+    `Image direction: ${designPreset.imageDirection}.`
+  ].join(" ");
+
   const normalizedPrompt = [
     `Build a ${productType} for ${brandName}.`,
     `Industry: ${industry}.`,
@@ -162,6 +183,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     customerWorkflow,
     deliveryFiles: ["README.md", "DELIVERY.md", "LAUNCH_CHECKLIST.md", "metadata.json", "data/asset-manifest.json"],
     visualDirection,
+    designPreset,
     executionStandard: "full-function",
     suggestedPrompt
   };
