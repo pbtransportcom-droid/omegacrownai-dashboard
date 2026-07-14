@@ -75,7 +75,40 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   let customerWorkflow = ["Visit site", "Review services", "Submit request", "Receive follow-up"];
   let visualDirection = "modern dark premium layout with strong hero, service cards, trust proof, and clear calls to action";
 
-  if (includesAny(source, ["transport", "limo", "airport", "chauffeur", "black car", "fleet", "rides", "wedding service", "corporate travel"])) {
+  if (includesAny(source, ["legal", "law firm", "lawyer", "attorney", "practice areas", "case review", "consultation intake", "justice law"])) {
+    industry = "legal";
+    productType = "legal consultation and case intake platform";
+    brandFallback = "Legal Authority Website";
+    targetCustomer = "prospective legal clients and case intake leads";
+    services = ["Practice areas", "Attorney profiles", "Consultation intake", "Case review"];
+    pages = ["Home", "Practice Areas", "Attorney Profiles", "Consultation Intake", "Admin Case Review", "Editor"];
+    features = ["Practice area sections", "Consultation request", "Attorney profile cards", "Case inquiry review", "Editable content"];
+    adminWorkflow = ["Review consultation requests", "Assign case inquiry", "Track client follow-up", "Update practice area content"];
+    customerWorkflow = ["Review practice areas", "Read attorney trust proof", "Request consultation", "Receive follow-up"];
+    visualDirection = "refined legal authority design with serious trust proof, navy/gold palette, practice area cards, and consultation CTA";
+  } else if (includesAny(source, ["beauty", "salon", "spa", "hair", "nails", "makeup", "skincare", "rose glow"])) {
+    industry = "beauty";
+    productType = "beauty salon booking and gallery platform";
+    brandFallback = "Beauty Studio Website";
+    targetCustomer = "salon clients, beauty customers, and appointment leads";
+    services = ["Beauty services", "Gallery", "Appointment booking", "Stylist highlights"];
+    pages = ["Home", "Services", "Gallery", "Appointment Booking", "Admin Schedule", "Editor"];
+    features = ["Service menu", "Visual gallery", "Appointment request", "Admin schedule review", "Editable content"];
+    adminWorkflow = ["Review appointment requests", "Update services", "Manage gallery", "Track client follow-up"];
+    customerWorkflow = ["Browse services", "View gallery", "Request appointment", "Receive booking confirmation"];
+    visualDirection = "soft luxury beauty design with warm editorial visuals, gallery-first sections, appointment CTA, and polished lifestyle tone";
+  } else if (includesAny(source, ["construction", "contractor", "project gallery", "estimate request", "roofing", "plumbing", "repair", "industrial", "ironbuild"])) {
+    industry = "construction";
+    productType = "construction estimate and project gallery platform";
+    brandFallback = "Construction Services Website";
+    targetCustomer = "property owners, project clients, and estimate leads";
+    services = ["Construction services", "Project gallery", "Estimate requests", "Service areas"];
+    pages = ["Home", "Services", "Project Gallery", "Estimate Request", "Admin Pipeline", "Editor"];
+    features = ["Project gallery", "Estimate request form", "Service proof sections", "Admin pipeline review", "Editable content"];
+    adminWorkflow = ["Review estimate requests", "Track project leads", "Update project gallery", "Manage service pages"];
+    customerWorkflow = ["Review services", "View project proof", "Request estimate", "Receive follow-up"];
+    visualDirection = "bold industrial services design with project proof, durable typography, estimate CTA, and practical trust sections";
+  } else if (includesAny(source, ["transport", "limo", "airport", "chauffeur", "black car", "fleet", "rides", "wedding service", "corporate travel"])) {
     industry = "transportation";
     productType = "transportation booking and dispatch platform";
     brandFallback = "Professional Transportation Website";
@@ -125,7 +158,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   if (!/(called|named|brand|business name|company name)/i.test(originalPrompt)) missingFields.push("brandName");
   if (!/(phone|email|contact)/i.test(originalPrompt)) missingFields.push("contactInfo");
   if (!/(city|location|area|near|chicago|houston|atlanta|dallas|new york|o'hare|midway)/i.test(originalPrompt)) missingFields.push("location");
-  if (!/(services|service|product|fleet|menu|appointment|booking|checkout|classes|programs)/i.test(originalPrompt)) missingFields.push("services");
+  if (!/(services|service|product|fleet|menu|appointment|booking|checkout|classes|programs|practice areas|attorney|case|gallery|estimate|construction|contractor)/i.test(originalPrompt)) missingFields.push("services");
   if (!/(admin|dashboard|portal|dispatch|manage|review)/i.test(originalPrompt)) missingFields.push("adminWorkflow");
   if (!/(payment|stripe|square|invoice|checkout|deposit)/i.test(originalPrompt)) missingFields.push("paymentOrInvoicePreference");
 

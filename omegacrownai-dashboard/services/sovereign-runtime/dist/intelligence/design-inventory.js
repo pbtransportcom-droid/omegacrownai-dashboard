@@ -205,35 +205,36 @@ export const DESIGN_INVENTORY = [
 ];
 export function selectDesignPreset(input) {
     const source = `${input.prompt || ""} ${input.industry || ""} ${input.visualDirection || ""}`.toLowerCase();
+    const byId = (id) => DESIGN_INVENTORY.find((preset) => preset.id === id);
     if (includesAny(source, ["transport", "limo", "airport", "chauffeur", "black car", "fleet", "executive travel"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "luxury_transport");
+        return byId("luxury_transport");
     }
     if (includesAny(source, ["restaurant", "food", "menu", "reservation", "catering", "chef", "dining"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "warm_restaurant");
+        return byId("warm_restaurant");
     }
-    if (includesAny(source, ["clinic", "medical", "doctor", "health", "appointment", "patient", "wellness"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "clinical_trust");
+    if (includesAny(source, ["legal", "law firm", "lawyer", "attorney", "practice areas", "case review", "justice law"])) {
+        return byId("legal_authority");
     }
-    if (includesAny(source, ["law", "legal", "attorney", "lawyer", "case", "consultation", "firm"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "legal_authority");
+    if (includesAny(source, ["construction", "contractor", "project gallery", "estimate request", "roofing", "plumbing", "repair", "industrial", "ironbuild"])) {
+        return byId("industrial_services");
+    }
+    if (includesAny(source, ["beauty", "salon", "spa", "hair", "nails", "makeup", "skincare", "rose glow", "stylist"])) {
+        return byId("beauty_soft_luxury");
+    }
+    if (includesAny(source, ["clinic", "medical", "doctor", "health", "patient", "wellness"])) {
+        return byId("clinical_trust");
     }
     if (includesAny(source, ["store", "ecommerce", "shop", "product", "checkout", "cart", "catalog", "bookstore"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "commerce_editorial");
+        return byId("commerce_editorial");
     }
     if (includesAny(source, ["saas", "software", "dashboard", "analytics", "crm", "subscription", "automation"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "modern_saas");
+        return byId("modern_saas");
     }
     if (includesAny(source, ["school", "education", "kids", "student", "class", "program", "daycare"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "playful_education");
+        return byId("playful_education");
     }
-    if (includesAny(source, ["beauty", "salon", "spa", "hair", "nails", "makeup", "skincare"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "beauty_soft_luxury");
+    if (includesAny(source, ["creative", "portfolio", "studio", "artist", "music", "podcast", "video", "media"])) {
+        return byId("creative_portfolio");
     }
-    if (includesAny(source, ["construction", "cleaning", "contractor", "repair", "roofing", "plumbing", "industrial"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "industrial_services");
-    }
-    if (includesAny(source, ["portfolio", "creative", "artist", "music", "podcast", "video", "studio", "photography"])) {
-        return DESIGN_INVENTORY.find((preset) => preset.id === "creative_portfolio");
-    }
-    return DESIGN_INVENTORY.find((preset) => preset.id === "modern_saas");
+    return byId("modern_saas");
 }
