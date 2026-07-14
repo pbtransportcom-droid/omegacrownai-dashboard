@@ -475,11 +475,11 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         const serviceCards = [
             {
                 title: primarySection,
-                copy: `${brand} presents ${specServices.length ? specServices.slice(0, 3).join(", ") : "core services"} with clear calls to action and a customer-ready structure.`
+                copy: `${brand} presents ${specServices.length ? specServices.slice(0, 3).join(", ") : "core services"} through a ${designName} interface with ${designSectionStyle}.`
             },
             {
                 title: secondarySection,
-                copy: `Visitors see ${specFeatures.length ? specFeatures.slice(0, 4).join(", ") : "trust proof, service details, and next steps"} instead of repeated placeholder text.`
+                copy: `Visitors see ${specFeatures.length ? specFeatures.slice(0, 4).join(", ") : "trust proof, service details, and next steps"} with ${designTypography}.`
             },
             {
                 title: thirdSection,
@@ -496,17 +496,17 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             "Review requests in admin",
             "Launch with delivery docs"
         ];
-        return `<section class="visual-split">
+        return `<section class="visual-split preview-${designClass}">
       <div>
-        <p class="eyebrow">Conversion-ready website</p>
-        <h2>${brand} gives visitors a clear reason to act.</h2>
-        <p>This generated preview is structured like a real launch page: headline, benefits, service cards, trust proof, customer intake, admin review, and delivery-ready documentation.</p>
+        <p class="eyebrow">${designName}</p>
+        <h2>${heroTitle}</h2>
+        <p>${heroSubtitle}</p>
       </div>
       <div class="proof-panel">
-        <strong>Built for launch</strong>
-        <span>Mobile-ready layout</span>
-        <span>Lead capture included</span>
-        <span>Admin review included</span>
+        <strong>${designLayout}</strong>
+        <span>${designMood}</span>
+        <span>${designHeroStyle}</span>
+        <span>${designImageDirection}</span>
         <span>Downloadable source package</span>
       </div>
     </section>
@@ -517,10 +517,10 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
 
     <section id="trust" class="panel trust-section">
       <p class="eyebrow">Why customers choose ${brand}</p>
-      <h2>Clear messaging, fast next steps, and a complete delivery package.</h2>
-      <p>${brand} is generated with a practical customer journey instead of a blank template. The preview explains the offer, captures interest, and includes the operational pieces needed to move from demo to launch.</p>
+      <h2>${designName} direction with prompt-fit sections and working workflows.</h2>
+      <p>${brand} is generated with ${designSectionStyle}, ${designTypography}, and ${designMotionDirection}. The preview explains the offer, captures interest, and includes the operational pieces needed to move from demo to launch.</p>
       <div class="hero-proof">
-        <span>Customer-ready copy</span>
+        <span>${ctaLabel}</span>
         <span>Working intake form</span>
         <span>Admin inbox</span>
         <span>README + launch checklist</span>
@@ -533,7 +533,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
 
     <section class="panel faq-section">
       <p class="eyebrow">Launch questions</p>
-      <h2>What this generated package includes</h2>
+      <h2>What this ${designName} generated package includes</h2>
       <div class="grid rich-grid">
         <article><h2>Can customers submit requests?</h2><p>Yes. The live intake form stores customer requests under this generated project.</p></article>
         <article><h2>Can admins review leads?</h2><p>Yes. The admin review panel loads submissions for follow-up.</p></article>
@@ -558,12 +558,12 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${brand} | ${domain.product}</title>
+  <title>${brand} | ${buildSpec?.productType || domain.product}</title>
   <meta name="description" content="${brand} generated as a full-function customer-ready website and app package." />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <main class="page-shell">
+  <main class="page-shell ${designClass}">
     <nav class="nav">
       <strong>${brand}</strong>
       <div>
@@ -572,21 +572,21 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         <a href="#intake">${thirdSection}</a>
         <a href="#admin">${adminSection}</a>
       </div>
-      <a class="nav-cta" href="#intake">Start Now</a>
+      <a class="nav-cta" href="#intake">${ctaLabel}</a>
     </nav>
 
     <section class="hero">
-      <p class="eyebrow">${domain.product === brand ? "Generated Website Package" : domain.product}</p>
-      <h1>${brand} is ready to capture leads and convert visitors.</h1>
-      <p class="lede">A mobile-ready launch page with clear service sections, customer trust proof, working intake, admin review, delivery documents, and a downloadable source package.</p>
+      <p class="eyebrow">${buildSpec?.productType || domain.product}</p>
+      <h1>${heroTitle}</h1>
+      <p class="lede">${heroSubtitle}</p>
       <div class="hero-actions">
-        <a class="primary" href="#intake">Open Intake</a>
+        <a class="primary" href="#intake">${ctaLabel}</a>
         <a class="secondary" href="#admin">Review Admin</a>
       </div>
       <div class="hero-proof">
-        <span>Frontend complete</span>
-        <span>API complete</span>
-        <span>Database schema included</span>
+        <span>${designName}</span>
+        <span>${designMood}</span>
+        <span>${designLayout}</span>
         <span>Delivery manifest ready</span>
       </div>
     </section>
@@ -737,7 +737,7 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             file: "styles.css",
             title: "Universal Styles",
             type: "css",
-            content: `:root{color-scheme:dark;--bg:#050505;--panel:#101014;--line:#27272a;--text:#fafafa;--muted:#a1a1aa;--brand:#38bdf8;--accent:#a78bfa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:rgba(5,5,5,.86);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:rgba(16,16,20,.86);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.proof-panel{border:1px solid var(--line);border-radius:28px;background:rgba(5,5,5,.72);padding:28px;display:grid;gap:12px}.proof-panel strong{font-size:28px}.proof-panel span{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:12px 16px;color:#e5e7eb}.trust-section{border-color:rgba(167,139,250,.35)}.process-grid article{background:linear-gradient(180deg,rgba(56,189,248,.12),rgba(16,16,20,.86))}.faq-section .grid{padding:18px 0 0}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:#111}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:#050505;color:white;padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.live-intake,.live-admin{border-color:rgba(56,189,248,.28);box-shadow:0 24px 80px rgba(0,0,0,.28)}.intake-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;align-items:start}.intake-form input,.intake-form textarea{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(5,5,5,.82);color:var(--text);padding:16px 18px;font:inherit;font-size:15px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}.intake-form textarea{grid-column:1/-1;min-height:130px;resize:vertical;line-height:1.55}.intake-form input:focus,.intake-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(56,189,248,.14);background:#050505}.intake-form input::placeholder,.intake-form textarea::placeholder{color:#71717a}.intake-form button,[data-load-intake]{border:0;border-radius:999px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#001018;font-weight:950;padding:15px 22px;min-height:52px;cursor:pointer;box-shadow:0 18px 40px rgba(56,189,248,.2);transition:transform .18s ease,filter .18s ease}.intake-form button{grid-column:1/-1;justify-self:start}.intake-form button:hover,[data-load-intake]:hover{transform:translateY(-1px);filter:brightness(1.05)}[data-intake-output]{display:block;margin-top:14px;color:#c4b5fd}.live-admin [data-load-intake]{margin-top:12px}.mini-card{margin-top:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(5,5,5,.72);padding:14px 16px;color:#e5e7eb;line-height:1.55}.active-experience{border-color:rgba(56,189,248,.45)}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}.intake-form{grid-template-columns:1fr}.intake-form button{width:100%}}`
+            content: `:root{color-scheme:dark;--bg:${palette.background};--panel:${palette.surface};--line:color-mix(in srgb,${palette.primary} 28%, transparent);--text:${palette.text};--muted:${palette.muted};--brand:${palette.primary};--accent:${palette.secondary};--glow:${palette.accent}}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,color-mix(in srgb,var(--brand) 24%, transparent),transparent 34%),linear-gradient(135deg,var(--bg),color-mix(in srgb,var(--panel) 78%, #000));color:var(--text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}.page-shell{min-height:100vh}.nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--panel) 86%, transparent);padding:22px 7vw;backdrop-filter:blur(16px)}.nav a{color:var(--muted);margin-left:18px;text-decoration:none}.nav-cta,.primary{border-radius:999px;background:var(--brand);color:#001018!important;padding:12px 18px;font-weight:900;text-decoration:none}.hero{padding:96px 7vw 64px;max-width:1180px}.eyebrow{color:var(--brand);font-size:12px;font-weight:900;letter-spacing:.28em;text-transform:uppercase}.hero h1{max-width:960px;font-size:clamp(44px,7vw,92px);line-height:.9;margin:18px 0}.lede{max-width:760px;color:var(--muted);font-size:20px;line-height:1.7}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}.secondary,.hero-proof span{border:1px solid var(--line);border-radius:999px;color:var(--text);padding:12px 18px;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;padding:32px 7vw}.grid article,.panel,.visual-split{border:1px solid var(--line);border-radius:28px;background:color-mix(in srgb,var(--panel) 88%, transparent);padding:28px}.panel{margin:24px 7vw}.panel h2,.grid h2,.visual-split h2{font-size:30px;margin:8px 0}.panel p,.grid p,.visual-split p{color:var(--muted);line-height:1.7}.visual-split{margin:32px 7vw;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}.proof-panel{border:1px solid var(--line);border-radius:28px;background:color-mix(in srgb,var(--bg) 74%, transparent);padding:28px;display:grid;gap:12px}.proof-panel strong{font-size:28px}.proof-panel span{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:12px 16px;color:#e5e7eb}.trust-section{border-color:color-mix(in srgb,var(--accent) 42%, transparent)}.process-grid article{background:linear-gradient(180deg,color-mix(in srgb,var(--brand) 14%, transparent),color-mix(in srgb,var(--panel) 88%, transparent))}.faq-section .grid{padding:18px 0 0}.visual-split img,.rich-grid img{width:100%;border-radius:22px;border:1px solid var(--line);background:var(--panel)}.rich-grid article{overflow:hidden}.rich-grid article img{margin-bottom:16px}.ask-ai textarea{width:100%;min-height:120px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--text);padding:16px;font:inherit}.ask-ai button{margin-top:12px;border:0;border-radius:999px;background:var(--brand);color:#001018;font-weight:900;padding:12px 18px}.live-intake,.live-admin{border-color:color-mix(in srgb,var(--brand) 36%, transparent);box-shadow:0 24px 80px color-mix(in srgb,var(--brand) 18%, transparent)}.intake-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;align-items:start}.intake-form input,.intake-form textarea{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:color-mix(in srgb,var(--bg) 82%, transparent);color:var(--text);padding:16px 18px;font:inherit;font-size:15px;outline:none;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}.intake-form textarea{grid-column:1/-1;min-height:130px;resize:vertical;line-height:1.55}.intake-form input:focus,.intake-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 18%, transparent);background:var(--bg)}.intake-form input::placeholder,.intake-form textarea::placeholder{color:#71717a}.intake-form button,[data-load-intake]{border:0;border-radius:999px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#001018;font-weight:950;padding:15px 22px;min-height:52px;cursor:pointer;box-shadow:0 18px 40px color-mix(in srgb,var(--brand) 22%, transparent);transition:transform .18s ease,filter .18s ease}.intake-form button{grid-column:1/-1;justify-self:start}.intake-form button:hover,[data-load-intake]:hover{transform:translateY(-1px);filter:brightness(1.05)}[data-intake-output]{display:block;margin-top:14px;color:var(--accent)}.live-admin [data-load-intake]{margin-top:12px}.mini-card{margin-top:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(5,5,5,.72);padding:14px 16px;color:#e5e7eb;line-height:1.55}.active-experience{border-color:color-mix(in srgb,var(--brand) 55%, transparent)}.mini{font-size:13px}@media(max-width:800px){.visual-split{grid-template-columns:1fr}.nav{align-items:flex-start;flex-direction:column}.hero{padding-top:56px}.intake-form{grid-template-columns:1fr}.intake-form button{width:100%}}`
         },
         {
             file: "metadata.json",
