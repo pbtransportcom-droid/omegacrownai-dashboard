@@ -190,6 +190,59 @@ export async function buildUniversalAnythingArtifacts(run: any, outDir: string) 
   const adminSection = normalizeSectionLabel(rawAdminSection);
   const [modelOne, modelTwo, modelThree, modelFour] = domain.models;
 
+  const designClass = String(designPreset?.id || "modern_saas").replace(/[^a-z0-9_-]/gi, "-");
+  const designName = designPreset?.name || "Modern SaaS";
+  const designMood = designPreset?.mood || "modern, credible, conversion-ready";
+  const designTypography = designPreset?.typography || "strong headings, readable product copy";
+  const designLayout = designPreset?.layout || "hero, feature grid, intake, admin workflow";
+  const designHeroStyle = designPreset?.heroStyle || "bold hero with clear CTA";
+  const designSectionStyle = designPreset?.sectionStyle || "premium cards and clear workflow sections";
+  const designImageDirection = designPreset?.imageDirection || "business, workflow, customers, operations";
+  const designMotionDirection = designPreset?.motionDirection || "smooth hover states";
+
+  const featureItems = (specFeatures.length ? specFeatures : domain.sections).slice(0, 6).map((item: string, index: number) => ({
+    title: item,
+    detail: `${item} built for ${brand} with ${designSectionStyle}.`,
+    tag: ["Customer", "Operations", "Admin", "Launch", "Trust", "Growth"][index] || "Module"
+  }));
+
+  const serviceItems = (specServices.length ? specServices : [
+    primarySection,
+    secondarySection,
+    thirdSection,
+    adminSection
+  ]).slice(0, 6);
+
+  const workflowItems = [
+    ...specCustomerWorkflow.slice(0, 4).map((item: string) => ({ role: "Customer", item })),
+    ...specAdminWorkflow.slice(0, 4).map((item: string) => ({ role: "Admin", item }))
+  ];
+
+  const ctaLabel =
+    buildSpec?.industry === "beauty" ? "Book Appointment" :
+    buildSpec?.industry === "construction" ? "Request Estimate" :
+    buildSpec?.industry === "clinic" ? "Request Appointment" :
+    buildSpec?.industry === "commerce" ? "Start Checkout" :
+    buildSpec?.industry === "legal" ? "Request Consultation" :
+    "Submit Request";
+
+  const intakeTitle =
+    buildSpec?.industry === "beauty" ? "Appointment Booking" :
+    buildSpec?.industry === "construction" ? "Estimate Request" :
+    buildSpec?.industry === "clinic" ? "Patient Intake" :
+    buildSpec?.industry === "commerce" ? "Checkout Request" :
+    buildSpec?.industry === "legal" ? "Consultation Intake" :
+    "Customer Intake";
+
+  const heroTitle =
+    buildSpec?.industry === "beauty" ? `${brand} beauty booking, services, and gallery experience.` :
+    buildSpec?.industry === "construction" ? `${brand} project gallery, estimate, and service pipeline.` :
+    buildSpec?.industry === "clinic" ? `${brand} appointment, provider, and patient intake platform.` :
+    buildSpec?.industry === "commerce" ? `${brand} storefront, cart, checkout, and admin platform.` :
+    `${brand} built as a complete digital platform.`;
+
+  const heroSubtitle = `${designName} direction: ${designHeroStyle}. Includes ${serviceItems.join(", ")} with frontend, backend API, database schema, admin dashboard, README, smoke test, validation, preview, and delivery manifest.`;
+
 
   
 function isBookstorePrompt(prompt: string, brand: string) {
@@ -843,7 +896,7 @@ import { Footer } from "../components/Footer";
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen app-shell ${designClass}">
       <Hero />
       <FeatureGrid />
       <IntakeForm />
@@ -878,17 +931,39 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       file: "app/globals.css",
       title: "Global Styles",
       type: "css",
-      content: `body{margin:0;background:#050505;color:white;font-family:Inter,ui-sans-serif,system-ui,sans-serif}a{color:inherit}.card{border:1px solid #27272a;background:#101014;border-radius:24px;padding:24px}.input{border:1px solid #27272a;background:#050505;border-radius:14px;padding:14px;color:white}.button{border-radius:16px;background:#38bdf8;color:#001018;font-weight:900;padding:14px 18px}`
+      content: `:root{--oc-bg:${palette.background};--oc-surface:${palette.surface};--oc-primary:${palette.primary};--oc-secondary:${palette.secondary};--oc-accent:${palette.accent};--oc-text:${palette.text};--oc-muted:${palette.muted}}*{box-sizing:border-box}body{margin:0;background:var(--oc-bg);color:var(--oc-text);font-family:Inter,ui-sans-serif,system-ui,sans-serif}a{color:inherit}.app-shell{background:radial-gradient(circle at 20% 0%, color-mix(in srgb,var(--oc-primary) 22%, transparent), transparent 32%),linear-gradient(135deg,var(--oc-bg),color-mix(in srgb,var(--oc-surface) 78%, #000));color:var(--oc-text)}.eyebrow{color:var(--oc-primary);font-weight:900;text-transform:uppercase;letter-spacing:.28em}.card{border:1px solid color-mix(in srgb,var(--oc-primary) 28%, transparent);background:color-mix(in srgb,var(--oc-surface) 88%, transparent);border-radius:28px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.18)}.soft-card{border:1px solid color-mix(in srgb,var(--oc-secondary) 32%, transparent);background:color-mix(in srgb,var(--oc-surface) 94%, transparent);border-radius:24px;padding:20px}.input{border:1px solid color-mix(in srgb,var(--oc-primary) 32%, transparent);background:color-mix(in srgb,var(--oc-bg) 76%, var(--oc-surface));border-radius:16px;padding:14px;color:var(--oc-text)}.button{border:0;border-radius:18px;background:linear-gradient(135deg,var(--oc-primary),var(--oc-secondary));color:var(--oc-bg);font-weight:900;padding:14px 18px;cursor:pointer}.muted{color:var(--oc-muted)}.hero-grid{display:grid;gap:28px;grid-template-columns:1.2fr .8fr;align-items:center}.visual-panel{min-height:340px;border-radius:36px;background:linear-gradient(135deg,var(--oc-primary),var(--oc-secondary),var(--oc-accent));padding:2px}.visual-inner{height:100%;min-height:338px;border-radius:34px;background:color-mix(in srgb,var(--oc-surface) 82%, transparent);padding:28px;display:flex;flex-direction:column;justify-content:space-between}.pill{display:inline-flex;border:1px solid color-mix(in srgb,var(--oc-accent) 45%, transparent);border-radius:999px;padding:8px 12px;color:var(--oc-accent);font-weight:800}.grid{display:grid;gap:20px}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:900px){.hero-grid,.grid-3,.grid-4{grid-template-columns:1fr}h1{font-size:42px!important}}`
     },
     {
       file: "components/Hero.tsx",
       title: "Hero Component",
-      content: `export function Hero() {
+      content: `const services = ${JSON.stringify(serviceItems, null, 2)};
+
+export function Hero() {
   return (
     <section className="px-8 py-20">
-      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">${domain.product}</p>
-      <h1 className="mt-5 max-w-5xl text-6xl font-black">${brand} built as a complete digital platform.</h1>
-      <p className="mt-6 max-w-3xl text-xl text-zinc-300">Includes frontend, backend API, database schema, admin dashboard, README, smoke test, validation, preview, and delivery manifest.</p>
+      <div className="hero-grid">
+        <div>
+          <p className="eyebrow">${buildSpec?.productType || domain.product}</p>
+          <h1 style={{ fontSize: 64, lineHeight: 1, marginTop: 20, maxWidth: 980, fontWeight: 950 }}>${heroTitle}</h1>
+          <p className="muted" style={{ marginTop: 24, maxWidth: 760, fontSize: 20, lineHeight: 1.6 }}>${heroSubtitle}</p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 30 }}>
+            <a className="button" href="#intake">${ctaLabel}</a>
+            <span className="pill">${designMood}</span>
+          </div>
+        </div>
+        <aside className="visual-panel">
+          <div className="visual-inner">
+            <p className="eyebrow">${designName}</p>
+            <h2 style={{ fontSize: 34, lineHeight: 1.1, margin: 0 }}>${designLayout}</h2>
+            <p className="muted">${designImageDirection}</p>
+            <div className="grid">
+              {services.slice(0, 4).map((service) => (
+                <div key={service} className="soft-card">{service}</div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }
@@ -897,17 +972,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     {
       file: "components/FeatureGrid.tsx",
       title: "Feature Grid",
-      content: `const features = ${JSON.stringify(domain.sections.map((section) => ({ title: section, detail: `Prompt-aligned ${section.toLowerCase()} module for ${brand}.` })), null, 2)};
+      content: `const features = ${JSON.stringify(featureItems, null, 2)};
 
 export function FeatureGrid() {
   return (
-    <section className="grid gap-5 px-8 py-10 md:grid-cols-4">
-      {features.map((feature) => (
-        <article key={feature.title} className="card">
-          <h2 className="text-2xl font-black">{feature.title}</h2>
-          <p className="mt-3 text-zinc-400">{feature.detail}</p>
-        </article>
-      ))}
+    <section className="px-8 py-10">
+      <p className="eyebrow">${designSectionStyle}</p>
+      <div className="grid grid-3" style={{ marginTop: 22 }}>
+        {features.map((feature) => (
+          <article key={feature.title} className="card">
+            <span className="pill">{feature.tag}</span>
+            <h2 style={{ fontSize: 26, marginTop: 18 }}>{feature.title}</h2>
+            <p className="muted" style={{ lineHeight: 1.6 }}>{feature.detail}</p>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }
@@ -938,13 +1017,14 @@ export function IntakeForm() {
   return (
     <section className="px-8 py-10">
       <div className="card">
-        <h2 className="text-3xl font-black">Customer Intake</h2>
+        <p className="eyebrow">${designTypography}</p>
+        <h2 style={{ fontSize: 36, marginTop: 12 }}>${intakeTitle}</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <input className="input" placeholder="Request" value={form.request} onChange={(e) => setForm({ ...form, request: e.target.value })} />
         </div>
-        <button className="button mt-5" onClick={submit}>Submit Request</button>
+        <button className="button mt-5" onClick={submit}>${ctaLabel}</button>
         <p className="mt-4 text-zinc-400">{status}</p>
       </div>
     </section>
@@ -959,9 +1039,17 @@ export function IntakeForm() {
   return (
     <section className="px-8 py-10">
       <div className="card">
-        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Admin</p>
-        <h2 className="mt-3 text-4xl font-black">${adminSection}</h2>
-        <p className="mt-4 text-zinc-400">Review submitted requests, operational modules, launch readiness, and database-backed workflow records.</p>
+        <p className="eyebrow">Admin Workflow</p>
+        <h2 style={{ fontSize: 42, marginTop: 12 }}>${adminSection}</h2>
+        <p className="muted" style={{ lineHeight: 1.6 }}>Review submitted requests, operational modules, launch readiness, and database-backed workflow records. Motion direction: ${designMotionDirection}.</p>
+        <div className="grid grid-4" style={{ marginTop: 24 }}>
+          {${JSON.stringify(workflowItems, null, 2)}.map((step) => (
+            <div key={step.role + step.item} className="soft-card">
+              <strong>{step.role}</strong>
+              <p className="muted">{step.item}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -973,8 +1061,8 @@ export function IntakeForm() {
       title: "Footer",
       content: `export function Footer() {
   return (
-    <footer className="border-t border-zinc-800 px-8 py-10 text-sm text-zinc-500">
-      ${brand} generated by OmegaCrownAI Sovereign Runtime.
+    <footer style={{ borderTop: "1px solid color-mix(in srgb,var(--oc-primary) 25%, transparent)", padding: 32 }} className="muted">
+      ${brand} generated by OmegaCrownAI Sovereign Runtime. Design preset: ${designName}.
     </footer>
   );
 }
