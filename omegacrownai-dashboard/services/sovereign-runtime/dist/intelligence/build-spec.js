@@ -126,6 +126,70 @@ export function createBuildSpec(input) {
         adminWorkflow = ["Manage products", "Review orders", "Manage customers", "Update content"];
         customerWorkflow = ["Browse products", "Add to cart", "Submit checkout", "Receive confirmation"];
     }
+    const explicitIndustryMatch = originalPrompt.match(/industry\s*:\s*([a-zA-Z -]+)/i);
+    const explicitIndustry = explicitIndustryMatch?.[1]?.toLowerCase().trim() || "";
+    if (explicitIndustry.includes("construction")) {
+        industry = "construction";
+        productType = "construction estimate and project gallery platform";
+        brandFallback = "Construction Services Website";
+        targetCustomer = "homeowners, property owners, project clients, contractors, designers, and estimate leads";
+        services = ["Renovation planning", "Project gallery", "Estimate requests", "Contractor matching", "Service areas"];
+        pages = ["Home", "Project Categories", "Before And After Gallery", "Estimate Request", "Contractor Matching", "Admin Pipeline", "Editor"];
+        features = ["Project gallery", "Estimate request form", "Contractor assignment", "Quote approval workflow", "Photo and document upload", "Lead tracking dashboard"];
+        adminWorkflow = ["Review estimate requests", "Assign contractor", "Track project status", "Review customer messages", "Approve quotes", "Track revenue and leads"];
+        customerWorkflow = ["Review renovation categories", "View project proof", "Request estimate", "Match with contractor", "Receive quote follow-up"];
+        visualDirection = "bold industrial luxury construction design with charcoal, steel, gold, project photography, estimate CTA, contractor matching, and practical trust sections";
+    }
+    else if (explicitIndustry.includes("beauty") || explicitIndustry.includes("salon")) {
+        industry = "beauty";
+        productType = "beauty salon booking and gallery platform";
+        brandFallback = "Beauty Studio Website";
+        targetCustomer = "salon clients, beauty customers, and appointment leads";
+        services = ["Beauty services", "Gallery", "Appointment booking", "Stylist highlights"];
+        pages = ["Home", "Services", "Gallery", "Appointment Booking", "Admin Schedule", "Editor"];
+        features = ["Service menu", "Visual gallery", "Appointment request", "Admin schedule review", "Editable content"];
+        adminWorkflow = ["Review appointment requests", "Update services", "Manage gallery", "Track client follow-up"];
+        customerWorkflow = ["Browse services", "View gallery", "Request appointment", "Receive booking confirmation"];
+        visualDirection = "soft luxury beauty design with warm editorial visuals, gallery-first sections, appointment CTA, and polished lifestyle tone";
+    }
+    else if (explicitIndustry.includes("legal") || explicitIndustry.includes("law")) {
+        industry = "legal";
+        productType = "legal consultation and case intake platform";
+        brandFallback = "Legal Authority Website";
+        targetCustomer = "prospective legal clients and case intake leads";
+        services = ["Practice areas", "Attorney profiles", "Consultation intake", "Case review"];
+        pages = ["Home", "Practice Areas", "Attorney Profiles", "Consultation Intake", "Admin Case Review", "Editor"];
+        features = ["Practice area sections", "Consultation request", "Attorney profile cards", "Case inquiry review", "Editable content"];
+        adminWorkflow = ["Review consultation requests", "Assign case inquiry", "Track client follow-up", "Update practice area content"];
+        customerWorkflow = ["Review practice areas", "Read attorney trust proof", "Request consultation", "Receive follow-up"];
+        visualDirection = "refined legal authority design with serious trust proof, navy/gold palette, practice area cards, and consultation CTA";
+    }
+    else if (explicitIndustry.includes("restaurant")) {
+        industry = "restaurant";
+        productType = "restaurant ordering and reservation platform";
+        brandFallback = "Restaurant Launch Website";
+        targetCustomer = "local diners, catering customers, and returning guests";
+        services = ["Menu showcase", "Online ordering", "Reservations", "Catering inquiry"];
+        pages = ["Home", "Menu", "Reservations", "Ordering", "Admin", "Editor"];
+        features = ["Menu data", "Order request", "Reservation request", "Admin review", "Editable content"];
+        adminWorkflow = ["Review orders", "Review reservations", "Update menu", "Manage inquiries"];
+        customerWorkflow = ["Browse menu", "Reserve or order", "Submit details", "Receive follow-up"];
+    }
+    else if (explicitIndustry.includes("clinic") || explicitIndustry.includes("medical")) {
+        industry = "clinic";
+        productType = "clinic appointment and patient intake platform";
+        brandFallback = "Clinic Care Website";
+        targetCustomer = "patients and families requesting appointments";
+        services = ["Appointment requests", "Provider profiles", "Care services", "Patient intake"];
+        pages = ["Home", "Services", "Providers", "Appointments", "Patient Portal", "Admin"];
+        features = ["Appointment request", "Patient intake", "Provider cards", "Admin review", "Editable content"];
+        adminWorkflow = ["Review appointment requests", "Review patient intake", "Assign provider follow-up", "Update content"];
+        customerWorkflow = ["Review services", "Choose provider", "Request appointment", "Submit intake"];
+    }
+    const explicitProductTypeMatch = originalPrompt.match(/product type\s*:\s*([^\n.:-]+(?: [^\n.:-]+){0,8})/i);
+    if (explicitProductTypeMatch?.[1]) {
+        productType = explicitProductTypeMatch[1].trim();
+    }
     const brandName = detectBrand(originalPrompt, brandFallback);
     const missingFields = [];
     if (!/(called|named|brand|business name|company name)/i.test(originalPrompt))
