@@ -74,6 +74,7 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const [filePanelOpen, setFilePanelOpen] = useState(false);
   const [fileBusy, setFileBusy] = useState(false);
   const [fileFilter, setFileFilter] = useState("");
+  const [buildSpecOpen, setBuildSpecOpen] = useState(false);
   const [summary, setSummary] = useState<BuildSpecSummary | null>(null);
 
   const downloadUrl = useMemo(
@@ -408,173 +409,160 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
       </section>
 
       {buildSpecReportVisible ? (
-        <section className="border-b border-white/10 bg-black px-4 py-5">
-          <div className="mx-auto max-w-7xl rounded-3xl border border-cyan-300/20 bg-zinc-950 p-5 shadow-2xl shadow-cyan-950/20">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="border-b border-white/10 bg-black px-4 py-3">
+          <div className="mx-auto max-w-7xl rounded-3xl border border-cyan-300/20 bg-zinc-950/95 p-4 shadow-2xl shadow-cyan-950/10">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-200">
-                  Build Spec Report
+                  Build Spec
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-white">
-                  OmegaCrownAI turned the prompt into a full product brief.
+                <h2 className="mt-1 text-lg font-black text-white">
+                  {asText(buildSpec?.brandName)} · {asText(buildSpec?.industry)} · {asText(designPreset?.name)}
                 </h2>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-400">
-                  Review the original prompt, smart defaults, generated pages, workflows,
-                  and delivery files before opening the active app or downloading the ZIP.
-                </p>
-              </div>
-              <a
-                href={downloadUrl}
-                className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-black hover:bg-cyan-200"
-              >
-                Download Package
-              </a>
-            </div>
-
-            <div className="mt-5 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-black p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-                  Original Prompt
-                </p>
-                <p className="mt-2 text-sm leading-6 text-zinc-200">
-                  {originalPrompt || "Not provided"}
+                <p className="mt-1 max-w-4xl text-xs leading-5 text-zinc-400">
+                  Website preview is below. Open the product brief only when you need prompt, pages, workflows, delivery files, and design details.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black p-4 lg:col-span-2">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-                  Normalized Build Spec
-                </p>
-                <p className="mt-2 line-clamp-6 text-sm leading-6 text-zinc-200">
-                  {normalizedPrompt || "No normalized prompt available."}
-                </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBuildSpecOpen((value) => !value)}
+                  className="rounded-full border border-cyan-300/30 px-4 py-2 text-xs font-black text-cyan-100 transition hover:bg-cyan-300/10"
+                >
+                  {buildSpecOpen ? "Hide Build Spec" : "Show Build Spec"}
+                </button>
+                <a
+                  href={downloadUrl}
+                  className="rounded-full bg-cyan-300 px-4 py-2 text-xs font-black text-black hover:bg-cyan-200"
+                >
+                  Download Package
+                </a>
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Industry</p>
-                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.industry)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Product Type</p>
-                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.productType)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Brand / Default</p>
-                <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.brandName)}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Completeness</p>
-                <p className="mt-2 text-sm font-bold text-white">
-                  {buildSpec?.isIncomplete ? "Smart defaults applied" : "Complete prompt"}
-                </p>
-              </div>
-            </div>
+            {buildSpecOpen ? (
+              <div className="mt-5">
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-black p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                      Original Prompt
+                    </p>
+                    <p className="mt-2 max-h-80 overflow-auto text-sm leading-6 text-zinc-200">
+                      {originalPrompt || "Not provided"}
+                    </p>
+                  </div>
 
-            {designPreset ? (
-              <div className="mt-5 rounded-2xl border border-fuchsia-300/20 bg-fuchsia-500/10 p-4">
-                <div className="text-xs font-black uppercase tracking-[0.28em] text-fuchsia-200">
-                  Prompt-Fit Design System
+                  <div className="rounded-2xl border border-white/10 bg-black p-4 lg:col-span-2">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                      Normalized Build Spec
+                    </p>
+                    <p className="mt-2 max-h-80 overflow-auto text-sm leading-6 text-zinc-200">
+                      {normalizedPrompt || "No normalized prompt available."}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  {[
-                    ["Design Preset", designPreset.name],
-                    ["Mood", designPreset.mood],
-                    ["Typography", designPreset.typography],
-                  ].map(([label, value]) => (
-                    <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
-                      <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
-                      <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
-                    </div>
-                  ))}
+                <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Industry</p>
+                    <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.industry)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Product Type</p>
+                    <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.productType)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Brand / Default</p>
+                    <p className="mt-2 text-sm font-bold text-white">{asText(buildSpec?.brandName)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Completeness</p>
+                    <p className="mt-2 text-sm font-bold text-white">
+                      {buildSpec?.isIncomplete ? "Smart defaults applied" : "Complete prompt"}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  {[
-                    ["Layout", designPreset.layout],
-                    ["Hero Style", designPreset.heroStyle],
-                    ["Section Style", designPreset.sectionStyle],
-                    ["Image Direction", designPreset.imageDirection],
-                    ["Motion Direction", designPreset.motionDirection],
-                  ].map(([label, value]) => (
-                    <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
-                      <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
-                      <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
+                {designPreset ? (
+                  <div className="mt-5 rounded-2xl border border-fuchsia-300/20 bg-fuchsia-500/10 p-4">
+                    <div className="text-xs font-black uppercase tracking-[0.28em] text-fuchsia-200">
+                      Prompt-Fit Design System
                     </div>
-                  ))}
-                </div>
 
-                {Object.keys(designPalette).length ? (
-                  <div className="mt-4">
-                    <div className="text-xs font-black uppercase tracking-[0.2em] text-white/50">
-                      Palette
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      {[
+                        ["Design Preset", designPreset.name],
+                        ["Mood", designPreset.mood],
+                        ["Typography", designPreset.typography],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                          <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
+                          <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
+                        </div>
+                      ))}
                     </div>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                      {Object.entries(designPalette).map(([name, value]) => (
-                        <div key={name} className="rounded-xl border border-white/10 bg-black/30 p-3">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="h-5 w-5 rounded-full border border-white/20"
-                              style={{ backgroundColor: value }}
-                            />
-                            <span className="text-xs font-black uppercase tracking-[0.16em] text-white/50">
-                              {name}
-                            </span>
-                          </div>
-                          <div className="mt-2 font-mono text-xs font-bold text-white">
-                            {value}
-                          </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      {[
+                        ["Layout", designPreset.layout],
+                        ["Hero Style", designPreset.heroStyle],
+                        ["Section Style", designPreset.sectionStyle],
+                        ["Image Direction", designPreset.imageDirection],
+                        ["Motion Direction", designPreset.motionDirection],
+                      ].map(([label, value]) => (
+                        <div key={label} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                          <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
+                          <p className="mt-2 text-sm font-bold text-white">{asText(value)}</p>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : null}
-              </div>
-            ) : null}
 
-            {missingFields.length ? (
-              <div className="mt-4 rounded-2xl border border-yellow-300/20 bg-yellow-300/5 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-yellow-100">
-                  Missing Fields Filled With Smart Defaults
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {missingFields.map((field) => (
-                    <span key={field} className="rounded-full border border-yellow-300/20 px-3 py-1 text-xs font-bold text-yellow-100">
-                      {field}
-                    </span>
+                {missingFields.length ? (
+                  <div className="mt-4 rounded-2xl border border-yellow-300/20 bg-yellow-300/5 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-yellow-100">
+                      Missing Fields Filled With Smart Defaults
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {missingFields.map((field) => (
+                        <span key={field} className="rounded-full border border-yellow-300/20 px-3 py-1 text-xs font-bold text-yellow-100">
+                          {field}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  {[
+                    ["Pages Generated", pagesGenerated],
+                    ["Features Generated", featuresGenerated],
+                    ["Customer Workflow", customerWorkflow],
+                    ["Admin Workflow", adminWorkflow],
+                    ["Delivery Files", deliveryFiles],
+                  ].map(([title, items]) => (
+                    <div key={String(title)} className="rounded-2xl border border-white/10 bg-black p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+                        {String(title)}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(items as string[]).length ? (
+                          (items as string[]).map((item) => (
+                            <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-200">
+                              {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-zinc-500">Not available</span>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             ) : null}
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              {[
-                ["Pages Generated", pagesGenerated],
-                ["Features Generated", featuresGenerated],
-                ["Customer Workflow", customerWorkflow],
-                ["Admin Workflow", adminWorkflow],
-                ["Delivery Files", deliveryFiles],
-              ].map(([title, items]) => (
-                <div key={String(title)} className="rounded-2xl border border-white/10 bg-black p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-                    {String(title)}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {(items as string[]).length ? (
-                      (items as string[]).map((item) => (
-                        <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-200">
-                          {item}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-zinc-500">Not available</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
       ) : null}
