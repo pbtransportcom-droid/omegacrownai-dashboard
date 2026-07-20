@@ -41,6 +41,25 @@ const included = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <Link href="/" className="text-xs font-black uppercase tracking-[0.35em] text-cyan-300">
+          OmegaCrownAI
+        </Link>
+        <nav className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-black text-white hover:bg-white/20"
+          >
+            Login
+          </Link>
+          <Link
+            href="/signup"
+            className="rounded-xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-200"
+          >
+            Sign Up
+          </Link>
+        </nav>
+      </header>
       <section className="relative overflow-hidden border-b border-white/10 px-6 py-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_32rem),radial-gradient(circle_at_top_right,rgba(250,204,21,0.12),transparent_28rem)]" />
 
