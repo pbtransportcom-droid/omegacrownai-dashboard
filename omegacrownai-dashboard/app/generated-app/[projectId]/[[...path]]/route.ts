@@ -33,6 +33,126 @@ function rewriteHtml(html: string, projectId: string) {
     .replaceAll('src="/favicon', `src="${base}/favicon`);
 }
 
+function generatedAppFallbackHtml(input: {
+  projectId: string;
+  targetPath: string;
+  reason: string;
+}) {
+  const safeProjectId = input.projectId.replace(/[^a-zA-Z0-9-]/g, "");
+  const safePath = input.targetPath.replace(/[<>"']/g, "");
+  const previewUrl = `/runtime-preview/${safeProjectId}`;
+  const downloadUrl = `/api/runtime-proxy/runs/${safeProjectId}/download`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generated App Starting - OmegaCrownAI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050505;
+      --panel: #111827;
+      --border: rgba(255,255,255,.12);
+      --text: #ffffff;
+      --muted: #a1a1aa;
+      --brand: #67e8f9;
+      --accent: #facc15;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(103,232,249,.16), transparent 32rem),
+        radial-gradient(circle at 80% 20%, rgba(250,204,21,.12), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 24px;
+    }
+    .card {
+      width: min(760px, 100%);
+      border: 1px solid var(--border);
+      background: rgba(17,24,39,.88);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 30px 120px rgba(0,0,0,.45);
+    }
+    .eyebrow {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 12px 0 0;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+    p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 14px 0 0;
+      font-size: 15px;
+    }
+    .path {
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.3);
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #e5e7eb;
+      overflow-wrap: anywhere;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    a, button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 900;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .primary { background: var(--brand); color: #020617; }
+    .secondary { background: rgba(255,255,255,.08); color: #fff; border: 1px solid var(--border); }
+    .gold { background: var(--accent); color: #111827; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="eyebrow">OmegaCrownAI Generated App</div>
+    <h1>The active app is still starting.</h1>
+    <p>
+      The static preview and downloadable source package are ready. The live app route you opened is not reachable yet, so OmegaCrownAI kept you on a safe fallback instead of showing a raw server error.
+    </p>
+    <div class="path">Requested path: ${safePath || "/"}</div>
+    <div class="actions">
+      <a class="primary" href="${previewUrl}">Back to Static Preview</a>
+      <button class="secondary" onclick="location.reload()">Try Again</button>
+      <a class="gold" href="${downloadUrl}">Download ZIP</a>
+    </div>
+  </main>
+</body>
+</html>`;
+}
+
+function wantsHtml(req: Request) {
+  return (req.headers.get("accept") || "").includes("text/html");
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -62,6 +182,24 @@ async function proxyGeneratedApp(
   const manifest = getManifest(projectId);
 
   if (!manifest?.port) {
+    const targetPath = "/" + routeParts.join("/");
+    if (req.method.toUpperCase() === "GET" && wantsHtml(req)) {
+      return new NextResponse(
+        generatedAppFallbackHtml({
+          projectId,
+          targetPath,
+          reason: "Generated app is not running",
+        }),
+        {
+          status: 503,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-store",
+          },
+        }
+      );
+    }
+
     return NextResponse.json(
       { ok: false, error: "Generated app is not running", projectId },
       { status: 404 }
@@ -93,6 +231,23 @@ async function proxyGeneratedApp(
       redirect: "manual",
     });
   } catch (error) {
+    if (method === "GET" && wantsHtml(req)) {
+      return new NextResponse(
+        generatedAppFallbackHtml({
+          projectId,
+          targetPath,
+          reason: "Generated app is still starting or unreachable.",
+        }),
+        {
+          status: 503,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-store",
+          },
+        }
+      );
+    }
+
     return NextResponse.json(
       {
         ok: false,
