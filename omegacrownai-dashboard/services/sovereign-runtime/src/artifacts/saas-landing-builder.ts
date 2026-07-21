@@ -522,105 +522,6 @@ export function Pricing() {
   return (
     <section id="faq" className="mx-auto grid w-[min(1120px,92vw)] gap-4 py-20">
       <h2 className="text-5xl font-black tracking-[-0.05em] text-slate-950">Frequently asked questions</h2>
-      {
-        file: "DELIVERY.md",
-        title: "Customer Delivery Guide",
-        type: "markdown",
-        content: `# Customer Delivery Guide
-
-## What was generated
-
-This package contains a customer-ready business website and admin workflow generated from the customer prompt.
-
-## Included
-
-- Public homepage and service sections
-- Customer request flow
-- Admin review area
-- Editable content tools
-- Generated visual assets
-- Feature request API
-- Source files
-- Environment template
-- Docker deployment files
-- README
-- Launch checklist
-
-## Customer workflow
-
-1. Customer visits the website.
-2. Customer reviews the offer and service sections.
-3. Customer submits a request or project inquiry.
-4. Admin reviews the request.
-5. Admin follows up and prepares the next step.
-
-## Admin workflow
-
-1. Review new customer requests.
-2. Track request status.
-3. Update editable content.
-4. Review requested AI feature upgrades.
-5. Prepare launch and deployment.
-
-## Handoff notes
-
-Before going live, update brand content, connect production database credentials, configure the domain, test request submissions, and review the launch checklist.
-`,
-      },
-      {
-        file: "LAUNCH_CHECKLIST.md",
-        title: "Launch Checklist",
-        type: "markdown",
-        content: `# Launch Checklist
-
-## Content
-
-- [ ] Confirm business name and headline.
-- [ ] Confirm services and offer.
-- [ ] Confirm calls to action.
-- [ ] Confirm pricing or consultation language.
-- [ ] Confirm contact information.
-- [ ] Review generated visual assets.
-
-## Technical setup
-
-- [ ] Copy .env.example to .env.
-- [ ] Set DATABASE_URL.
-- [ ] Install dependencies.
-- [ ] Run Prisma generate if needed.
-- [ ] Run npm run build.
-- [ ] Run smoke test.
-- [ ] Confirm Docker build if using Docker.
-
-## Customer workflow
-
-- [ ] Test homepage.
-- [ ] Test customer request form.
-- [ ] Confirm request data is saved.
-- [ ] Test admin review area.
-- [ ] Test editable content.
-- [ ] Test feature request form.
-
-## Deployment
-
-- [ ] Configure production domain.
-- [ ] Enable HTTPS.
-- [ ] Set production environment variables.
-- [ ] Start app with process manager.
-- [ ] Add monitoring.
-- [ ] Add backup strategy.
-- [ ] Test live preview.
-- [ ] Test ZIP download.
-
-## Final approval
-
-- [ ] Customer-facing preview approved.
-- [ ] Admin workflow approved.
-- [ ] README reviewed.
-- [ ] Delivery guide reviewed.
-- [ ] Launch checklist completed.
-`,
-      },
       {[
         ["Can this system connect our current tools?", "Yes. The product is designed around integrations with common team tools."],
         ["Can non-technical teams build workflows?", "Yes. Teams can start with templates and customize workflows over time."],
@@ -825,6 +726,21 @@ CMD ["npm", "run", "start"]
     },
   ];
 
+
+  files.push(
+    {
+      file: "DELIVERY.md",
+      title: "Customer Delivery Guide",
+      type: "markdown",
+      content: "# Customer Delivery Guide\n\n## What was generated\n\nThis package contains a customer-ready business website and admin workflow generated from the customer prompt.\n\n## Included\n\n- Public homepage and service sections\n- Customer request flow\n- Admin review area\n- Editable content tools\n- Generated visual assets\n- Feature request API\n- Source files\n- Environment template\n- Docker deployment files\n- README\n- Launch checklist\n\n## Customer workflow\n\n1. Customer visits the website.\n2. Customer reviews the offer and service sections.\n3. Customer submits a request or project inquiry.\n4. Admin reviews the request.\n5. Admin follows up and prepares the next step.\n\n## Admin workflow\n\n1. Review new customer requests.\n2. Track request status.\n3. Update editable content.\n4. Review requested AI feature upgrades.\n5. Prepare launch and deployment.\n\n## Handoff notes\n\nBefore going live, update brand content, connect production database credentials, configure the domain, test request submissions, and review the launch checklist.\n",
+    },
+    {
+      file: "LAUNCH_CHECKLIST.md",
+      title: "Launch Checklist",
+      type: "markdown",
+      content: "# Launch Checklist\n\n## Content\n\n- [ ] Confirm business name and headline.\n- [ ] Confirm services and offer.\n- [ ] Confirm calls to action.\n- [ ] Confirm pricing or consultation language.\n- [ ] Confirm contact information.\n- [ ] Review generated visual assets.\n\n## Technical setup\n\n- [ ] Copy .env.example to .env.\n- [ ] Set DATABASE_URL.\n- [ ] Install dependencies.\n- [ ] Run Prisma generate if needed.\n- [ ] Run npm run build.\n- [ ] Run smoke test.\n- [ ] Confirm Docker build if using Docker.\n\n## Customer workflow\n\n- [ ] Test homepage.\n- [ ] Test customer request form.\n- [ ] Confirm request data is saved.\n- [ ] Test admin review area.\n- [ ] Test editable content.\n- [ ] Test feature request form.\n\n## Deployment\n\n- [ ] Configure production domain.\n- [ ] Enable HTTPS.\n- [ ] Set production environment variables.\n- [ ] Start app with process manager.\n- [ ] Add monitoring.\n- [ ] Add backup strategy.\n- [ ] Test live preview.\n- [ ] Test ZIP download.\n\n## Final approval\n\n- [ ] Customer-facing preview approved.\n- [ ] Admin workflow approved.\n- [ ] README reviewed.\n- [ ] Delivery guide reviewed.\n- [ ] Launch checklist completed.\n",
+    }
+  );
 
   files.push(
     {
