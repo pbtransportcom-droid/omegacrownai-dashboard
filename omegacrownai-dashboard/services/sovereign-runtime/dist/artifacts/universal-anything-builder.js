@@ -360,63 +360,113 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
         });
         return files;
     }
-    function isConstructionPrompt(prompt, brand, buildSpec) {
-        const value = `${prompt} ${brand} ${buildSpec?.industry || ""} ${buildSpec?.productType || ""}`.toLowerCase();
-        return (value.includes("construction") ||
-            value.includes("contractor") ||
-            value.includes("renovation") ||
-            value.includes("estimate request") ||
-            value.includes("project gallery"));
+    function inferAssetIndustry(prompt, brand, buildSpec) {
+        const explicit = String(buildSpec?.industry || "").toLowerCase();
+        const product = String(buildSpec?.productType || "").toLowerCase();
+        const value = `${prompt} ${brand} ${explicit} ${product}`.toLowerCase();
+        if (explicit)
+            return explicit;
+        if (/(construction|contractor|renovation|estimate request|project gallery|roofing|plumbing|repair)/i.test(value))
+            return "construction";
+        if (/(clinic|medical|doctor|health|appointment|patient)/i.test(value))
+            return "clinic";
+        if (/(legal|law firm|lawyer|attorney|case review|consultation intake|practice areas)/i.test(value))
+            return "legal";
+        if (/(beauty|salon|spa|hair|nails|makeup|skincare)/i.test(value))
+            return "beauty";
+        if (/(restaurant|food|menu|reservation|catering|chef|dining)/i.test(value))
+            return "restaurant";
+        if (/(transport|transportation|limo|airport|chauffeur|black car|fleet|rides|wedding service|corporate travel)/i.test(value))
+            return "transportation";
+        return "";
     }
-    function applyConstructionAssetSpecialization(files, prompt, brand, buildSpec) {
-        if (!isConstructionPrompt(prompt, brand, buildSpec))
+    function applyIndustryAssetSpecialization(files, prompt, brand, buildSpec) {
+        const industry = inferAssetIndustry(prompt, brand, buildSpec);
+        const packs = {
+            construction: {
+                domain: "construction",
+                prompt: `Create polished construction visuals for ${brand}: project sites, renovation before-and-after proof, estimate requests, contractor assignment, tools, crews, and admin pipeline.`,
+                assets: [
+                    { file: "public/images/construction-hero.svg", title: "Construction Hero SVG", label: "Project Site", detail: `${brand} construction services, estimate request, and project proof`, bgA: "#111827", bgB: "#facc15" },
+                    { file: "public/images/construction-project.svg", title: "Construction Project SVG", label: "Project Gallery", detail: "Before-and-after project gallery and renovation proof", bgA: "#1f2937", bgB: "#f97316" },
+                    { file: "public/images/construction-estimate.svg", title: "Construction Estimate SVG", label: "Estimate Request", detail: "Quote intake, budget review, and customer follow-up", bgA: "#0f172a", bgB: "#facc15" },
+                    { file: "public/images/construction-crew.svg", title: "Construction Crew SVG", label: "Crew Workflow", detail: "Contractor assignment, project status, and field operations", bgA: "#111827", bgB: "#94a3b8" },
+                    { file: "public/images/construction-site.svg", title: "Construction Site SVG", label: "Active Site", detail: "Tools, crews, service areas, and job site readiness", bgA: "#172554", bgB: "#f97316" },
+                    { file: "public/images/construction-gallery.svg", title: "Construction Gallery SVG", label: "Before / After", detail: "Gallery cards, project categories, and proof sections", bgA: "#3f3f46", bgB: "#facc15" },
+                    { file: "public/images/construction-contractor.svg", title: "Construction Contractor SVG", label: "Contractor Match", detail: "Contractor matching, quote approval, and admin pipeline", bgA: "#312e81", bgB: "#f59e0b" }
+                ]
+            },
+            clinic: {
+                domain: "clinic",
+                prompt: `Create polished clinic visuals for ${brand}: provider consultation, appointment requests, patient intake, wellness, care team, and admin scheduling.`,
+                assets: [
+                    { file: "public/images/clinic-hero.svg", title: "Clinic Hero SVG", label: "Patient Care", detail: `${brand} appointments, providers, and patient intake`, bgA: "#0f766e", bgB: "#67e8f9" },
+                    { file: "public/images/clinic-appointment.svg", title: "Clinic Appointment SVG", label: "Appointment", detail: "Appointment request and scheduling workflow", bgA: "#164e63", bgB: "#38bdf8" },
+                    { file: "public/images/clinic-provider.svg", title: "Clinic Provider SVG", label: "Provider Team", detail: "Provider profiles and trusted care sections", bgA: "#1e3a8a", bgB: "#93c5fd" },
+                    { file: "public/images/clinic-intake.svg", title: "Clinic Intake SVG", label: "Patient Intake", detail: "Patient forms, needs, and follow-up", bgA: "#134e4a", bgB: "#5eead4" },
+                    { file: "public/images/clinic-admin.svg", title: "Clinic Admin SVG", label: "Care Admin", detail: "Admin review, appointment notes, and patient pipeline", bgA: "#312e81", bgB: "#a5b4fc" }
+                ]
+            },
+            legal: {
+                domain: "legal",
+                prompt: `Create polished legal visuals for ${brand}: consultation intake, practice areas, attorney trust proof, case review, client pipeline, and legal authority.`,
+                assets: [
+                    { file: "public/images/legal-hero.svg", title: "Legal Hero SVG", label: "Legal Authority", detail: `${brand} consultation, practice areas, and case intake`, bgA: "#0f172a", bgB: "#d4af37" },
+                    { file: "public/images/legal-consultation.svg", title: "Legal Consultation SVG", label: "Consultation", detail: "Consultation request and case review workflow", bgA: "#111827", bgB: "#facc15" },
+                    { file: "public/images/legal-practice.svg", title: "Legal Practice SVG", label: "Practice Areas", detail: "Practice area cards and service proof", bgA: "#1e293b", bgB: "#c084fc" },
+                    { file: "public/images/legal-client.svg", title: "Legal Client SVG", label: "Client Intake", detail: "Client needs, evidence, and follow-up", bgA: "#312e81", bgB: "#fbbf24" },
+                    { file: "public/images/legal-admin.svg", title: "Legal Admin SVG", label: "Case Pipeline", detail: "Admin case pipeline and lead review", bgA: "#020617", bgB: "#94a3b8" }
+                ]
+            },
+            beauty: {
+                domain: "beauty",
+                prompt: `Create polished beauty visuals for ${brand}: salon services, appointment booking, gallery proof, hair, nails, spa, skincare, and client experience.`,
+                assets: [
+                    { file: "public/images/beauty-hero.svg", title: "Beauty Hero SVG", label: "Beauty Booking", detail: `${brand} salon services, gallery, and booking experience`, bgA: "#831843", bgB: "#f9a8d4" },
+                    { file: "public/images/beauty-booking.svg", title: "Beauty Booking SVG", label: "Appointment", detail: "Appointment booking and service menu", bgA: "#9f1239", bgB: "#fda4af" },
+                    { file: "public/images/beauty-gallery.svg", title: "Beauty Gallery SVG", label: "Gallery Proof", detail: "Portfolio, before-and-after, and service proof", bgA: "#581c87", bgB: "#e879f9" },
+                    { file: "public/images/beauty-services.svg", title: "Beauty Services SVG", label: "Services", detail: "Hair, nails, spa, skincare, and packages", bgA: "#7f1d1d", bgB: "#fdba74" },
+                    { file: "public/images/beauty-admin.svg", title: "Beauty Admin SVG", label: "Salon Admin", detail: "Booking inbox, customer notes, and schedule review", bgA: "#4c1d95", bgB: "#f0abfc" }
+                ]
+            },
+            restaurant: {
+                domain: "restaurant",
+                prompt: `Create polished restaurant visuals for ${brand}: menu showcase, online ordering, reservations, catering, kitchen queue, and restaurant admin operations.`,
+                assets: [
+                    { file: "public/images/restaurant-hero.svg", title: "Restaurant Hero SVG", label: "Dining Experience", detail: `${brand} menu, ordering, reservations, and operations`, bgA: "#7c2d12", bgB: "#fb923c" },
+                    { file: "public/images/restaurant-menu.svg", title: "Restaurant Menu SVG", label: "Menu Showcase", detail: "Menu categories, popular items, and dining proof", bgA: "#431407", bgB: "#facc15" },
+                    { file: "public/images/restaurant-ordering.svg", title: "Restaurant Ordering SVG", label: "Online Orders", detail: "Order intake, checkout, and confirmation", bgA: "#991b1b", bgB: "#f87171" },
+                    { file: "public/images/restaurant-reservations.svg", title: "Restaurant Reservations SVG", label: "Reservations", detail: "Reservations, catering requests, and guest notes", bgA: "#713f12", bgB: "#fde68a" },
+                    { file: "public/images/restaurant-kitchen.svg", title: "Restaurant Kitchen SVG", label: "Kitchen Queue", detail: "Kitchen tickets, order status, and admin operations", bgA: "#1c1917", bgB: "#fb923c" }
+                ]
+            },
+            transportation: {
+                domain: "transportation",
+                prompt: `Create polished transportation visuals for ${brand}: black car fleet, airport rides, chauffeur service, corporate travel, wedding transportation, booking, and dispatch.`,
+                assets: [
+                    { file: "public/images/transportation-hero.svg", title: "Transportation Hero SVG", label: "Premium Fleet", detail: `${brand} fleet, booking, and dispatch experience`, bgA: "#020617", bgB: "#38bdf8" },
+                    { file: "public/images/transportation-fleet.svg", title: "Transportation Fleet SVG", label: "Fleet", detail: "Vehicle classes, executive black car, and service proof", bgA: "#111827", bgB: "#60a5fa" },
+                    { file: "public/images/transportation-airport.svg", title: "Transportation Airport SVG", label: "Airport Rides", detail: "Airport pickup, flight tracking, and chauffeur workflow", bgA: "#0f172a", bgB: "#22d3ee" },
+                    { file: "public/images/transportation-booking.svg", title: "Transportation Booking SVG", label: "Booking", detail: "Customer quote, ride request, and confirmation", bgA: "#1e1b4b", bgB: "#a78bfa" },
+                    { file: "public/images/transportation-dispatch.svg", title: "Transportation Dispatch SVG", label: "Dispatch", detail: "Driver assignment, trip status, and admin dispatch", bgA: "#172554", bgB: "#93c5fd" }
+                ]
+            }
+        };
+        const pack = packs[industry];
+        if (!pack)
             return files;
-        const replacePairs = [
-            ["public/images/commerce-hero.svg", "public/images/construction-hero.svg"],
-            ["public/images/product-oranges.svg", "public/images/construction-project.svg"],
-            ["public/images/product-juice.svg", "public/images/construction-estimate.svg"],
-            ["public/images/product-gift.svg", "public/images/construction-crew.svg"],
-            ["public/images/fitness-hero.svg", "public/images/construction-site.svg"],
-            ["public/images/fitness-class.svg", "public/images/construction-gallery.svg"],
-            ["public/images/fitness-trainer.svg", "public/images/construction-contractor.svg"],
-            ["commerce-hero", "construction-hero"],
-            ["product-oranges", "construction-project"],
-            ["product-juice", "construction-estimate"],
-            ["product-gift", "construction-crew"],
-            ["fitness-hero", "construction-site"],
-            ["fitness-class", "construction-gallery"],
-            ["fitness-trainer", "construction-contractor"],
-            ["Commerce Hero SVG", "Construction Hero SVG"],
-            ["Fresh Oranges SVG", "Construction Project SVG"],
-            ["Fresh Juice SVG", "Construction Estimate SVG"],
-            ["Gift Basket SVG", "Construction Crew SVG"],
-            ["Fitness Hero SVG", "Construction Site SVG"],
-            ["Fitness Class SVG", "Construction Gallery SVG"],
-            ["Trainer Profile SVG", "Construction Contractor SVG"],
-            ["Orange Shop citrus hero visual", `${brand} construction hero visual`],
-            ["Fresh oranges", "Project gallery"],
-            ["Fresh orange juice", "Estimate request"],
-            ["Gift baskets", "Crew and contractor workflow"],
-            ["Fitness studio hero visual", `${brand} project site visual`],
-            ["Fitness class", "Construction project gallery"],
-            ["Trainer profile", "Contractor profile"]
+        const oldAssetPatterns = [
+            "public/images/commerce-hero.svg",
+            "public/images/product-oranges.svg",
+            "public/images/product-juice.svg",
+            "public/images/product-gift.svg",
+            "public/images/fitness-hero.svg",
+            "public/images/fitness-class.svg",
+            "public/images/fitness-trainer.svg"
         ];
-        function rewriteText(input) {
-            let out = input;
-            for (const [from, to] of replacePairs) {
-                out = out.split(from).join(to);
-            }
-            return out;
-        }
         for (const file of files) {
-            if (typeof file.content === "string") {
-                file.content = rewriteText(file.content);
-            }
-            if (typeof file.file === "string") {
-                file.file = rewriteText(file.file);
-            }
-            if (typeof file.title === "string") {
-                file.title = rewriteText(file.title);
+            if (oldAssetPatterns.includes(file.file)) {
+                file.file = "__remove__/" + file.file;
             }
         }
         const manifestFile = files.find((file) => file.file === "data/asset-manifest.json");
@@ -424,72 +474,13 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             manifestFile.content = JSON.stringify({
                 generatedAt: new Date().toISOString(),
                 brand,
-                domain: "construction",
-                assets: [
-                    "public/images/construction-hero.svg",
-                    "public/images/construction-project.svg",
-                    "public/images/construction-estimate.svg",
-                    "public/images/construction-crew.svg",
-                    "public/images/construction-site.svg",
-                    "public/images/construction-gallery.svg",
-                    "public/images/construction-contractor.svg"
-                ],
-                imagePrompt: `Create polished construction visuals for ${brand}: project sites, renovation before-and-after proof, estimate requests, contractor assignment, tools, crews, and admin pipeline.`
+                domain: pack.domain,
+                assets: pack.assets.map((asset) => asset.file),
+                imagePrompt: pack.prompt
             }, null, 2);
         }
-        const imageFiles = {
-            "public/images/construction-hero.svg": {
-                title: "Construction Hero Visual",
-                label: "Project Site",
-                detail: `${brand} construction services, estimate request, and project proof`,
-                bgA: "#111827",
-                bgB: "#facc15"
-            },
-            "public/images/construction-project.svg": {
-                title: "Construction Project Visual",
-                label: "Project Gallery",
-                detail: "Before-and-after project gallery and renovation proof",
-                bgA: "#1f2937",
-                bgB: "#f97316"
-            },
-            "public/images/construction-estimate.svg": {
-                title: "Construction Estimate Visual",
-                label: "Estimate Request",
-                detail: "Quote intake, budget review, and customer follow-up",
-                bgA: "#0f172a",
-                bgB: "#facc15"
-            },
-            "public/images/construction-crew.svg": {
-                title: "Construction Crew Visual",
-                label: "Crew Workflow",
-                detail: "Contractor assignment, project status, and field operations",
-                bgA: "#111827",
-                bgB: "#94a3b8"
-            },
-            "public/images/construction-site.svg": {
-                title: "Construction Site Visual",
-                label: "Active Site",
-                detail: "Tools, crews, service areas, and job site readiness",
-                bgA: "#172554",
-                bgB: "#f97316"
-            },
-            "public/images/construction-gallery.svg": {
-                title: "Construction Gallery Visual",
-                label: "Before / After",
-                detail: "Gallery cards, project categories, and proof sections",
-                bgA: "#3f3f46",
-                bgB: "#facc15"
-            },
-            "public/images/construction-contractor.svg": {
-                title: "Construction Contractor Visual",
-                label: "Contractor Match",
-                detail: "Contractor matching, quote approval, and admin pipeline",
-                bgA: "#312e81",
-                bgB: "#f59e0b"
-            }
-        };
-        for (const [fileName, asset] of Object.entries(imageFiles)) {
-            const existing = files.find((file) => file.file === fileName);
+        for (const asset of pack.assets) {
+            const existing = files.find((file) => file.file === asset.file);
             const content = svgAsset(asset.label, asset.detail, asset.bgA, asset.bgB);
             if (existing) {
                 existing.title = asset.title;
@@ -498,14 +489,14 @@ export async function buildUniversalAnythingArtifacts(run, outDir) {
             }
             else {
                 files.push({
-                    file: fileName,
+                    file: asset.file,
                     title: asset.title,
                     type: "svg",
                     content
                 });
             }
         }
-        return files;
+        return files.filter((file) => !String(file.file).startsWith("__remove__/"));
     }
     function svgAsset(title, emoji, bgA = "#fb923c", bgB = "#facc15") {
         return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
@@ -3125,7 +3116,7 @@ export default function EditorPage() {
         }
     }
     rewriteBookstoreCommerceFiles();
-    applyConstructionAssetSpecialization(files, prompt, brand, buildSpec);
+    files.splice(0, files.length, ...applyIndustryAssetSpecialization(files, prompt, brand, buildSpec));
     const records = [];
     files.push({
         file: "scripts/smoke-test.mjs",
