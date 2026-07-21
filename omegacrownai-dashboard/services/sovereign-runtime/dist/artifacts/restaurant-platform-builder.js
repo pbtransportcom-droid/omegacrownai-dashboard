@@ -150,10 +150,10 @@ export async function buildRestaurantPlatformArtifacts(run, outDir) {
       <h2>Restaurant Ordering Experience</h2>
       <p>This generated package includes SVG hero/card visuals, an asset manifest, and an AI feature-request workflow.</p>
       <div class="visual-grid">
-        <img src="./public/images/hero.svg" alt="Restaurant Ordering Experience hero visual" />
-        <img src="./public/images/feature-1.svg" alt="Menu Ordering visual" />
-        <img src="./public/images/feature-2.svg" alt="Reservations visual" />
-        <img src="./public/images/admin.svg" alt="Restaurant Admin Dashboard visual" />
+        <img src="./public/images/restaurant-hero.svg" alt="Restaurant Ordering Experience hero visual" />
+        <img src="./public/images/restaurant-menu.svg" alt="Menu Ordering visual" />
+        <img src="./public/images/restaurant-reservations.svg" alt="Reservations visual" />
+        <img src="./public/images/restaurant-admin.svg" alt="Restaurant Admin Dashboard visual" />
       </div>
     </section>
 
@@ -904,15 +904,15 @@ export async function saveFeatureRequest(input: { request: string; status: strin
             domain: "restaurant",
             imagePrompt: "Create polished, production-ready Restaurant Ordering Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
             assets: [
-                "public/images/hero.svg",
-                "public/images/feature-1.svg",
-                "public/images/feature-2.svg",
-                "public/images/admin.svg"
+                "public/images/restaurant-hero.svg",
+                "public/images/restaurant-menu.svg",
+                "public/images/restaurant-reservations.svg",
+                "public/images/restaurant-admin.svg"
             ]
         }, null, 2)
     }, {
-        file: "public/images/hero.svg",
-        title: "Generated Hero Visual",
+        file: "public/images/restaurant-hero.svg",
+        title: "Restaurant Hero Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -935,8 +935,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/feature-1.svg",
-        title: "Generated Feature Visual One",
+        file: "public/images/restaurant-menu.svg",
+        title: "Restaurant Menu Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -959,8 +959,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/feature-2.svg",
-        title: "Generated Feature Visual Two",
+        file: "public/images/restaurant-reservations.svg",
+        title: "Restaurant Reservations Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -983,8 +983,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/admin.svg",
-        title: "Generated Admin Visual",
+        file: "public/images/restaurant-admin.svg",
+        title: "Restaurant Admin Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
