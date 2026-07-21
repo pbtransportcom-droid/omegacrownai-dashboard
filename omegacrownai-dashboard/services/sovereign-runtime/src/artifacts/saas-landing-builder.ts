@@ -37,7 +37,7 @@ function positivePromptSource(prompt: string) {
 export function isSaasLandingPrompt(prompt: string) {
   const source = positivePromptSource(prompt);
   return [
-    "nexusflow",
+    "generated_business_system",
     "saas",
     "productivity",
     "workflow automation",
@@ -291,7 +291,7 @@ export async function buildSaasLandingArtifacts(run: any, outDir: string) {
       title: "Package Manifest",
       type: "json",
       content: `{
-  "name": "nexusflow-saas-landing",
+  "name": "generated-business-system",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -661,7 +661,7 @@ model SignupLead {
       file: ".env.example",
       title: "Environment Template",
       type: "env",
-      content: `DATABASE_URL="postgresql://user:password@localhost:5432/nexusflow"
+      content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_business_system"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 SIGNUP_NOTIFICATION_EMAIL="team@example.com"
 `,
