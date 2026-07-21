@@ -414,6 +414,164 @@ function applyBookstoreCommerceSpecialization(files: any[], prompt: string, bran
 }
 
 
+function isConstructionPrompt(prompt: string, brand: string, buildSpec: any) {
+  const value = `${prompt} ${brand} ${buildSpec?.industry || ""} ${buildSpec?.productType || ""}`.toLowerCase();
+  return (
+    value.includes("construction") ||
+    value.includes("contractor") ||
+    value.includes("renovation") ||
+    value.includes("estimate request") ||
+    value.includes("project gallery")
+  );
+}
+
+function applyConstructionAssetSpecialization(files: any[], prompt: string, brand: string, buildSpec: any) {
+  if (!isConstructionPrompt(prompt, brand, buildSpec)) return files;
+
+  const replacePairs: Array<[string, string]> = [
+    ["public/images/commerce-hero.svg", "public/images/construction-hero.svg"],
+    ["public/images/product-oranges.svg", "public/images/construction-project.svg"],
+    ["public/images/product-juice.svg", "public/images/construction-estimate.svg"],
+    ["public/images/product-gift.svg", "public/images/construction-crew.svg"],
+    ["public/images/fitness-hero.svg", "public/images/construction-site.svg"],
+    ["public/images/fitness-class.svg", "public/images/construction-gallery.svg"],
+    ["public/images/fitness-trainer.svg", "public/images/construction-contractor.svg"],
+    ["commerce-hero", "construction-hero"],
+    ["product-oranges", "construction-project"],
+    ["product-juice", "construction-estimate"],
+    ["product-gift", "construction-crew"],
+    ["fitness-hero", "construction-site"],
+    ["fitness-class", "construction-gallery"],
+    ["fitness-trainer", "construction-contractor"],
+    ["Commerce Hero SVG", "Construction Hero SVG"],
+    ["Fresh Oranges SVG", "Construction Project SVG"],
+    ["Fresh Juice SVG", "Construction Estimate SVG"],
+    ["Gift Basket SVG", "Construction Crew SVG"],
+    ["Fitness Hero SVG", "Construction Site SVG"],
+    ["Fitness Class SVG", "Construction Gallery SVG"],
+    ["Trainer Profile SVG", "Construction Contractor SVG"],
+    ["Orange Shop citrus hero visual", `${brand} construction hero visual`],
+    ["Fresh oranges", "Project gallery"],
+    ["Fresh orange juice", "Estimate request"],
+    ["Gift baskets", "Crew and contractor workflow"],
+    ["Fitness studio hero visual", `${brand} project site visual`],
+    ["Fitness class", "Construction project gallery"],
+    ["Trainer profile", "Contractor profile"]
+  ];
+
+  function rewriteText(input: string) {
+    let out = input;
+    for (const [from, to] of replacePairs) {
+      out = out.split(from).join(to);
+    }
+    return out;
+  }
+
+  for (const file of files) {
+    if (typeof file.content === "string") {
+      file.content = rewriteText(file.content);
+    }
+    if (typeof file.file === "string") {
+      file.file = rewriteText(file.file);
+    }
+    if (typeof file.title === "string") {
+      file.title = rewriteText(file.title);
+    }
+  }
+
+  const manifestFile = files.find((file) => file.file === "data/asset-manifest.json");
+  if (manifestFile) {
+    manifestFile.content = JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      brand,
+      domain: "construction",
+      assets: [
+        "public/images/construction-hero.svg",
+        "public/images/construction-project.svg",
+        "public/images/construction-estimate.svg",
+        "public/images/construction-crew.svg",
+        "public/images/construction-site.svg",
+        "public/images/construction-gallery.svg",
+        "public/images/construction-contractor.svg"
+      ],
+      imagePrompt: `Create polished construction visuals for ${brand}: project sites, renovation before-and-after proof, estimate requests, contractor assignment, tools, crews, and admin pipeline.`
+    }, null, 2);
+  }
+
+  const imageFiles: Record<string, { title: string; label: string; detail: string; bgA: string; bgB: string }> = {
+    "public/images/construction-hero.svg": {
+      title: "Construction Hero Visual",
+      label: "Project Site",
+      detail: `${brand} construction services, estimate request, and project proof`,
+      bgA: "#111827",
+      bgB: "#facc15"
+    },
+    "public/images/construction-project.svg": {
+      title: "Construction Project Visual",
+      label: "Project Gallery",
+      detail: "Before-and-after project gallery and renovation proof",
+      bgA: "#1f2937",
+      bgB: "#f97316"
+    },
+    "public/images/construction-estimate.svg": {
+      title: "Construction Estimate Visual",
+      label: "Estimate Request",
+      detail: "Quote intake, budget review, and customer follow-up",
+      bgA: "#0f172a",
+      bgB: "#facc15"
+    },
+    "public/images/construction-crew.svg": {
+      title: "Construction Crew Visual",
+      label: "Crew Workflow",
+      detail: "Contractor assignment, project status, and field operations",
+      bgA: "#111827",
+      bgB: "#94a3b8"
+    },
+    "public/images/construction-site.svg": {
+      title: "Construction Site Visual",
+      label: "Active Site",
+      detail: "Tools, crews, service areas, and job site readiness",
+      bgA: "#172554",
+      bgB: "#f97316"
+    },
+    "public/images/construction-gallery.svg": {
+      title: "Construction Gallery Visual",
+      label: "Before / After",
+      detail: "Gallery cards, project categories, and proof sections",
+      bgA: "#3f3f46",
+      bgB: "#facc15"
+    },
+    "public/images/construction-contractor.svg": {
+      title: "Construction Contractor Visual",
+      label: "Contractor Match",
+      detail: "Contractor matching, quote approval, and admin pipeline",
+      bgA: "#312e81",
+      bgB: "#f59e0b"
+    }
+  };
+
+  for (const [fileName, asset] of Object.entries(imageFiles)) {
+    const existing = files.find((file) => file.file === fileName);
+    const content = svgAsset(asset.label, asset.detail, asset.bgA, asset.bgB);
+    if (existing) {
+      existing.title = asset.title;
+      existing.type = "svg";
+      existing.content = content;
+    } else {
+      files.push({
+        file: fileName,
+        title: asset.title,
+        type: "svg",
+        content
+      });
+    }
+  }
+
+  return files;
+}
+
+
+
 function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15") {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -3130,6 +3288,7 @@ export default function EditorPage() {
   }
 
   rewriteBookstoreCommerceFiles();
+  applyConstructionAssetSpecialization(files, prompt, brand, buildSpec);
 
   const records: ArtifactRecord[] = [];
 
