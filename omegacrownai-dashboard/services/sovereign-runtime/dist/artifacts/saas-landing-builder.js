@@ -505,6 +505,183 @@ export function Pricing() {
   return (
     <section id="faq" className="mx-auto grid w-[min(1120px,92vw)] gap-4 py-20">
       <h2 className="text-5xl font-black tracking-[-0.05em] text-slate-950">Frequently asked questions</h2>
+      {
+        file: "DELIVERY.md",
+        title: "Customer Delivery Guide",
+        type: "markdown",
+        content: `, #: Customer, Delivery, Guide,
+            #: #, What, was, generated,
+            This, package, contains, a, customer
+        } - ready, business, website, and, admin, workflow, generated, from, the, customer, prompt.
+        ,
+        #, #, Included
+            - Public, homepage, and, service, sections
+            - Customer, request, flow
+            - Admin, review, area
+            - Editable, content, tools
+            - Generated, visual, assets
+            - Feature, request, API
+            - Source, files
+            - Environment, template
+            - Docker, deployment, files
+            - README
+            - Launch, checklist,
+        #, #, Customer, workflow,
+        1., Customer, visits, the, website.
+        ,
+        2., Customer, reviews, the, offer, and, service, sections.
+        ,
+        3., Customer, submits, a, request, or, project, inquiry.
+        ,
+        4., Admin, reviews, the, request.
+        ,
+        5., Admin, follows, up, and, prepares, the, next, step.
+        ,
+        #, #, Admin, workflow,
+        1., Review, new customer, requests.
+        ,
+        2., Track, request, status.
+        ,
+        3., Update, editable, content.
+        ,
+        4., Review, requested, AI, feature, upgrades.
+        ,
+        5., Prepare, launch, and, deployment.
+        ,
+        #, #, Handoff, notes,
+        Before, going, live, update, brand, content, connect, production, database, credentials, configure, the, domain, test, request, submissions, and, review, the, launch, checklist.
+         `,
+      },
+      {
+        file: "LAUNCH_CHECKLIST.md",
+        title: "Launch Checklist",
+        type: "markdown",
+        content: `, #, Launch, Checklist,
+        #, #, Content
+            - [], Confirm, business, name, and, headline.
+            - [], Confirm, services, and, offer.
+            - [], Confirm, calls, to, action.
+            - [], Confirm, pricing, or, consultation, language.
+            - [], Confirm, contact, information.
+            - [], Review, generated, visual, assets.
+        ,
+        #, #, Technical, setup
+            - [], Copy.env.example, to.env.
+            - [], Set, DATABASE_URL.
+            - [], Install, dependencies.
+            - [], Run, Prisma, generate
+    ];
+    if (needed.
+        - [])
+        Run;
+    npm;
+    run;
+    build.
+        - [];
+    Run;
+    smoke;
+    test.
+        - [];
+    Confirm;
+    Docker;
+    build;
+    if (using)
+        Docker.
+        ;
+    #;
+    #;
+    Customer;
+    workflow
+        - [];
+    Test;
+    homepage.
+        - [];
+    Test;
+    customer;
+    request;
+    form.
+        - [];
+    Confirm;
+    request;
+    data;
+    is;
+    saved.
+        - [];
+    Test;
+    admin;
+    review;
+    area.
+        - [];
+    Test;
+    editable;
+    content.
+        - [];
+    Test;
+    feature;
+    request;
+    form.
+    ;
+    #;
+    #;
+    Deployment
+        - [];
+    Configure;
+    production;
+    domain.
+        - [];
+    Enable;
+    HTTPS.
+        - [];
+    Set;
+    production;
+    environment;
+    variables.
+        - [];
+    Start;
+    app;
+    with (process)
+        manager.
+            - [];
+    Add;
+    monitoring.
+        - [];
+    Add;
+    backup;
+    strategy.
+        - [];
+    Test;
+    live;
+    preview.
+        - [];
+    Test;
+    ZIP;
+    download.
+    ;
+    #;
+    #;
+    Final;
+    approval
+        - [];
+    Customer - facing;
+    preview;
+    approved.
+        - [];
+    Admin;
+    workflow;
+    approved.
+        - [];
+    README;
+    reviewed.
+        - [];
+    Delivery;
+    guide;
+    reviewed.
+        - [];
+    Launch;
+    checklist;
+    completed.
+     `,
+      },
       {[
         ["Can this system connect our current tools?", "Yes. The product is designed around integrations with common team tools."],
         ["Can non-technical teams build workflows?", "Yes. Teams can start with templates and customize workflows over time."],
@@ -519,11 +696,14 @@ export function Pricing() {
   );
 }
 `,
-        },
-        {
-            file: "components/Footer.tsx",
-            title: "Footer",
-            content: `export function Footer() {
+    ;
+}
+{
+    file: "components/Footer.tsx",
+        title;
+    "Footer",
+        content;
+    `export function Footer() {
   return (
     <footer className="mx-auto flex w-[min(1120px,92vw)] justify-between border-t border-blue-100 py-10 text-slate-600">
       <strong className="text-slate-950">Generated System</strong>
@@ -532,11 +712,14 @@ export function Pricing() {
   );
 }
 `,
-        },
-        {
-            file: "app/admin/bookings/page.tsx",
-            title: "Admin Signup Leads Page",
-            content: `export default function AdminSignupLeadsPage() {
+    ;
+}
+{
+    file: "app/admin/bookings/page.tsx",
+        title;
+    "Admin Signup Leads Page",
+        content;
+    `export default function AdminSignupLeadsPage() {
   return (
     <main className="min-h-screen bg-white p-8 text-slate-950">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">Admin</p>
@@ -546,11 +729,14 @@ export function Pricing() {
   );
 }
 `,
-        },
-        {
-            file: "app/customer/page.tsx",
-            title: "Customer Workspace Page",
-            content: `export default function CustomerWorkspacePage() {
+    ;
+}
+{
+    file: "app/customer/page.tsx",
+        title;
+    "Customer Workspace Page",
+        content;
+    `export default function CustomerWorkspacePage() {
   return (
     <main className="min-h-screen bg-white p-8 text-slate-950">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">Workspace</p>
@@ -560,11 +746,14 @@ export function Pricing() {
   );
 }
 `,
-        },
-        {
-            file: "app/admin/page.tsx",
-            title: "Admin Page",
-            content: `export default function AdminPage() {
+    ;
+}
+{
+    file: "app/admin/page.tsx",
+        title;
+    "Admin Page",
+        content;
+    `export default function AdminPage() {
   return (
     <main className="min-h-screen bg-white p-8 text-slate-950">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">Admin</p>
@@ -574,29 +763,40 @@ export function Pricing() {
   );
 }
 `,
-        },
-        {
-            file: "global.d.ts",
-            title: "CSS Type Declarations",
-            content: `declare module "*.css";
+    ;
+}
+{
+    file: "global.d.ts",
+        title;
+    "CSS Type Declarations",
+        content;
+    `declare module "*.css";
 `,
-        },
-        {
-            file: "tailwind.config.js",
-            title: "Tailwind Config",
-            type: "javascript",
-            content: `module.exports = {
+    ;
+}
+{
+    file: "tailwind.config.js",
+        title;
+    "Tailwind Config",
+        type;
+    "javascript",
+        content;
+    `module.exports = {
   content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   theme: { extend: {} },
   plugins: [],
 };
 `,
-        },
-        {
-            file: "tsconfig.json",
-            title: "TypeScript Config",
-            type: "json",
-            content: `{
+    ;
+}
+{
+    file: "tsconfig.json",
+        title;
+    "TypeScript Config",
+        type;
+    "json",
+        content;
+    `{
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -616,12 +816,16 @@ export function Pricing() {
   "exclude": ["node_modules"]
 }
 `,
-        },
-        {
-            file: "prisma/schema.prisma",
-            title: "Prisma Schema",
-            type: "prisma",
-            content: `generator client {
+    ;
+}
+{
+    file: "prisma/schema.prisma",
+        title;
+    "Prisma Schema",
+        type;
+    "prisma",
+        content;
+    `generator client {
   provider = "prisma-client-js"
 }
 
@@ -639,21 +843,29 @@ model SignupLead {
   createdAt   DateTime @default(now())
 }
 `,
-        },
-        {
-            file: ".env.example",
-            title: "Environment Template",
-            type: "env",
-            content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_business_system"
+    ;
+}
+{
+    file: ".env.example",
+        title;
+    "Environment Template",
+        type;
+    "env",
+        content;
+    `DATABASE_URL="postgresql://user:password@localhost:5432/generated_business_system"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 SIGNUP_NOTIFICATION_EMAIL="team@example.com"
 `,
-        },
-        {
-            file: "README.md",
-            title: "Delivery README",
-            type: "markdown",
-            content: `# Generated Business System Package
+    ;
+}
+{
+    file: "README.md",
+        title;
+    "Delivery README",
+        type;
+    "markdown",
+        content;
+    `# Generated Business System Package
 
 A prompt-led single-page SaaS landing site for an AI-powered productivity tool.
 
@@ -673,18 +885,25 @@ npm run build
 npm run dev
 \`\`\`
 `,
-        },
-        {
-            file: "scripts/smoke-test.ts",
-            title: "Smoke Test Script",
-            content: `console.log("Generated business system smoke test ready.");
+    ;
+}
+{
+    file: "scripts/smoke-test.ts",
+        title;
+    "Smoke Test Script",
+        content;
+    `console.log("Generated business system smoke test ready.");
 `,
-        },
-        {
-            file: "Dockerfile",
-            title: "Dockerfile",
-            type: "docker",
-            content: `FROM node:20-alpine
+    ;
+}
+{
+    file: "Dockerfile",
+        title;
+    "Dockerfile",
+        type;
+    "docker",
+        content;
+    `FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -693,12 +912,16 @@ RUN npm run build
 EXPOSE 3000
 CMD ["npm", "run", "start"]
 `,
-        },
-        {
-            file: "docker-compose.yml",
-            title: "Docker Compose",
-            type: "yaml",
-            content: `services:
+    ;
+}
+{
+    file: "docker-compose.yml",
+        title;
+    "Docker Compose",
+        type;
+    "yaml",
+        content;
+    `services:
   app:
     build: .
     ports:
@@ -706,12 +929,13 @@ CMD ["npm", "run", "start"]
     env_file:
       - .env
 `,
-        },
-    ];
-    files.push({
-        file: "components/AskAIFeatures.tsx",
-        title: "Ask AI Feature Request Panel",
-        content: `"use client";
+    ;
+}
+;
+files.push({
+    file: "components/AskAIFeatures.tsx",
+    title: "Ask AI Feature Request Panel",
+    content: `"use client";
 
 import { useState } from "react";
 
@@ -752,10 +976,10 @@ export function AskAIFeatures() {
   );
 }
 `
-    }, {
-        file: "app/api/feature-requests/route.ts",
-        title: "Feature Requests API",
-        content: `import { NextResponse } from "next/server";
+}, {
+    file: "app/api/feature-requests/route.ts",
+    title: "Feature Requests API",
+    content: `import { NextResponse } from "next/server";
 import { saveFeatureRequest, listFeatureRequests } from "../../../lib/feature-request-store";
 
 export async function GET() {
@@ -771,10 +995,10 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, request: saved });
 }
 `
-    }, {
-        file: "lib/feature-request-store.ts",
-        title: "Feature Request Store",
-        content: `import fs from "fs/promises";
+}, {
+    file: "lib/feature-request-store.ts",
+    title: "Feature Request Store",
+    content: `import fs from "fs/promises";
 import path from "path";
 
 const dataDir = path.join(process.cwd(), "data");
@@ -801,26 +1025,26 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   return saved;
 }
 `
-    }, {
-        file: "data/asset-manifest.json",
-        title: "Generated Asset Manifest",
-        type: "json",
-        content: JSON.stringify({
-            generatedAt: new Date().toISOString(),
-            domain: "saas",
-            imagePrompt: "Create polished, production-ready Generated Business System Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
-            assets: [
-                "public/images/hero.svg",
-                "public/images/feature-1.svg",
-                "public/images/feature-2.svg",
-                "public/images/admin.svg"
-            ]
-        }, null, 2)
-    }, {
-        file: "public/images/hero.svg",
-        title: "Generated Hero Visual",
-        type: "image",
-        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+}, {
+    file: "data/asset-manifest.json",
+    title: "Generated Asset Manifest",
+    type: "json",
+    content: JSON.stringify({
+        generatedAt: new Date().toISOString(),
+        domain: "saas",
+        imagePrompt: "Create polished, production-ready Generated Business System Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
+        assets: [
+            "public/images/hero.svg",
+            "public/images/feature-1.svg",
+            "public/images/feature-2.svg",
+            "public/images/admin.svg"
+        ]
+    }, null, 2)
+}, {
+    file: "public/images/hero.svg",
+    title: "Generated Hero Visual",
+    type: "image",
+    content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
     <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0%" stop-color="#22d3ee"/>
@@ -840,11 +1064,11 @@ export async function saveFeatureRequest(input: { request: string; status: strin
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
   </g>
 </svg>`
-    }, {
-        file: "public/images/feature-1.svg",
-        title: "Generated Feature Visual One",
-        type: "image",
-        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+}, {
+    file: "public/images/feature-1.svg",
+    title: "Generated Feature Visual One",
+    type: "image",
+    content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
     <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0%" stop-color="#22d3ee"/>
@@ -864,11 +1088,11 @@ export async function saveFeatureRequest(input: { request: string; status: strin
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
   </g>
 </svg>`
-    }, {
-        file: "public/images/feature-2.svg",
-        title: "Generated Feature Visual Two",
-        type: "image",
-        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+}, {
+    file: "public/images/feature-2.svg",
+    title: "Generated Feature Visual Two",
+    type: "image",
+    content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
     <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0%" stop-color="#22d3ee"/>
@@ -888,11 +1112,11 @@ export async function saveFeatureRequest(input: { request: string; status: strin
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
   </g>
 </svg>`
-    }, {
-        file: "public/images/admin.svg",
-        title: "Generated Admin Visual",
-        type: "image",
-        content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+}, {
+    file: "public/images/admin.svg",
+    title: "Generated Admin Visual",
+    type: "image",
+    content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
     <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0%" stop-color="#22d3ee"/>
@@ -912,29 +1136,29 @@ export async function saveFeatureRequest(input: { request: string; status: strin
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
   </g>
 </svg>`
-    });
-    files.push({
-        file: "data/editable-content.json",
-        title: "Editable Site Content",
-        type: "json",
-        content: JSON.stringify({
-            brand: "Generated System",
-            type: "saas",
-            hero: {
-                eyebrow: "Full-function generated application",
-                headline: "This is a full-function generated business platform with landing pages, bookings, workflow sections, lead capture, and admin operations.",
-                subheadline: "Users can review features, book demos, explore product flows, access admin tools, and ask AI for more SaaS features."
-            },
-            pages: [
-                { label: "Customer", path: "/customer", purpose: "Customer-facing active workflow" },
-                { label: "Admin", path: "/admin", purpose: "Operations dashboard and review center" },
-                { label: "Editor", path: "/editor", purpose: "Editable content and AI feature requests" }
-            ]
-        }, null, 2)
-    }, {
-        file: "lib/content-store.ts",
-        title: "Editable Content Store",
-        content: `import fs from "fs/promises";
+});
+files.push({
+    file: "data/editable-content.json",
+    title: "Editable Site Content",
+    type: "json",
+    content: JSON.stringify({
+        brand: "Generated System",
+        type: "saas",
+        hero: {
+            eyebrow: "Full-function generated application",
+            headline: "This is a full-function generated business platform with landing pages, bookings, workflow sections, lead capture, and admin operations.",
+            subheadline: "Users can review features, book demos, explore product flows, access admin tools, and ask AI for more SaaS features."
+        },
+        pages: [
+            { label: "Customer", path: "/customer", purpose: "Customer-facing active workflow" },
+            { label: "Admin", path: "/admin", purpose: "Operations dashboard and review center" },
+            { label: "Editor", path: "/editor", purpose: "Editable content and AI feature requests" }
+        ]
+    }, null, 2)
+}, {
+    file: "lib/content-store.ts",
+    title: "Editable Content Store",
+    content: `import fs from "fs/promises";
 import path from "path";
 import seedContent from "../data/editable-content.json";
 
@@ -961,10 +1185,10 @@ export async function saveEditableContent(input: any) {
   return next;
 }
 `
-    }, {
-        file: "app/api/content/route.ts",
-        title: "Editable Content API",
-        content: `import { NextResponse } from "next/server";
+}, {
+    file: "app/api/content/route.ts",
+    title: "Editable Content API",
+    content: `import { NextResponse } from "next/server";
 import { getEditableContent, saveEditableContent } from "../../../lib/content-store";
 
 export async function GET() {
@@ -977,10 +1201,10 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, content });
 }
 `
-    }, {
-        file: "components/EditableContentPanel.tsx",
-        title: "Editable Content Panel",
-        content: `"use client";
+}, {
+    file: "components/EditableContentPanel.tsx",
+    title: "Editable Content Panel",
+    content: `"use client";
 
 import { useEffect, useState } from "react";
 
@@ -1039,10 +1263,10 @@ export function EditableContentPanel() {
   );
 }
 `
-    }, {
-        file: "app/customer/page.tsx",
-        title: "Customer Experience Page",
-        content: `import { Hero } from "../../components/Hero";
+}, {
+    file: "app/customer/page.tsx",
+    title: "Customer Experience Page",
+    content: `import { Hero } from "../../components/Hero";
 import { Features } from "../../components/Features";
 import { BookingFlow } from "../../components/BookingFlow";
 import { Pricing } from "../../components/Pricing";
@@ -1062,10 +1286,10 @@ export default function CustomerPage() {
   );
 }
 `
-    }, {
-        file: "app/editor/page.tsx",
-        title: "Generated App Editor",
-        content: `import { EditableContentPanel } from "../../components/EditableContentPanel";
+}, {
+    file: "app/editor/page.tsx",
+    title: "Generated App Editor",
+    content: `import { EditableContentPanel } from "../../components/EditableContentPanel";
 import { AskAIFeatures } from "../../components/AskAIFeatures";
 
 export default function EditorPage() {
@@ -1082,9 +1306,8 @@ export default function EditorPage() {
   );
 }
 `
-    });
-    for (const file of files) {
-        writeFile(outDir, file.file, file.content);
-    }
-    return files.map((file) => artifact(outDir, file.file, file.title, file.type || "typescript"));
+});
+for (const file of files) {
+    writeFile(outDir, file.file, file.content);
 }
+return files.map((file) => artifact(outDir, file.file, file.title, file.type || "typescript"));
