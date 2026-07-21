@@ -8,7 +8,7 @@ const builderTypes = {
     label: "Website Builder",
     title: "Start a Website Builder project",
     description:
-      "Create landing pages, business websites, product pages, and customer-ready web experiences.",
+      "Build a customer-ready website with preview, pages, copy, source files, ZIP package, and launch checklist.",
     examples: "Examples: limo company website, restaurant landing page, SaaS homepage, portfolio.",
     accent: "cyan",
     defaultPrompt:
@@ -18,7 +18,7 @@ const builderTypes = {
     label: "App Builder",
     title: "Start an App Builder project",
     description:
-      "Create dashboards, portals, SaaS apps, internal tools, and full-stack customer applications.",
+      "Build a customer portal, admin dashboard, booking system, internal tool, or full business app.",
     examples: "Examples: CRM dashboard, booking portal, customer account app, analytics dashboard.",
     accent: "purple",
     defaultPrompt:
@@ -28,7 +28,7 @@ const builderTypes = {
     label: "Automation Builder",
     title: "Start an Automation Builder project",
     description:
-      "Create workflows, AI agents, scheduled tasks, business pipelines, and operations automations.",
+      "Automate leads, reminders, follow-ups, operations, content, and daily business tasks.",
     examples: "Examples: lead follow-up automation, content pipeline, reporting workflow, support workflow.",
     accent: "blue",
     defaultPrompt:
@@ -189,11 +189,11 @@ function CreatePageClient() {
           return;
         }
 
-        alert(data?.error || "OmegaCrownAI could not initialize the sovereign runtime.");
+        alert(data?.error || "OmegaCrownAI could not start your build.");
       }
     } catch (error) {
       console.error(error);
-      alert("Sovereign execution failed.");
+      alert("OmegaCrownAI could not finish starting your build.");
     } finally {
       setLoading(false);
     }
@@ -205,7 +205,7 @@ function CreatePageClient() {
       <section className="mx-auto max-w-6xl">
         <div className="rounded-3xl border border-cyan-400/20 bg-slate-900 p-8 shadow-2xl shadow-black/30">
           <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-300">
-            OmegaCrownAI Create
+            Start building
           </p>
           <h1 className="mt-4 text-4xl font-black md:text-6xl">
             {selected.title}
@@ -214,31 +214,34 @@ function CreatePageClient() {
             {selected.description}
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400">
-            {selected.examples}
+            OmegaCrownAI will create your preview, admin tools, customer workflow, source files, ZIP package, and launch checklist.
           </p>
 
+
           <div className="mt-7 flex flex-wrap gap-3">
-            {Object.entries(builderTypes).map(([key, item]) => (
-              <a
-                key={key}
-                href={`/create?type=${key}`}
-                className={`rounded-xl border px-4 py-2 text-sm font-black ${
-                  key === type
-                    ? "border-cyan-300 bg-cyan-400 text-black"
-                    : "border-white/15 bg-white/10 text-white hover:bg-white/20"
-                }`}
-              >
-                {item.label}
-              </a>
-            ))}
+            {Object.entries(builderTypes)
+              .filter(([key]) => ["website", "app", "automation", "marketing"].includes(key))
+              .map(([key, item]) => (
+                <a
+                  key={key}
+                  href={`/create?type=${key}`}
+                  className={`rounded-xl border px-4 py-2 text-sm font-black ${
+                    key === type
+                      ? "border-cyan-300 bg-cyan-400 text-black"
+                      : "border-white/15 bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
           </div>
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-6">
-            <h2 className="text-2xl font-black">Project Brief</h2>
+            <h2 className="text-2xl font-black">What do you want to build?</h2>
             <p className="mt-2 text-sm leading-7 text-slate-400">
-              Describe what you want OmegaCrownAI to build. This start screen is wired for the selected builder type.
+              Describe your business, the pages or tools you need, and what customers should be able to do.
             </p>
 
             <form action={launchSovereignBuild} className="mt-5 space-y-4">
@@ -247,7 +250,7 @@ function CreatePageClient() {
 
               <label className="block">
                 <span className="text-xs font-black uppercase tracking-wide text-slate-300">
-                  Project Name
+                  Project name
                 </span>
                 <input
                   name="name"
@@ -258,7 +261,7 @@ function CreatePageClient() {
 
               <label className="block">
                 <span className="text-xs font-black uppercase tracking-wide text-slate-300">
-                  What should OmegaCrownAI build?
+                  Describe your build
                 </span>
                 <textarea
                   name="prompt"
@@ -274,49 +277,44 @@ function CreatePageClient() {
                   disabled={loading}
                   className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black hover:bg-cyan-300 disabled:opacity-50"
                 >
-                  {loading ? "Launching Sovereign Runtime..." : "Build Now"}
+                  {loading ? "Building your system..." : "Build My System"}
                 </button>
                 <a
                   href="/projects"
                   className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-black text-white hover:bg-white/20"
                 >
-                  Open Projects
+                  Open My Projects
                 </a>
-                <a
-                  href="/build"
-                  className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-black text-cyan-100 hover:bg-cyan-500/20"
-                >
-                  Open Builder Hub
-                </a>
+
               </div>
             </form>
           </div>
 
           <div className="rounded-2xl border border-slate-700 bg-black/30 p-6">
-            <h2 className="text-2xl font-black">Create Now Workflow</h2>
+            <h2 className="text-2xl font-black">What happens next?</h2>
             <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
               <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
-                <p className="font-black text-white">1. Choose builder type</p>
+                <p className="font-black text-white">1. You describe the idea</p>
                 <p className="mt-1 text-slate-400">
-                  Website, app, coding, automation, or trading workflow.
+                  Tell us the business type, features, pages, customers, and goal.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
-                <p className="font-black text-white">2. Write the brief</p>
+                <p className="font-black text-white">2. OmegaCrownAI builds it</p>
                 <p className="mt-1 text-slate-400">
-                  Tell OmegaCrownAI what you want built and what quality level you expect.
+                  You get a preview, project workspace, source files, and ZIP package.
                 </p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
-                <p className="font-black text-white">3. Open workspace</p>
+                <p className="font-black text-white">3. Review, edit, or launch</p>
                 <p className="mt-1 text-slate-400">
-                  Continue in the correct builder workspace and project tools.
+                  Open your project, download the files, or continue improving the build.
                 </p>
               </div>
             </div>
 
-            <p className="mt-5 rounded-xl border border-yellow-400/20 bg-yellow-500/10 p-4 text-xs leading-6 text-yellow-100">
-              Choose a builder, confirm the project brief, then click Build Now to create and open the correct OmegaCrownAI workspace.
+            <p className="mt-5 rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-xs leading-6 text-cyan-100">
+              Start simple. Advanced workspaces are available later after your first build is created.
             </p>
           </div>
         </div>
