@@ -46,36 +46,36 @@ export async function buildSaasLandingArtifacts(run, outDir) {
     const files = [
         {
             file: "index.html",
-            title: "NexusFlow Landing Preview",
+            title: "Generated Business System Preview",
             type: "html",
             content: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NexusFlow | AI Productivity Automation for Teams</title>
-  <meta name="description" content="NexusFlow helps teams automate repetitive work, collaborate in real time, and turn workflow data into AI-powered insights." />
+  <title>Generated Business System | Customer-Ready Platform</title>
+  <meta name="description" content="This generated business system helps customers understand the offer, submit requests, and gives admins a clear workflow to manage leads and operations." />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="page-shell">
     <nav class="nav">
-      <strong>NexusFlow</strong>
+      <strong>Generated System</strong>
       <div>
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
       </div>
-      <a class="nav-cta" href="#signup">Start Free</a>
+      <a class="nav-cta" href="#signup">Start Project</a>
     </nav>
 
     <section class="hero" id="signup">
       <p class="eyebrow">AI productivity for modern teams</p>
       <h1>Automate repetitive work and keep every team in flow.</h1>
-      <p class="lede">NexusFlow combines smart workflow automation, real-time collaboration, AI insights, and seamless integrations so teams can move faster with less manual work.</p>
+      <p class="lede">This generated system combines customer-facing pages, request intake, workflow sections, admin tools, and delivery files so the business can move from preview to launch.</p>
       <div class="hero-actions">
-        <a class="primary" href="#pricing">Start Free</a>
+        <a class="primary" href="#pricing">Start Project</a>
         <a class="secondary" href="#how">See How It Works</a>
       </div>
       <div class="hero-proof">
@@ -113,7 +113,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
       <p class="eyebrow">Pricing</p>
       <h2>Simple plans for growing teams.</h2>
       <div class="pricing">
-        <article><p class="plan">Starter</p><h3>$19/user</h3><p>For small teams that want shared workflows and simple AI summaries.</p><a href="#signup">Start Free</a></article>
+        <article><p class="plan">Starter</p><h3>$19/user</h3><p>For small teams that want shared workflows and simple AI summaries.</p><a href="#signup">Start Project</a></article>
         <article class="featured"><p class="plan">Growth</p><h3>$49/user</h3><p>For scaling teams that need integrations, approvals, dashboards, and reporting.</p><a href="#signup">Choose Growth</a></article>
         <article><p class="plan">Enterprise</p><h3>Custom</h3><p>For organizations needing SSO, governance, audit controls, and dedicated support.</p><a href="#signup">Contact Sales</a></article>
       </div>
@@ -123,7 +123,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
       <p class="eyebrow">Testimonials</p>
       <h2>Teams get more done with fewer manual steps.</h2>
       <div class="grid">
-        <article><p>“NexusFlow made our weekly reporting automatic and gave managers instant visibility.”</p><strong>Operations Lead</strong></article>
+        <article><p>“Generated System made our weekly reporting automatic and gave managers instant visibility.”</p><strong>Operations Lead</strong></article>
         <article><p>“We replaced repetitive handoffs with workflows our whole team can understand.”</p><strong>Product Director</strong></article>
         <article><p>“The AI insights helped us find bottlenecks we had ignored for months.”</p><strong>Revenue Ops Manager</strong></article>
       </div>
@@ -132,7 +132,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
     <section id="faq" class="split">
       <div>
         <p class="eyebrow">FAQ</p>
-        <h2>Built for fast adoption.</h2>
+        <h2>Built around your business.</h2>
       </div>
       <div class="steps">
         <span>Can we connect Slack, Google Workspace, and project tools? Yes.</span>
@@ -142,15 +142,15 @@ export async function buildSaasLandingArtifacts(run, outDir) {
     </section>
 
     <footer>
-      <strong>NexusFlow</strong>
-      <span>AI workflow automation for teams that want clarity, speed, and focus.</span>
+      <strong>Generated System</strong>
+      <span>Customer-ready workflow, booking, and admin system generated from your prompt.</span>
     </footer>
     <section class="panel visual-preview">
       <p class="eyebrow">Generated Visual Assets</p>
-      <h2>SaaS Product Experience</h2>
+      <h2>Generated Business System Experience</h2>
       <p>This generated package includes SVG hero/card visuals, an asset manifest, and an AI feature-request workflow.</p>
       <div class="visual-grid">
-        <img src="./public/images/hero.svg" alt="SaaS Product Experience hero visual" />
+        <img src="./public/images/hero.svg" alt="Generated Business System Experience hero visual" />
         <img src="./public/images/feature-1.svg" alt="Product Workflow visual" />
         <img src="./public/images/feature-2.svg" alt="Growth Analytics visual" />
         <img src="./public/images/admin.svg" alt="SaaS Admin Console visual" />
@@ -251,7 +251,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
         },
         {
             file: "styles.css",
-            title: "NexusFlow Styles",
+            title: "Generated System Styles",
             type: "css",
             content: `:root{color-scheme:light dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#f8fbff;color:#0f172a}*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eff6ff,#fff 42%,#f8fbff);color:#0f172a}.page-shell{width:min(1160px,92vw);margin:auto}.nav{position:sticky;top:18px;z-index:10;margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid #dbeafe;background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border-radius:22px;padding:16px 20px;box-shadow:0 20px 60px rgba(37,99,235,.08)}.nav div{display:flex;gap:16px}.nav a{color:#334155;text-decoration:none;font-weight:800}.nav-cta,.primary,.pricing a{background:#2563eb!important;color:white!important;border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:900}.hero{padding:110px 0 70px;text-align:center}.eyebrow{margin:0 0 12px;color:#2563eb;font-size:.76rem;font-weight:950;letter-spacing:.24em;text-transform:uppercase}.hero h1{max-width:900px;margin:0 auto;font-size:clamp(3.2rem,7vw,6.5rem);line-height:.92;letter-spacing:-.07em}.lede{max-width:760px;margin:24px auto;color:#475569;font-size:1.2rem;line-height:1.8}.hero-actions,.hero-proof{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px}.secondary{border:1px solid #bfdbfe;border-radius:999px;padding:12px 18px;text-decoration:none;color:#1d4ed8;font-weight:900}.hero-proof span,.steps span{border:1px solid #dbeafe;background:white;border-radius:16px;padding:13px 16px;color:#1e3a8a;font-weight:850}.section,.split{padding:76px 0}.section h2,.split h2{margin:0 0 24px;font-size:clamp(2rem,4vw,3.7rem);letter-spacing:-.05em}.grid,.pricing{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.grid article,.pricing article,.split{border:1px solid #dbeafe;background:white;border-radius:28px;padding:28px;box-shadow:0 24px 70px rgba(37,99,235,.08)}.grid h3,.pricing h3{font-size:1.5rem;margin:0 0 10px}.grid p,.pricing p,.split span,footer{color:#475569;line-height:1.7}.split{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px}.steps{display:grid;gap:12px}.featured{background:#eff6ff!important;border-color:#93c5fd!important}.plan{text-transform:uppercase;letter-spacing:.18em;color:#2563eb!important;font-weight:900}footer{display:flex;justify-content:space-between;gap:16px;border-top:1px solid #dbeafe;padding:34px 0 54px}@media(max-width:800px){.nav,.nav div,footer{display:grid}.grid,.pricing,.split{grid-template-columns:1fr}.hero{text-align:left}.hero-actions,.hero-proof{justify-content:flex-start}}`,
         },
@@ -263,8 +263,8 @@ export async function buildSaasLandingArtifacts(run, outDir) {
                 projectId: run.projectId,
                 runtimeId: run.runtimeId,
                 mode: "saas",
-                product: "NexusFlow",
-                title: "NexusFlow SaaS Landing Page",
+                product: "Generated System",
+                title: "Generated Business System Package",
                 generatedAt: now,
                 engine: "sovereign-runtime",
             }, null, 2),
@@ -301,7 +301,7 @@ export async function buildSaasLandingArtifacts(run, outDir) {
         },
         {
             file: "app/page.tsx",
-            title: "NexusFlow App Page",
+            title: "Generated System App Page",
             content: `import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
 import { ProductivityFeatures } from "../components/ProductivityFeatures";
@@ -335,7 +335,7 @@ export default function Page() {
             content: `import "./globals.css";
 
 export const metadata = {
-  title: "NexusFlow | AI Productivity Automation",
+  title: "Generated Business System | Customer-Ready Platform",
   description: "High-converting SaaS landing page for AI workflow automation, collaboration, insights, and integrations.",
 };
 
@@ -367,14 +367,14 @@ body {
             content: `export function Navbar() {
   return (
     <nav className="mx-auto flex w-[min(1120px,92vw)] items-center justify-between rounded-3xl border border-blue-100 bg-white/90 p-4 text-slate-950 shadow-sm backdrop-blur">
-      <strong className="text-xl">NexusFlow</strong>
+      <strong className="text-xl">Generated System</strong>
       <div className="hidden gap-5 text-sm font-bold text-slate-600 md:flex">
         <a href="#features">Features</a>
         <a href="#how">How it Works</a>
         <a href="#pricing">Pricing</a>
         <a href="#faq">FAQ</a>
       </div>
-      <a href="#pricing" className="rounded-full bg-blue-600 px-5 py-3 text-sm font-black text-white">Start Free</a>
+      <a href="#pricing" className="rounded-full bg-blue-600 px-5 py-3 text-sm font-black text-white">Start Project</a>
     </nav>
   );
 }
@@ -391,10 +391,10 @@ body {
         Automate repetitive work and keep every team in flow.
       </h1>
       <p className="mx-auto max-w-3xl text-lg leading-8 text-slate-600">
-        NexusFlow combines real-time collaboration, smart workflow automation, AI insights, reporting, and integrations in one clean workspace.
+        This generated system combines customer intake, workflow automation, reporting sections, admin tools, and launch-ready delivery files in one clean workspace.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
-        <a className="rounded-full bg-blue-600 px-6 py-4 font-black text-white" href="#pricing">Start Free</a>
+        <a className="rounded-full bg-blue-600 px-6 py-4 font-black text-white" href="#pricing">Start Project</a>
         <a className="rounded-full border border-blue-200 px-6 py-4 font-black text-blue-700" href="#how">See How It Works</a>
       </div>
     </section>
@@ -469,7 +469,7 @@ export function Pricing() {
             <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-600">{name}</p>
             <h3 className="mt-3 text-4xl font-black text-slate-950">{price}</h3>
             <p className="mt-3 text-slate-600">{copy}</p>
-            <a href="#pricing" className="mt-6 inline-block rounded-full bg-blue-600 px-5 py-3 font-black text-white">Start Free</a>
+            <a href="#pricing" className="mt-6 inline-block rounded-full bg-blue-600 px-5 py-3 font-black text-white">Start Project</a>
           </article>
         ))}
       </div>
@@ -485,7 +485,7 @@ export function Pricing() {
   return (
     <section className="mx-auto grid w-[min(1120px,92vw)] gap-4 py-20 md:grid-cols-3">
       {[
-        "NexusFlow gave our team a cleaner way to automate work and report progress.",
+        "This generated system gave the business a cleaner way to capture requests, explain services, and review operations.",
         "We replaced repetitive handoffs with workflows everyone understands.",
         "The AI insights helped us find bottlenecks we had ignored for months."
       ].map((quote) => (
@@ -506,7 +506,7 @@ export function Pricing() {
     <section id="faq" className="mx-auto grid w-[min(1120px,92vw)] gap-4 py-20">
       <h2 className="text-5xl font-black tracking-[-0.05em] text-slate-950">Frequently asked questions</h2>
       {[
-        ["Can NexusFlow connect our current tools?", "Yes. The product is designed around integrations with common team tools."],
+        ["Can this system connect our current tools?", "Yes. The product is designed around integrations with common team tools."],
         ["Can non-technical teams build workflows?", "Yes. Teams can start with templates and customize workflows over time."],
         ["Does it include reporting?", "Yes. AI insights and reporting help teams understand progress and bottlenecks."]
       ].map(([question, answer]) => (
@@ -526,8 +526,8 @@ export function Pricing() {
             content: `export function Footer() {
   return (
     <footer className="mx-auto flex w-[min(1120px,92vw)] justify-between border-t border-blue-100 py-10 text-slate-600">
-      <strong className="text-slate-950">NexusFlow</strong>
-      <span>AI workflow automation for teams that want clarity, speed, and focus.</span>
+      <strong className="text-slate-950">Generated System</strong>
+      <span>Customer-ready workflow, booking, and admin system generated from your prompt.</span>
     </footer>
   );
 }
@@ -554,7 +554,7 @@ export function Pricing() {
   return (
     <main className="min-h-screen bg-white p-8 text-slate-950">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">Workspace</p>
-      <h1 className="mt-4 text-5xl font-black">My NexusFlow Workspace</h1>
+      <h1 className="mt-4 text-5xl font-black">My Generated Business Workspace</h1>
       <p className="mt-4 text-slate-600">Track automation templates, team workflows, reports, and integration readiness.</p>
     </main>
   );
@@ -568,7 +568,7 @@ export function Pricing() {
   return (
     <main className="min-h-screen bg-white p-8 text-slate-950">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-blue-600">Admin</p>
-      <h1 className="mt-4 text-5xl font-black">NexusFlow SaaS Admin</h1>
+      <h1 className="mt-4 text-5xl font-black">Generated Business System Admin</h1>
       <p className="mt-4 text-slate-600">Manage signup leads, pricing experiments, integrations, and onboarding readiness.</p>
     </main>
   );
@@ -653,7 +653,7 @@ SIGNUP_NOTIFICATION_EMAIL="team@example.com"
             file: "README.md",
             title: "Delivery README",
             type: "markdown",
-            content: `# NexusFlow SaaS Landing Page
+            content: `# Generated Business System Package
 
 A prompt-led single-page SaaS landing site for an AI-powered productivity tool.
 
@@ -677,7 +677,7 @@ npm run dev
         {
             file: "scripts/smoke-test.ts",
             title: "Smoke Test Script",
-            content: `console.log("NexusFlow SaaS landing smoke test ready.");
+            content: `console.log("Generated business system smoke test ready.");
 `,
         },
         {
@@ -808,7 +808,7 @@ export async function saveFeatureRequest(input: { request: string; status: strin
         content: JSON.stringify({
             generatedAt: new Date().toISOString(),
             domain: "saas",
-            imagePrompt: "Create polished, production-ready SaaS Product Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
+            imagePrompt: "Create polished, production-ready Generated Business System Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
             assets: [
                 "public/images/hero.svg",
                 "public/images/feature-1.svg",
@@ -834,7 +834,7 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   <g filter="url(#shadow)">
     <rect x="110" y="110" width="980" height="580" rx="48" fill="rgba(255,255,255,.9)"/>
     <text x="160" y="270" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#111827">🚀</text>
-    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">SaaS Product Experience</text>
+    <text x="160" y="390" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="#111827">Generated Business System Experience</text>
     <text x="160" y="470" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#4b5563">Generated production visual</text>
     <rect x="160" y="530" width="390" height="68" rx="34" fill="#111827"/>
     <text x="205" y="574" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="white">Preview-ready asset</text>
@@ -918,11 +918,11 @@ export async function saveFeatureRequest(input: { request: string; status: strin
         title: "Editable Site Content",
         type: "json",
         content: JSON.stringify({
-            brand: "NexusFlow",
+            brand: "Generated System",
             type: "saas",
             hero: {
                 eyebrow: "Full-function generated application",
-                headline: "NexusFlow is a full-function SaaS platform with landing pages, bookings, product workflows, lead capture, and admin operations.",
+                headline: "This is a full-function generated business platform with landing pages, bookings, workflow sections, lead capture, and admin operations.",
                 subheadline: "Users can review features, book demos, explore product flows, access admin tools, and ask AI for more SaaS features."
             },
             pages: [
@@ -1072,7 +1072,7 @@ export default function EditorPage() {
   return (
     <main className="min-h-screen bg-black p-8 text-white">
       <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">Generated App Editor</p>
-      <h1 className="mt-4 text-5xl font-black">Edit NexusFlow content and request new AI features</h1>
+      <h1 className="mt-4 text-5xl font-black">Edit generated business content and request new AI features</h1>
       <p className="mt-4 max-w-3xl text-zinc-400">Update customer-facing copy, then ask AI to add deeper workflows, dashboards, automations, integrations, and role-based controls.</p>
       <section className="mt-8 rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
         <EditableContentPanel />
