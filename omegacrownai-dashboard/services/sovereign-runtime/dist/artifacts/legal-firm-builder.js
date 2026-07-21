@@ -147,10 +147,10 @@ export async function buildLegalFirmArtifacts(run, outDir) {
       <h2>Legal Client Experience</h2>
       <p>This generated package includes SVG hero/card visuals, an asset manifest, and an AI feature-request workflow.</p>
       <div class="visual-grid">
-        <img src="./public/images/hero.svg" alt="Legal Client Experience hero visual" />
-        <img src="./public/images/feature-1.svg" alt="Consultation Intake visual" />
-        <img src="./public/images/feature-2.svg" alt="Case Review visual" />
-        <img src="./public/images/admin.svg" alt="Legal Admin Dashboard visual" />
+        <img src="./public/images/legal-hero.svg" alt="Legal Client Experience hero visual" />
+        <img src="./public/images/legal-consultation.svg" alt="Consultation Intake visual" />
+        <img src="./public/images/legal-practice.svg" alt="Case Review visual" />
+        <img src="./public/images/legal-admin.svg" alt="Legal Admin Dashboard visual" />
       </div>
     </section>
 
@@ -942,15 +942,15 @@ export async function saveFeatureRequest(input: { request: string; status: strin
             domain: "legal",
             imagePrompt: "Create polished, production-ready Legal Client Experience visuals with branded hero imagery, feature cards, admin dashboard graphics, and responsive web composition.",
             assets: [
-                "public/images/hero.svg",
-                "public/images/feature-1.svg",
-                "public/images/feature-2.svg",
-                "public/images/admin.svg"
+                "public/images/legal-hero.svg",
+                "public/images/legal-consultation.svg",
+                "public/images/legal-practice.svg",
+                "public/images/legal-admin.svg"
             ]
         }, null, 2)
     }, {
-        file: "public/images/hero.svg",
-        title: "Generated Hero Visual",
+        file: "public/images/legal-hero.svg",
+        title: "Legal Hero Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -973,8 +973,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/feature-1.svg",
-        title: "Generated Feature Visual One",
+        file: "public/images/legal-consultation.svg",
+        title: "Legal Consultation Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -997,8 +997,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/feature-2.svg",
-        title: "Generated Feature Visual Two",
+        file: "public/images/legal-practice.svg",
+        title: "Legal Practice Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
@@ -1021,8 +1021,8 @@ export async function saveFeatureRequest(input: { request: string; status: strin
   </g>
 </svg>`
     }, {
-        file: "public/images/admin.svg",
-        title: "Generated Admin Visual",
+        file: "public/images/legal-admin.svg",
+        title: "Legal Admin Visual",
         type: "image",
         content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
   <defs>
