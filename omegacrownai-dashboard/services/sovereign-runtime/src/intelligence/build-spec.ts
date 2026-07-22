@@ -230,11 +230,34 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
 
   const isIncomplete = missingFields.length >= 3 || originalPrompt.split(/\s+/).length < 18;
 
-  const designPreset = selectDesignPreset({
+  let designPreset = selectDesignPreset({
     prompt: originalPrompt,
     industry,
     visualDirection
   });
+
+  if (industry === "general business") {
+    designPreset = {
+      id: "professional_business",
+      name: "Professional Business Website",
+      mood: "clear, trustworthy, service-focused, polished",
+      palette: {
+        background: "#f8fafc",
+        surface: "#ffffff",
+        primary: "#0f172a",
+        secondary: "#2563eb",
+        accent: "#22c55e",
+        text: "#0f172a",
+        muted: "#475569"
+      },
+      typography: "strong business headings, readable service copy, clear CTA labels",
+      layout: "business hero, services grid, about and trust proof, request form, admin workflow preview",
+      heroStyle: "customer-ready business website hero with service promise and request call-to-action",
+      sectionStyle: "clean service cards, trust sections, customer request panel, launch package proof",
+      imageDirection: "business services, customer request workflow, admin review, launch package, team trust",
+      motionDirection: "clean hover states, professional transitions, confident CTA movement"
+    };
+  }
 
   visualDirection = [
     visualDirection,
