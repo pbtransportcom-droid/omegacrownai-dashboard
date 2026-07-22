@@ -1691,51 +1691,39 @@ export async function saveFeatureRequest(input: { request: string; status: strin
             brand,
             domain: domain.key,
             assets: [
-                "public/images/commerce-hero.svg",
-                "public/images/product-oranges.svg",
-                "public/images/product-juice.svg",
-                "public/images/product-gift.svg",
-                "public/images/fitness-hero.svg",
-                "public/images/fitness-class.svg",
-                "public/images/fitness-trainer.svg"
+                "public/images/business-hero.svg",
+                "public/images/business-services.svg",
+                "public/images/business-intake.svg",
+                "public/images/business-admin.svg",
+                "public/images/business-launch.svg"
             ],
-            imagePrompt: `Create polished, production-ready visuals for ${brand}: modern, high-quality, brand-aligned, web hero and card imagery.`
+            imagePrompt: `Create polished, production-ready business website visuals for ${brand}: premium homepage, service cards, customer intake workflow, admin dashboard, launch package, and trust-focused web composition.`
         }, null, 2)
     }, {
-        file: "public/images/commerce-hero.svg",
-        title: "Commerce Hero SVG",
+        file: "public/images/business-hero.svg",
+        title: "Business Hero SVG",
         type: "image",
-        content: svgAsset("Fresh Citrus Storefront", "🍊", "#fb923c", "#facc15")
+        content: svgAsset("Business Website", "Premium homepage, services, trust proof, and customer call-to-action", "#0f172a", "#22d3ee")
     }, {
-        file: "public/images/product-oranges.svg",
-        title: "Fresh Oranges SVG",
+        file: "public/images/business-services.svg",
+        title: "Business Services SVG",
         type: "image",
-        content: svgAsset("Premium Oranges", "🍊", "#f97316", "#fde68a")
+        content: svgAsset("Services", "Service sections, offer cards, customer value, and conversion flow", "#111827", "#60a5fa")
     }, {
-        file: "public/images/product-juice.svg",
-        title: "Fresh Juice SVG",
+        file: "public/images/business-intake.svg",
+        title: "Customer Intake SVG",
         type: "image",
-        content: svgAsset("Cold-Pressed Juice", "🥤", "#f59e0b", "#fed7aa")
+        content: svgAsset("Customer Intake", "Request form, lead capture, customer details, and follow-up workflow", "#172554", "#38bdf8")
     }, {
-        file: "public/images/product-gift.svg",
-        title: "Gift Basket SVG",
+        file: "public/images/business-admin.svg",
+        title: "Business Admin SVG",
         type: "image",
-        content: svgAsset("Citrus Gift Basket", "🎁", "#fb7185", "#fdba74")
+        content: svgAsset("Admin Dashboard", "Admin review area, customer requests, status tracking, and operations", "#312e81", "#a78bfa")
     }, {
-        file: "public/images/fitness-hero.svg",
-        title: "Fitness Hero SVG",
+        file: "public/images/business-launch.svg",
+        title: "Launch Package SVG",
         type: "image",
-        content: svgAsset("Neighborhood Fitness Studio", "🏋️", "#22d3ee", "#8b5cf6")
-    }, {
-        file: "public/images/fitness-class.svg",
-        title: "Fitness Class SVG",
-        type: "image",
-        content: svgAsset("Class Schedule", "💪", "#06b6d4", "#a78bfa")
-    }, {
-        file: "public/images/fitness-trainer.svg",
-        title: "Trainer Profile SVG",
-        type: "image",
-        content: svgAsset("Trainer Profiles", "🏃", "#14b8a6", "#60a5fa")
+        content: svgAsset("Launch Package", "Source files, preview, README, delivery guide, checklist, and ZIP download", "#052e16", "#4ade80")
     });
     if (domain.key === "ecommerce" || domain.key === "shop") {
         const commerceProducts = [
