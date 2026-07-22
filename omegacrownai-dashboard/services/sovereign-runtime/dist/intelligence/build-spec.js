@@ -115,7 +115,8 @@ export function createBuildSpec(input) {
         adminWorkflow = ["Review appointment requests", "Review patient intake", "Assign provider follow-up", "Update content"];
         customerWorkflow = ["Review services", "Choose provider", "Request appointment", "Submit intake"];
     }
-    else if (includesAny(source, ["store", "ecommerce", "shop", "product", "checkout", "cart"])) {
+    else if (/(ecommerce|e-commerce|online store|storefront|shop|shopping cart|product catalog|cart|checkout|inventory|fulfillment|sell products|buy products|order products)/i.test(originalPrompt) &&
+        !/(business website|customer-ready business website|service business|services website|company website|customer request form|about\/trust|lead capture|consultation request)/i.test(originalPrompt)) {
         industry = "commerce";
         productType = "commerce storefront platform";
         brandFallback = "Commerce Store Website";
