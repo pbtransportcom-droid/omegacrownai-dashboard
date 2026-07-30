@@ -64,7 +64,10 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   const mode = clean(input.mode || "website").toLowerCase();
 
   let industry = "general business";
-  let productType = mode.includes("app") ? "business web app" : "customer-ready website";
+  let productType =
+    mode.includes("automation") ? "workflow automation system" :
+    mode.includes("app") ? "business web app" :
+    "customer-ready website";
   let brandFallback = "Custom Business Website";
   let targetCustomer = "new and returning customers";
   let location = "service area";
@@ -219,6 +222,17 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   }
 
   const brandName = detectBrand(originalPrompt, brandFallback);
+
+  if (mode.includes("automation")) {
+    industry = "workflow automation";
+    productType = "workflow automation system";
+    targetCustomer = "operations teams and business owners";
+    services = ["Workflow dashboard", "Trigger and action map", "Automation request intake", "Run history"];
+    pages = ["Home", "Workflow Dashboard", "Trigger Map", "Automation Requests", "Admin Dashboard", "Run History"];
+    features = ["Trigger mapping", "Action steps", "Automation request form", "Admin review", "Status tracking", "Run history"];
+    adminWorkflow = ["Review automation requests", "Assign owner", "Update status", "Track run history", "Prepare follow-up"];
+    customerWorkflow = ["Submit automation request", "Define trigger", "Review action steps", "Receive follow-up"];
+  }
 
   const missingFields: string[] = [];
   if (!/(called|named|brand|business name|company name)/i.test(originalPrompt)) missingFields.push("brandName");
