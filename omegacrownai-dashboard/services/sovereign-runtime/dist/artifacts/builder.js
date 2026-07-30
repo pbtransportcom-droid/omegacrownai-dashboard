@@ -512,7 +512,7 @@ export async function buildArtifacts(run) {
     const tradingFromSpec = specIndustry === "trading" ||
         specProductType.includes("trading") ||
         isTradingPlatformPrompt(routingPrompt);
-    if (saasFromSpec) {
+    if (!automationFromSpec && saasFromSpec) {
         return buildSaasLandingArtifacts(run, outDir);
     }
     if (legalFromSpec) {

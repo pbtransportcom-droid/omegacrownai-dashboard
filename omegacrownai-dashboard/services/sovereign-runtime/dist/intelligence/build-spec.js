@@ -203,6 +203,27 @@ export function createBuildSpec(input) {
         features = ["Trigger mapping", "Action steps", "Automation request form", "Admin review", "Status tracking", "Run history"];
         adminWorkflow = ["Review automation requests", "Assign owner", "Update status", "Track run history", "Prepare follow-up"];
         customerWorkflow = ["Submit automation request", "Define trigger", "Review action steps", "Receive follow-up"];
+        designPreset = {
+            id: "professional_business",
+            name: "Professional Business Website",
+            mood: "clear, trustworthy, service-focused, polished",
+            palette: {
+                background: "#f8fafc",
+                surface: "#ffffff",
+                primary: "#0f172a",
+                secondary: "#2563eb",
+                accent: "#22c55e",
+                text: "#0f172a",
+                muted: "#475569",
+            },
+            typography: "strong business headings, readable workflow copy, clear CTA labels",
+            layout: "workflow dashboard, trigger map, automation request panel, admin review, run history",
+            heroStyle: "workflow automation hero with trigger/action promise and automation request call-to-action",
+            sectionStyle: "clean workflow cards, status sections, automation request panel, launch package proof",
+            imageDirection: "workflow dashboard, trigger and action map, automation request, admin review, run history",
+            motionDirection: "clean hover states, professional transitions, confident CTA movement",
+        };
+        visualDirection = "workflow automation system with workflow dashboard, trigger/action map, automation request form, admin review, status tracking, run history, API route, data store, and launch package. Design preset: Professional Business Website.";
     }
     const missingFields = [];
     if (!/(called|named|brand|business name|company name)/i.test(originalPrompt))
