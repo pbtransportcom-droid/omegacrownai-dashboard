@@ -501,6 +501,10 @@ export async function buildArtifacts(run) {
         specProductType.includes("legal") ||
         specProductType.includes("law firm") ||
         isLegalFirmPrompt(routingPrompt);
+    const automationFromSpec = run.mode === "automation" ||
+        specIndustry.includes("automation") ||
+        specProductType.includes("automation") ||
+        specProductType.includes("workflow");
     const saasFromSpec = specIndustry === "saas" ||
         specProductType.includes("saas") ||
         specProductType.includes("software") ||
