@@ -204,6 +204,17 @@ export function createBuildSpec(input) {
         adminWorkflow = ["Review automation requests", "Assign owner", "Update status", "Track run history", "Prepare follow-up"];
         customerWorkflow = ["Submit automation request", "Define trigger", "Review action steps", "Receive follow-up"];
     }
+    // FORCE_MARKETING_CAMPAIGN_SYSTEM
+    if (mode.includes("marketing")) {
+        industry = "marketing campaign";
+        productType = "marketing campaign system";
+        targetCustomer = "campaign managers, business owners, and growth teams";
+        services = ["Campaign landing page", "Offer sections", "Lead capture", "Email sequence plan", "Ad copy", "Social media captions", "Campaign calendar"];
+        pages = ["Campaign Landing Page", "Offers", "Lead Capture", "Email Sequence", "Ad Copy", "Social Captions", "Campaign Calendar", "Admin Review"];
+        features = ["Campaign landing page", "Offer sections", "Lead capture form", "Email sequence plan", "Ad copy", "Social media captions", "Campaign calendar", "Admin review", "Status tracking"];
+        adminWorkflow = ["Review campaign leads", "Update lead status", "Approve campaign assets", "Schedule campaign steps", "Prepare follow-up"];
+        customerWorkflow = ["Visit campaign landing page", "Review offer", "Submit lead form", "Receive follow-up sequence"];
+    }
     const missingFields = [];
     if (!/(called|named|brand|business name|company name)/i.test(originalPrompt))
         missingFields.push("brandName");
