@@ -231,6 +231,78 @@ export function selectDesignPreset(input: {
   industry?: string;
   visualDirection?: string;
 }): DesignPreset {
+  const prompt = (input.prompt || "").toLowerCase();
+  const industry = (input.industry || "").toLowerCase();
+  const visualDirection = (input.visualDirection || "").toLowerCase();
+  const source = `${prompt} ${industry} ${visualDirection}`;
+
+  if (
+    industry.includes("workflow automation") ||
+    industry.includes("automation") ||
+    source.includes("workflow automation system") ||
+    source.includes("trigger and action map") ||
+    source.includes("automation request") ||
+    source.includes("run history")
+  ) {
+    return byId("professional_business");
+  }
+
+  if (
+    industry === "general business" ||
+    industry === "business" ||
+    industry.includes("services")
+  ) {
+    return byId("professional_business");
+  }
+
+  if (
+    source.includes("online store") ||
+    source.includes("storefront") ||
+    source.includes("ecommerce") ||
+    source.includes("e-commerce") ||
+    source.includes("shopping cart") ||
+    source.includes("product catalog") ||
+    source.includes("checkout") ||
+    source.includes("bookstore")
+  ) {
+    return byId("commerce_editorial");
+  }
+
+  if (
+    source.includes("saas") ||
+    source.includes("software dashboard") ||
+    source.includes("crm") ||
+    source.includes("subscription")
+  ) {
+    return byId("modern_saas");
+  }
+
+  if (
+    source.includes("restaurant") ||
+    source.includes("menu") ||
+    source.includes("food")
+  ) {
+    return byId("warm_restaurant");
+  }
+
+  if (
+    source.includes("clinic") ||
+    source.includes("medical") ||
+    source.includes("health")
+  ) {
+    return byId("clinical_trust");
+  }
+
+  if (
+    source.includes("transport") ||
+    source.includes("limo") ||
+    source.includes("chauffeur")
+  ) {
+    return byId("luxury_transport");
+  }
+
+  return byId("professional_business");
+}): DesignPreset {
   const source = `${input.prompt || ""} ${input.industry || ""} ${input.visualDirection || ""}`.toLowerCase();
   const byId = (id: DesignPreset["id"]) => DESIGN_INVENTORY.find((preset) => preset.id === id)!;
 
