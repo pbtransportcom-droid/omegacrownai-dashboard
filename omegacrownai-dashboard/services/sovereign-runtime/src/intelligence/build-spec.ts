@@ -250,6 +250,32 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     visualDirection
   });
 
+  // FORCE_AUTOMATION_PROFESSIONAL_DESIGN
+  if (mode.includes("automation")) {
+    visualDirection = "workflow automation system with workflow dashboard, trigger and action map, automation request form, admin review, status tracking, run history, API route, data storage, source package, delivery guide, and launch checklist. Professional business design with clear workflow cards, status sections, admin review panels, and operations-focused copy.";
+
+    designPreset = {
+      id: "professional_business",
+      name: "Professional Business Website",
+      mood: "clear, trustworthy, workflow-focused, polished",
+      palette: {
+        background: "#f8fafc",
+        surface: "#ffffff",
+        primary: "#0f172a",
+        secondary: "#2563eb",
+        accent: "#22c55e",
+        text: "#0f172a",
+        muted: "#475569",
+      },
+      typography: "strong workflow headings, readable automation copy, clear CTA labels",
+      layout: "workflow dashboard, trigger map, automation request panel, admin review, run history",
+      heroStyle: "workflow automation hero with trigger and action promise and automation request call-to-action",
+      sectionStyle: "clean workflow cards, status sections, automation request panel, launch package proof",
+      imageDirection: "workflow dashboard, trigger and action map, automation request, admin review, run history",
+      motionDirection: "clean hover states, professional transitions, confident CTA movement",
+    };
+  }
+
   if (industry === "general business") {
     designPreset = {
       id: "professional_business",
