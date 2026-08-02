@@ -289,6 +289,32 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     };
   }
 
+  // FORCE_MARKETING_PROFESSIONAL_DESIGN
+  if (mode.includes("marketing")) {
+    visualDirection = "marketing campaign system with campaign landing page, offer sections, lead capture form, email sequence plan, ad copy, social media captions, campaign calendar, admin review, API route, data storage, source package, delivery guide, and launch checklist. Professional business design with persuasive campaign sections, clear conversion paths, review panels, and campaign-focused copy.";
+
+    designPreset = {
+      id: "professional_business",
+      name: "Professional Business Website",
+      mood: "clear, persuasive, campaign-focused, polished",
+      palette: {
+        background: "#f8fafc",
+        surface: "#ffffff",
+        primary: "#0f172a",
+        secondary: "#2563eb",
+        accent: "#22c55e",
+        text: "#0f172a",
+        muted: "#475569",
+      },
+      typography: "strong campaign headings, persuasive marketing copy, clear CTA labels",
+      layout: "campaign landing page, offer sections, lead capture, campaign assets, calendar, admin review",
+      heroStyle: "marketing campaign hero with a clear offer, conversion promise, and lead capture call-to-action",
+      sectionStyle: "clean campaign cards, offer sections, lead capture panel, asset review, campaign calendar",
+      imageDirection: "marketing campaign, offers, lead generation, campaign assets, calendar, admin review",
+      motionDirection: "clean hover states, professional transitions, confident campaign CTA movement",
+    };
+  }
+
   if (industry === "general business") {
     designPreset = {
       id: "professional_business",
