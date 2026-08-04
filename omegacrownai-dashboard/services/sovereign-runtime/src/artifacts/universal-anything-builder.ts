@@ -1219,22 +1219,306 @@ export function IntakeForm() {
       file: "app/admin/page.tsx",
       title: "Universal Admin Dashboard",
       content: `import { listIntakeLeads } from "../../lib/intake-store";
+import { AdminDashboard } from "../../components/AdminDashboard";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const leads = await listIntakeLeads();
 
   return (
-    <main className="min-h-screen bg-black p-8 text-white">
-      <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">${domain.product}</p>
-      <h1 className="mt-4 text-5xl font-black">${brand} Admin Dashboard</h1>
-      <section className="mt-8 grid gap-4">
-        {leads.map((lead) => (
-          <article key={lead.id} className="card">
-            <h2 className="text-2xl font-black">{lead.name || "New lead"}</h2>
-            <p className="text-zinc-400">{lead.email}</p>
-            <p className="mt-3">{lead.request}</p>
+    <AdminDashboard
+      initialLeads={leads}
+      brand="${brand}"
+      product="${domain.product}"
+    />
+  );
+}
+`
+    },
+    {
+      file: "components/AdminDashboard.tsx",
+      title: "Universal Admin Framework",
+      content: `"use client";
+
+// UNIVERSAL_ADMIN_FRAMEWORK
+import { useMemo, useState } from "react";
+import type {
+  IntakeLead,
+  IntakeLeadStatus,
+} from "../lib/intake-store";
+
+type Props = {
+  initialLeads: IntakeLead[];
+  brand: string;
+  product: string;
+};
+
+const statuses: IntakeLeadStatus[] = [
+  "new",
+  "contacted",
+  "qualified",
+  "scheduled",
+  "completed",
+  "closed",
+];
+
+function formatDate(value?: string) {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleString();
+}
+
+export function AdminDashboard({
+  initialLeads,
+  brand,
+  product,
+}: Props) {
+  const [leads, setLeads] = useState(initialLeads);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] =
+    useState<IntakeLeadStatus | "all">("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const filteredLeads = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return leads.filter((lead) => {
+      const matchesStatus =
+        statusFilter === "all" || lead.status === statusFilter;
+
+      const searchable = [
+        lead.name,
+        lead.email,
+        lead.phone,
+        lead.request,
+        lead.source,
+        lead.status,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesQuery =
+        !normalizedQuery || searchable.includes(normalizedQuery);
+
+      return matchesStatus && matchesQuery;
+    });
+  }, [leads, query, statusFilter]);
+
+  const totals = useMemo(() => {
+    return {
+      all: leads.length,
+      new: leads.filter((lead) => lead.status === "new").length,
+      active: leads.filter((lead) =>
+        ["contacted", "qualified", "scheduled"].includes(lead.status)
+      ).length,
+      completed: leads.filter((lead) =>
+        ["completed", "closed"].includes(lead.status)
+      ).length,
+    };
+  }, [leads]);
+
+  async function updateStatus(
+    id: string,
+    status: IntakeLeadStatus
+  ) {
+    setUpdatingId(id);
+    setError("");
+
+    try {
+      const response = await fetch("/api/intake", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, status }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error || "Unable to update lead status."
+        );
+      }
+
+      setLeads((current) =>
+        current.map((lead) =>
+          lead.id === id ? result.lead : lead
+        )
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to update lead status."
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-black p-6 text-white md:p-10">
+      <header className="mx-auto max-w-7xl">
+        <p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">
+          {product}
+        </p>
+        <h1 className="mt-4 text-4xl font-black md:text-6xl">
+          {brand} Admin Dashboard
+        </h1>
+        <p className="mt-4 max-w-3xl text-zinc-400">
+          Review customer requests, update workflow status, search
+          submissions, and prepare follow-up.
+        </p>
+      </header>
+
+      <section className="mx-auto mt-8 grid max-w-7xl gap-4 md:grid-cols-4">
+        {[
+          ["Total requests", totals.all],
+          ["New", totals.new],
+          ["Active", totals.active],
+          ["Completed", totals.completed],
+        ].map(([label, value]) => (
+          <article className="card" key={String(label)}>
+            <p className="text-sm uppercase tracking-wider text-zinc-400">
+              {label}
+            </p>
+            <p className="mt-3 text-4xl font-black">{value}</p>
           </article>
         ))}
+      </section>
+
+      <section className="mx-auto mt-8 max-w-7xl">
+        <div className="card grid gap-4 md:grid-cols-[1fr_240px]">
+          <label>
+            <span className="mb-2 block text-sm font-bold text-zinc-300">
+              Search requests
+            </span>
+            <input
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search name, email, phone, request..."
+              value={query}
+            />
+          </label>
+
+          <label>
+            <span className="mb-2 block text-sm font-bold text-zinc-300">
+              Filter status
+            </span>
+            <select
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white"
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value as IntakeLeadStatus | "all"
+                )
+              }
+              value={statusFilter}
+            >
+              <option value="all">All statuses</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {error ? (
+          <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-200">
+            {error}
+          </p>
+        ) : null}
+
+        {filteredLeads.length === 0 ? (
+          <div className="card mt-6 text-center">
+            <h2 className="text-2xl font-black">
+              No matching requests
+            </h2>
+            <p className="mt-2 text-zinc-400">
+              New customer submissions will appear here automatically.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 overflow-x-auto rounded-2xl border border-zinc-800">
+            <table className="min-w-full divide-y divide-zinc-800">
+              <thead className="bg-zinc-950">
+                <tr>
+                  {[
+                    "Customer",
+                    "Contact",
+                    "Request",
+                    "Received",
+                    "Status",
+                  ].map((heading) => (
+                    <th
+                      className="px-5 py-4 text-left text-xs font-black uppercase tracking-wider text-zinc-400"
+                      key={heading}
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-zinc-800 bg-zinc-950/40">
+                {filteredLeads.map((lead) => (
+                  <tr key={lead.id}>
+                    <td className="px-5 py-5 align-top">
+                      <p className="font-black">
+                        {lead.name || "New customer"}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {lead.source || "website"}
+                      </p>
+                    </td>
+
+                    <td className="px-5 py-5 align-top text-sm">
+                      <p>{lead.email || "No email"}</p>
+                      <p className="mt-1 text-zinc-400">
+                        {lead.phone || "No phone"}
+                      </p>
+                    </td>
+
+                    <td className="max-w-md px-5 py-5 align-top text-sm text-zinc-300">
+                      {lead.request || "No request details supplied."}
+                    </td>
+
+                    <td className="px-5 py-5 align-top text-sm text-zinc-400">
+                      {formatDate(lead.createdAt)}
+                    </td>
+
+                    <td className="px-5 py-5 align-top">
+                      <select
+                        className="rounded-lg border border-zinc-700 bg-black px-3 py-2 text-sm"
+                        disabled={updatingId === lead.id}
+                        onChange={(event) =>
+                          updateStatus(
+                            lead.id,
+                            event.target.value as IntakeLeadStatus
+                          )
+                        }
+                        value={lead.status}
+                      >
+                        {statuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   );
@@ -1245,20 +1529,68 @@ export default async function AdminPage() {
       file: "app/api/intake/route.ts",
       title: "Intake API Route",
       content: `import { NextResponse } from "next/server";
-import { saveIntakeLead, listIntakeLeads } from "../../../lib/intake-store";
+import {
+  saveIntakeLead,
+  listIntakeLeads,
+  updateIntakeLeadStatus,
+  isIntakeLeadStatus,
+} from "../../../lib/intake-store";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json({ ok: true, leads: await listIntakeLeads() });
+  return NextResponse.json({
+    ok: true,
+    leads: await listIntakeLeads(),
+  });
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
+
   const lead = await saveIntakeLead({
     name: String(body.name || ""),
     email: String(body.email || ""),
-    request: String(body.request || ""),
-    source: "universal-intake"
+    phone: String(body.phone || ""),
+    request: String(body.request || body.message || ""),
+    source: String(body.source || "universal-intake"),
+    status: "new",
   });
+
+  return NextResponse.json(
+    { ok: true, lead },
+    { status: 201 }
+  );
+}
+
+export async function PATCH(request: Request) {
+  const body = await request.json();
+  const id = String(body.id || "");
+  const status = String(body.status || "");
+
+  if (!id) {
+    return NextResponse.json(
+      { ok: false, error: "Lead ID is required." },
+      { status: 400 }
+    );
+  }
+
+  if (!isIntakeLeadStatus(status)) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid lead status." },
+      { status: 400 }
+    );
+  }
+
+  const lead = await updateIntakeLeadStatus(id, status);
+
+  if (!lead) {
+    return NextResponse.json(
+      { ok: false, error: "Lead not found." },
+      { status: 404 }
+    );
+  }
+
   return NextResponse.json({ ok: true, lead });
 }
 `
@@ -1269,21 +1601,77 @@ export async function POST(request: Request) {
       content: `import fs from "fs/promises";
 import path from "path";
 
+export type IntakeLeadStatus =
+  | "new"
+  | "contacted"
+  | "qualified"
+  | "scheduled"
+  | "completed"
+  | "closed";
+
 export type IntakeLead = {
-  id?: string;
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  request: string;
+  source: string;
+  status: IntakeLeadStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type NewIntakeLead = Partial<IntakeLead> & {
   name: string;
   email: string;
   request: string;
   source: string;
-  createdAt?: string;
 };
+
+const statuses: IntakeLeadStatus[] = [
+  "new",
+  "contacted",
+  "qualified",
+  "scheduled",
+  "completed",
+  "closed",
+];
 
 const dataDir = path.join(process.cwd(), "data");
 const leadFile = path.join(dataDir, "intake-leads.json");
 
+export function isIntakeLeadStatus(
+  value: string
+): value is IntakeLeadStatus {
+  return statuses.includes(value as IntakeLeadStatus);
+}
+
 async function readLeads(): Promise<IntakeLead[]> {
   try {
-    return JSON.parse(await fs.readFile(leadFile, "utf8"));
+    const parsed = JSON.parse(
+      await fs.readFile(leadFile, "utf8")
+    );
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.map((lead) => {
+      const createdAt =
+        String(lead.createdAt || new Date().toISOString());
+
+      return {
+        id: String(lead.id || "lead-" + Date.now()),
+        name: String(lead.name || ""),
+        email: String(lead.email || ""),
+        phone: String(lead.phone || ""),
+        request: String(lead.request || lead.message || ""),
+        source: String(lead.source || "universal-intake"),
+        status: isIntakeLeadStatus(String(lead.status || ""))
+          ? lead.status
+          : "new",
+        createdAt,
+        updatedAt: String(lead.updatedAt || createdAt),
+      };
+    });
   } catch {
     return [];
   }
@@ -1291,23 +1679,57 @@ async function readLeads(): Promise<IntakeLead[]> {
 
 async function writeLeads(leads: IntakeLead[]) {
   await fs.mkdir(dataDir, { recursive: true });
-  await fs.writeFile(leadFile, JSON.stringify(leads, null, 2));
+  await fs.writeFile(
+    leadFile,
+    JSON.stringify(leads, null, 2)
+  );
 }
 
-export async function saveIntakeLead(input: IntakeLead) {
+export async function saveIntakeLead(
+  input: NewIntakeLead
+): Promise<IntakeLead> {
   const leads = await readLeads();
-  const lead = {
-    ...input,
+  const now = new Date().toISOString();
+
+  const lead: IntakeLead = {
     id: input.id || "lead-" + Date.now(),
-    createdAt: input.createdAt || new Date().toISOString()
+    name: input.name,
+    email: input.email,
+    phone: input.phone || "",
+    request: input.request,
+    source: input.source,
+    status: input.status || "new",
+    createdAt: input.createdAt || now,
+    updatedAt: input.updatedAt || now,
   };
+
   leads.unshift(lead);
   await writeLeads(leads);
+
   return lead;
 }
 
 export async function listIntakeLeads() {
   return readLeads();
+}
+
+export async function updateIntakeLeadStatus(
+  id: string,
+  status: IntakeLeadStatus
+) {
+  const leads = await readLeads();
+  const index = leads.findIndex((lead) => lead.id === id);
+
+  if (index === -1) return null;
+
+  leads[index] = {
+    ...leads[index],
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writeLeads(leads);
+  return leads[index];
 }
 `
     },
