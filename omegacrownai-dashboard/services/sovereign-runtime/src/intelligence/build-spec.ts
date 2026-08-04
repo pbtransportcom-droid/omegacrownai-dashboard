@@ -100,7 +100,53 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     adminWorkflow = ["Review appointment requests", "Update services", "Manage gallery", "Track client follow-up"];
     customerWorkflow = ["Browse services", "View gallery", "Request appointment", "Receive booking confirmation"];
     visualDirection = "soft luxury beauty design with warm editorial visuals, gallery-first sections, appointment CTA, and polished lifestyle tone";
-  } else if (includesAny(source, ["construction", "contractor", "project gallery", "estimate request", "roofing", "plumbing", "repair", "industrial", "ironbuild"])) {
+  // FORCE_PLUMBING_SERVICE_PLATFORM
+  } else if (includesAny(source, ["plumbing", "plumber", "drain cleaning", "water heater", "pipe repair", "sewer repair", "leak repair"])) {
+    industry = "plumbing";
+    productType = "plumbing service website and quote management platform";
+    brandFallback = "Professional Plumbing Website";
+    targetCustomer = "homeowners, property managers, businesses, and emergency plumbing customers";
+    services = [
+      "Emergency plumbing",
+      "Drain cleaning",
+      "Leak and pipe repair",
+      "Water heater services",
+      "Sewer services",
+      "Commercial plumbing",
+    ];
+    pages = [
+      "Home",
+      "Services",
+      "About",
+      "Contact",
+      "Request Quote",
+      "Admin Dashboard",
+    ];
+    features = [
+      "Plumbing service catalog",
+      "Quote request form",
+      "Emergency service call-to-action",
+      "Customer inquiry storage",
+      "Admin quote review",
+      "Lead status tracking",
+      "Editable business content",
+    ];
+    adminWorkflow = [
+      "Review quote requests",
+      "Review emergency inquiries",
+      "Update lead status",
+      "Assign customer follow-up",
+      "Manage plumbing services",
+      "Track completed requests",
+    ];
+    customerWorkflow = [
+      "Review plumbing services",
+      "Choose a service",
+      "Submit quote request",
+      "Receive service follow-up",
+    ];
+    visualDirection = "professional plumbing service design with clear emergency service messaging, trustworthy service sections, technician proof, quote request call-to-action, customer inquiry workflow, and practical admin review";
+  } else if (includesAny(source, ["construction", "contractor", "project gallery", "estimate request", "roofing", "repair", "industrial", "ironbuild"])) {
     industry = "construction";
     productType = "construction estimate and project gallery platform";
     brandFallback = "Construction Services Website";
