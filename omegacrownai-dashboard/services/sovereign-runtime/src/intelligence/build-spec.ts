@@ -31,6 +31,119 @@ function includesAny(source: string, words: string[]) {
   return words.some((word) => source.includes(word));
 }
 
+function cleanExplicitItems(items: string[]) {
+  const ignored = new Set([
+    "",
+    "and",
+    "with",
+    "include",
+    "includes",
+    "including",
+    "page",
+    "pages",
+    "feature",
+    "features",
+    "service",
+    "services",
+  ]);
+
+  const seen = new Set<string>();
+
+  return items
+    .map((item) =>
+      item
+        .replace(/\([^)]*\)/g, "")
+        .replace(/^(?:and|plus|also)\s+/i, "")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter((item) => {
+      const key = item.toLowerCase();
+
+      if (!item || ignored.has(key) || seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+}
+
+function splitExplicitList(value: string) {
+  return cleanExplicitItems(
+    value
+      .replace(/\s+(?:and|plus)\s+/gi, ",")
+      .split(/[,;|]/)
+  );
+}
+
+function extractExplicitList(
+  prompt: string,
+  patterns: RegExp[]
+): string[] {
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+
+    if (!match?.[1]) continue;
+
+    const items = splitExplicitList(match[1]);
+
+    if (items.length) return items;
+  }
+
+  return [];
+}
+
+function extractExplicitWorkflow(
+  prompt: string,
+  label: "customer" | "admin"
+): string[] {
+  const patterns =
+    label === "customer"
+      ? [
+          /customer\s+workflow\s*:\s*([^\n.]+)/i,
+          /customer\s+flow\s*:\s*([^\n.]+)/i,
+          /user\s+workflow\s*:\s*([^\n.]+)/i,
+        ]
+      : [
+          /admin\s+workflow\s*:\s*([^\n.]+)/i,
+          /administrator\s+workflow\s*:\s*([^\n.]+)/i,
+          /operations\s+workflow\s*:\s*([^\n.]+)/i,
+        ];
+
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+
+    if (!match?.[1]) continue;
+
+    const steps = cleanExplicitItems(
+      match[1].split(/\s*(?:->|→|=>)\s*/)
+    );
+
+    if (steps.length) return steps;
+  }
+
+  return [];
+}
+
+function mergeExplicitItems(
+  defaults: string[],
+  explicit: string[]
+) {
+  if (!explicit.length) return defaults;
+
+  const explicitKeys = new Set(
+    explicit.map((item) => item.toLowerCase())
+  );
+
+  return [
+    ...explicit,
+    ...defaults.filter(
+      (item) => !explicitKeys.has(item.toLowerCase())
+    ),
+  ];
+}
+
 function titleCase(value: string) {
   return value
     .replace(/[^a-zA-Z0-9 &'/-]+/g, " ")
@@ -291,6 +404,59 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     features = ["Campaign landing page", "Offer sections", "Lead capture form", "Email sequence plan", "Ad copy", "Social media captions", "Campaign calendar", "Admin review", "Status tracking"];
     adminWorkflow = ["Review campaign leads", "Update lead status", "Approve campaign assets", "Schedule campaign steps", "Prepare follow-up"];
     customerWorkflow = ["Visit campaign landing page", "Review offer", "Submit lead form", "Receive follow-up sequence"];
+  }
+
+  // UNIVERSAL_PROMPT_PRESERVATION_ENGINE
+  // Explicit user requirements are authoritative. Industry templates may
+  // add useful defaults but must not remove explicitly requested items.
+  const explicitPages = extractExplicitList(originalPrompt, [
+    /pages?\s*:\s*([^\n.]+)/i,
+    /(?:build|create|include|add)\s+(?:the\s+following\s+)?pages?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+    /include\s+([A-Z][A-Za-z0-9 &/-]+(?:\s*,\s*[A-Z][A-Za-z0-9 &/-]+){1,})/i,
+  ]);
+
+  const explicitFeatures = extractExplicitList(originalPrompt, [
+    /(?:required\s+)?features?\s*:\s*([^\n.]+)/i,
+    /(?:add|include|create|support)\s+(?:the\s+following\s+)?features?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+  ]);
+
+  const explicitServices = extractExplicitList(originalPrompt, [
+    /services?\s*:\s*([^\n.]+)/i,
+    /(?:add|include|offer|provide)\s+(?:the\s+following\s+)?services?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+  ]);
+
+  const explicitCustomerWorkflow =
+    extractExplicitWorkflow(originalPrompt, "customer");
+
+  const explicitAdminWorkflow =
+    extractExplicitWorkflow(originalPrompt, "admin");
+
+  pages = mergeExplicitItems(pages, explicitPages);
+  features = mergeExplicitItems(features, explicitFeatures);
+  services = mergeExplicitItems(services, explicitServices);
+
+  if (explicitCustomerWorkflow.length) {
+    customerWorkflow = explicitCustomerWorkflow;
+  }
+
+  if (explicitAdminWorkflow.length) {
+    adminWorkflow = explicitAdminWorkflow;
+  }
+
+  const preservedIndustry = originalPrompt.match(
+    /industry\s*:\s*([a-zA-Z][a-zA-Z -]{1,60})/i
+  )?.[1]?.trim();
+
+  if (preservedIndustry) {
+    industry = preservedIndustry.toLowerCase();
+  }
+
+  const preservedProductType = originalPrompt.match(
+    /product\s*type\s*:\s*([^\n.]+)/i
+  )?.[1]?.trim();
+
+  if (preservedProductType) {
+    productType = preservedProductType;
   }
 
   const missingFields: string[] = [];
