@@ -36,47 +36,374 @@ function titleCase(value: string) {
     .join(" ") || "Custom Business Platform";
 }
 
-function inferDomain(prompt: string) {
-  const source = prompt.toLowerCase();
+// AUTHENTIC_DOMAIN_PRIORITY_ENGINE
+type AuthenticDomainProfile = {
+  key: string;
+  product: string;
+  sections: string[];
+  models: string[];
+  terminology: string[];
+  conversionGoal: string;
+  valueProposition: string;
+  sectionSequence: string[];
+};
 
-  const matches: Array<[string, string, string[], string[]]> = [
-    ["customer-ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["customer ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["strong copy", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["calls to action", "Conversion Website Platform", ["Hero CTA", "Services", "Trust Builders", "Admin Review"], ["WebsiteLead", "ServiceRequest", "CTAEvent", "AdminNote"]],
-    ["launch-ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["launch ready", "Launch-Ready Website", ["Hero Message", "Value Proposition", "Conversion Sections", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["mobile layout", "Launch-Ready Website", ["Hero Message", "Mobile Sections", "Customer Intake", "Launch Review"], ["WebsiteLead", "CustomerInquiry", "ContentSection", "LaunchChecklist"]],
-    ["fitness", "Fitness Studio Operating Platform", ["Class Schedule", "Membership Signup", "Trainer Profiles", "Lead Capture"], ["Class", "Membership", "Trainer", "FitnessLead"]],
-    ["gym", "Fitness Studio Operating Platform", ["Class Schedule", "Membership Signup", "Trainer Profiles", "Lead Capture"], ["Class", "Membership", "Trainer", "FitnessLead"]],
-    ["church", "Church Ministry Platform", ["Service Times", "Ministries", "Giving", "Volunteer Intake"], ["Service", "Ministry", "Donation", "Volunteer"]],
-    ["school", "School Enrollment Platform", ["Programs", "Admissions", "Student Portal", "Admin Review"], ["Program", "Enrollment", "StudentInquiry", "CampusEvent"]],
-    ["clinic", "Clinic Care Platform", ["Services", "Appointment Requests", "Provider Profiles", "Patient Intake"], ["CareService", "AppointmentRequest", "Provider", "PatientLead"]],
-    ["real estate", "Real Estate Agency Platform", ["Listings", "Buyer Intake", "Agent Profiles", "Showing Requests"], ["PropertyListing", "ShowingRequest", "Agent", "BuyerLead"]],
-    ["ecommerce", "Commerce Store Platform", ["Product Catalog", "Cart Flow", "Checkout Intake", "Admin Orders"], ["Product", "Order", "Customer", "CartLead"]],
-    ["shop", "Commerce Store Platform", ["Product Catalog", "Cart Flow", "Checkout Intake", "Admin Orders"], ["Product", "Order", "Customer", "CartLead"]],
-    ["nonprofit", "Nonprofit Impact Platform", ["Campaigns", "Donation Intake", "Volunteer Signup", "Impact Reports"], ["Campaign", "Donation", "Volunteer", "ImpactLead"]],
-    ["agency", "Agency Client Acquisition Platform", ["Services", "Case Studies", "Consultation Intake", "Admin Pipeline"], ["ServiceOffer", "ClientInquiry", "CaseStudy", "PipelineLead"]],
-    ["hotel", "Hotel Booking Platform", ["Rooms", "Amenities", "Guest Requests", "Admin Reservations"], ["Room", "GuestRequest", "Amenity", "ReservationLead"]],
-    ["construction", "Construction Project Lead Platform", ["Services", "Project Gallery", "Estimate Request", "Admin Pipeline"], ["ProjectService", "EstimateRequest", "ProjectGallery", "ClientLead"]],
-    ["cleaning", "Cleaning Service Platform", ["Service Plans", "Quote Request", "Team Profiles", "Admin Jobs"], ["ServicePlan", "QuoteRequest", "TeamMember", "JobLead"]],
-    ["podcast", "Podcast Media Platform", ["Episodes", "Guest Booking", "Sponsor Intake", "Admin Calendar"], ["Episode", "GuestRequest", "SponsorLead", "MediaAsset"]],
-    ["music", "Artist Music Platform", ["Releases", "Tour Dates", "Fan Signup", "Booking Intake"], ["Release", "EventDate", "FanLead", "BookingRequest"]],
-    ["marketplace", "Marketplace Platform", ["Listings", "Seller Intake", "Buyer Requests", "Admin Review"], ["MarketplaceListing", "SellerApplication", "BuyerRequest", "ReviewQueue"]],
-    ["crm", "CRM Dashboard Platform", ["Contacts", "Pipeline", "Tasks", "Admin Reporting"], ["Contact", "Deal", "Task", "PipelineNote"]]
+function inferDomain(
+  prompt: string,
+  buildSpec?: any
+): AuthenticDomainProfile {
+  const explicitIndustry = cleanPrompt(
+    buildSpec?.industry || ""
+  ).toLowerCase();
+
+  const explicitProductType = cleanPrompt(
+    buildSpec?.productType || ""
+  );
+
+  const source = [
+    explicitIndustry,
+    explicitProductType.toLowerCase(),
+    prompt.toLowerCase(),
+  ].join(" ");
+
+  const profiles: Array<{
+    keys: string[];
+    profile: AuthenticDomainProfile;
+  }> = [
+    {
+      keys: [
+        "transportation",
+        "transport",
+        "limo",
+        "limousine",
+        "chauffeur",
+        "black car",
+        "airport transfer",
+        "dispatch",
+        "fleet",
+      ],
+      profile: {
+        key: "transportation",
+        product:
+          explicitProductType ||
+          "Transportation Booking and Dispatch Platform",
+        sections: [
+          "Service Coverage",
+          "Fleet Selection",
+          "Trip Booking",
+          "Airport and Corporate Travel",
+          "Dispatch Operations",
+          "Customer Portal",
+        ],
+        models: [
+          "Booking",
+          "Customer",
+          "Vehicle",
+          "Driver",
+          "DispatchAssignment",
+          "Invoice",
+        ],
+        terminology: [
+          "pickup",
+          "drop-off",
+          "chauffeur",
+          "fleet",
+          "airport transfer",
+          "dispatch",
+          "reservation",
+          "trip status",
+        ],
+        conversionGoal:
+          "Turn travelers and corporate clients into confirmed transportation bookings.",
+        valueProposition:
+          "Reliable, professionally managed transportation with clear booking, fleet, and dispatch visibility.",
+        sectionSequence: [
+          "Booking-first hero",
+          "Service coverage",
+          "Fleet options",
+          "Airport and corporate travel",
+          "Booking workflow",
+          "Trust and safety",
+          "Customer confirmation",
+        ],
+      },
+    },
+    {
+      keys: [
+        "plumbing",
+        "plumber",
+        "drain cleaning",
+        "water heater",
+        "pipe repair",
+        "sewer",
+        "leak repair",
+      ],
+      profile: {
+        key: "plumbing",
+        product:
+          explicitProductType ||
+          "Plumbing Service and Quote Management Platform",
+        sections: [
+          "Emergency Service",
+          "Plumbing Services",
+          "Service Area",
+          "Quote Request",
+          "Technician Follow-Up",
+          "Admin Lead Pipeline",
+        ],
+        models: [
+          "ServiceRequest",
+          "Customer",
+          "Quote",
+          "Technician",
+          "Appointment",
+          "LeadStatus",
+        ],
+        terminology: [
+          "emergency plumbing",
+          "drain cleaning",
+          "leak repair",
+          "water heater",
+          "service call",
+          "technician",
+          "quote",
+          "service area",
+        ],
+        conversionGoal:
+          "Convert urgent and planned plumbing needs into qualified service requests.",
+        valueProposition:
+          "Fast, trustworthy plumbing support with clear services, emergency response, and quote follow-up.",
+        sectionSequence: [
+          "Emergency-first hero",
+          "Primary plumbing services",
+          "Problem and solution proof",
+          "Service area",
+          "Quote request",
+          "Technician trust",
+          "Customer follow-up",
+        ],
+      },
+    },
+    {
+      keys: ["legal", "law firm", "lawyer", "attorney"],
+      profile: {
+        key: "legal",
+        product:
+          explicitProductType ||
+          "Legal Consultation and Case Intake Platform",
+        sections: [
+          "Practice Areas",
+          "Attorney Authority",
+          "Case Evaluation",
+          "Consultation Intake",
+          "Client Follow-Up",
+        ],
+        models: [
+          "Consultation",
+          "ProspectiveClient",
+          "Attorney",
+          "PracticeArea",
+          "CaseInquiry",
+        ],
+        terminology: [
+          "consultation",
+          "practice area",
+          "attorney",
+          "case review",
+          "client intake",
+          "legal guidance",
+        ],
+        conversionGoal:
+          "Convert prospective clients into qualified consultation requests.",
+        valueProposition:
+          "Clear legal guidance backed by credible attorney experience and structured case intake.",
+        sectionSequence: [
+          "Authority-led hero",
+          "Practice areas",
+          "Attorney credibility",
+          "Case eligibility",
+          "Consultation intake",
+          "Confidentiality and trust",
+        ],
+      },
+    },
+    {
+      keys: ["restaurant", "catering", "reservation", "menu"],
+      profile: {
+        key: "restaurant",
+        product:
+          explicitProductType ||
+          "Restaurant Ordering and Reservation Platform",
+        sections: [
+          "Signature Menu",
+          "Reservations",
+          "Ordering",
+          "Catering",
+          "Guest Experience",
+        ],
+        models: [
+          "MenuItem",
+          "Reservation",
+          "Order",
+          "Guest",
+          "CateringInquiry",
+        ],
+        terminology: [
+          "menu",
+          "reservation",
+          "dining",
+          "order",
+          "chef",
+          "catering",
+          "guest",
+        ],
+        conversionGoal:
+          "Convert visitors into reservations, orders, and catering inquiries.",
+        valueProposition:
+          "An inviting dining experience with convenient reservations, ordering, and event catering.",
+        sectionSequence: [
+          "Food-led hero",
+          "Signature dishes",
+          "Menu highlights",
+          "Reservation action",
+          "Catering",
+          "Guest proof",
+        ],
+      },
+    },
+    {
+      keys: ["marketing campaign", "campaign", "lead capture"],
+      profile: {
+        key: "marketing",
+        product:
+          explicitProductType ||
+          "Marketing Campaign System",
+        sections: [
+          "Campaign Offer",
+          "Audience",
+          "Lead Capture",
+          "Campaign Assets",
+          "Calendar",
+          "Admin Review",
+        ],
+        models: [
+          "Campaign",
+          "Lead",
+          "Offer",
+          "CampaignAsset",
+          "ScheduleItem",
+        ],
+        terminology: [
+          "campaign",
+          "offer",
+          "lead",
+          "conversion",
+          "email sequence",
+          "ad copy",
+          "campaign calendar",
+        ],
+        conversionGoal:
+          "Convert campaign visitors into qualified leads and measurable follow-up actions.",
+        valueProposition:
+          "A coordinated campaign experience that connects the offer, lead capture, content, and review workflow.",
+        sectionSequence: [
+          "Offer-first hero",
+          "Audience problem",
+          "Campaign promise",
+          "Lead capture",
+          "Campaign assets",
+          "Calendar",
+          "Admin review",
+        ],
+      },
+    },
+    {
+      keys: ["workflow automation", "automation", "trigger map"],
+      profile: {
+        key: "automation",
+        product:
+          explicitProductType ||
+          "Workflow Automation System",
+        sections: [
+          "Workflow Dashboard",
+          "Trigger Map",
+          "Action Steps",
+          "Automation Requests",
+          "Run History",
+          "Admin Review",
+        ],
+        models: [
+          "Workflow",
+          "Trigger",
+          "ActionStep",
+          "AutomationRequest",
+          "WorkflowRun",
+        ],
+        terminology: [
+          "workflow",
+          "trigger",
+          "action",
+          "automation request",
+          "run",
+          "status",
+        ],
+        conversionGoal:
+          "Turn operational requirements into reviewable and trackable automated workflows.",
+        valueProposition:
+          "Clear workflow automation from trigger definition through execution history and admin review.",
+        sectionSequence: [
+          "Workflow outcome hero",
+          "Trigger map",
+          "Action sequence",
+          "Automation request",
+          "Run history",
+          "Admin review",
+        ],
+      },
+    },
   ];
 
-  for (const [key, product, sections, models] of matches) {
-    if (source.includes(key)) {
-      return { key, product, sections, models };
+  for (const entry of profiles) {
+    if (entry.keys.some((key) => source.includes(key))) {
+      return entry.profile;
     }
   }
 
   return {
-    key: "custom",
-    product: "Custom Business Platform",
-    sections: ["Overview", "Customer Intake", "Operations Dashboard", "Admin Review"],
-    models: ["BusinessLead", "CustomerRequest", "AdminNote", "WorkflowItem"]
+    key: explicitIndustry || "custom",
+    product:
+      explicitProductType ||
+      "Custom Business Operations Platform",
+    sections: Array.isArray(buildSpec?.pages)
+      ? buildSpec.pages
+      : [
+          "Business Overview",
+          "Primary Services",
+          "Customer Action",
+          "Operations Dashboard",
+        ],
+    models: [
+      "CustomerRequest",
+      "BusinessService",
+      "WorkflowItem",
+      "AdminNote",
+    ],
+    terminology: Array.isArray(buildSpec?.services)
+      ? buildSpec.services
+      : ["service", "customer", "request", "follow-up"],
+    conversionGoal:
+      "Turn qualified visitors into clear customer actions.",
+    valueProposition:
+      "A business-specific digital experience built around the requested services and operating workflow.",
+    sectionSequence: Array.isArray(buildSpec?.pages)
+      ? buildSpec.pages
+      : [
+          "Business-specific hero",
+          "Primary services",
+          "Trust evidence",
+          "Customer action",
+          "Admin workflow",
+        ],
   };
 }
 
@@ -153,7 +480,7 @@ export async function buildUniversalAnythingArtifacts(run: any, outDir: string) 
   const now = new Date().toISOString();
   const buildSpec = run.buildSpec || null;
   const prompt = cleanPrompt(buildSpec?.normalizedPrompt || run.prompt || "");
-  const domain = inferDomain(prompt);
+  const domain = inferDomain(prompt, buildSpec);
   const brand = cleanPrompt(buildSpec?.brandName || "") || safeBrand(prompt, domain.product);
   const designPreset = buildSpec?.designPreset || null;
   const palette = designPreset?.palette || {
