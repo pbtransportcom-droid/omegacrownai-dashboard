@@ -2,8 +2,15 @@ import { selectDesignPreset } from "./design-inventory.js";
 function clean(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
 }
+// DOMAIN_KEYWORD_BOUNDARY_MATCHING
 function includesAny(source, words) {
-    return words.some((word) => source.includes(word));
+    return words.some((word) => {
+        const escaped = word
+            .toLowerCase()
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(`(?:^|[^a-z0-9])${escaped}(?=$|[^a-z0-9])`, "i");
+        return pattern.test(source);
+    });
 }
 function cleanExplicitItems(items) {
     const ignored = new Set([
