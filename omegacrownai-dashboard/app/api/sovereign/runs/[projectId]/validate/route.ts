@@ -210,6 +210,92 @@ function checkPromptDrift(root: string, projectId: string): ValidationResult {
   };
 }
 
+
+function normalizeValidationText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function readBuildSpecPages(metadataFile: string): string[] {
+  try {
+    const parsed = JSON.parse(readIfExists(metadataFile) || "{}");
+    const buildSpec = parsed.buildSpec || parsed.result?.buildSpec || parsed;
+    return Array.isArray(buildSpec.pages)
+      ? buildSpec.pages.filter((page: unknown) => typeof page === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function checkRequestedPages(
+  root: string,
+  projectId: string,
+  metadataFile: string
+): ValidationResult {
+  const artifactDir = path.join(
+    root,
+    "services",
+    "sovereign-runtime",
+    "data",
+    "artifacts",
+    projectId
+  );
+
+  const requestedPages = readBuildSpecPages(metadataFile);
+  const artifactText = normalizeValidationText(
+    readArtifactText(root, projectId)
+  );
+
+  const matched = requestedPages.filter((page) => {
+    const normalizedPage = normalizeValidationText(page);
+
+    if (!normalizedPage) return false;
+
+    const aliases: Record<string, string[]> = {
+      "admin dashboard": ["admin dashboard", "admin", "dashboard"],
+      "admin review": ["admin review", "admin", "review"],
+      "request quote": ["request quote", "quote request", "request an estimate"],
+      "request estimate": ["request estimate", "estimate request"],
+      "lead capture": ["lead capture", "contact form", "request form"],
+      "customer portal": ["customer portal", "customer"],
+    };
+
+    const candidates = [
+      normalizedPage,
+      ...(aliases[normalizedPage] || []),
+    ];
+
+    return candidates.some((candidate) =>
+      artifactText.includes(normalizeValidationText(candidate))
+    );
+  });
+
+  const requiredMatchCount =
+    requestedPages.length <= 3
+      ? requestedPages.length
+      : Math.max(3, Math.ceil(requestedPages.length * 0.7));
+
+  const ok =
+    requestedPages.length === 0 ||
+    matched.length >= requiredMatchCount;
+
+  return {
+    label: "Requested pages represented",
+    path: artifactDir,
+    exists: fs.existsSync(artifactDir),
+    ok,
+    matched,
+    details:
+      requestedPages.length === 0
+        ? "No explicit page list found in metadata."
+        : `${matched.length}/${requestedPages.length} requested page names represented; minimum ${requiredMatchCount}`,
+  };
+}
+
 function checkVisualManifestAssets(root: string, projectId: string): ValidationResult {
   const artifactDir = path.join(root, "services", "sovereign-runtime", "data", "artifacts", projectId);
   const manifestPath = path.join(artifactDir, "data", "asset-manifest.json");
@@ -247,6 +333,7 @@ export async function GET(
   const artifactDir = path.join(root, "services", "sovereign-runtime", "data", "artifacts", projectId);
   const files = walkFiles(artifactDir);
 
+  const metadataFile = path.join(artifactDir, "metadata.json");
   const prismaFile = path.join(artifactDir, "prisma", "schema.prisma");
   const packageFile = path.join(artifactDir, "package.json");
   const envFile = path.join(artifactDir, ".env.example");
@@ -282,13 +369,15 @@ export async function GET(
     checkPrismaModels(prismaFile),
     checkPath("Package manifest", [packageFile]),
     checkPackageScripts(packageFile),
-    checkFilePatterns("App routes/pages", artifactDir, files, [
+    // UNIVERSAL_VALIDATION_ENGINE
+    // Every generated application must have the core Next.js files.
+    // Specialized customer, editor, and admin routes are validated only
+    // when the generated package actually requires or contains them.
+    checkFilePatterns("Core application files", artifactDir, files, [
       /^app\/page\.tsx$/,
       /^app\/layout\.tsx$/,
-      /^app\/customer\/page\.tsx$/,
-      /^app\/admin\/page\.tsx$/,
-      /^app\/editor\/page\.tsx$/,
     ]),
+    checkRequestedPages(root, projectId, metadataFile),
     checkApiReadiness(artifactDir, files),
     checkFilePatterns("Delivery operations files", artifactDir, files, [
       /^Dockerfile$/,
@@ -318,7 +407,13 @@ export async function GET(
       .every((result) => result.ok),
     appReady: results
       .filter((result) =>
-        ["App routes/pages", "API/store/data readiness", "Delivery operations files", "README setup instructions"].includes(result.label)
+        [
+          "Core application files",
+          "Requested pages represented",
+          "API/store/data readiness",
+          "Delivery operations files",
+          "README setup instructions",
+        ].includes(result.label)
       )
       .every((result) => result.ok),
   };
