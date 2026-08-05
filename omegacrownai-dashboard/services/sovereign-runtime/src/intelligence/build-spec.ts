@@ -1,5 +1,75 @@
 import { selectDesignPreset, type DesignPreset } from "./design-inventory.js";
 
+export type BlueprintPage = {
+  name: string;
+  purpose: string;
+  requiredSections: string[];
+  requiredActions: string[];
+};
+
+export type BlueprintFeature = {
+  name: string;
+  category: string;
+  required: boolean;
+  acceptanceCriteria: string[];
+};
+
+export type BlueprintWorkflow = {
+  actor: string;
+  name: string;
+  steps: string[];
+  statuses: string[];
+};
+
+export type AuthoritativeBlueprint = {
+  version: "1.0";
+  source: "original-prompt";
+  business: {
+    industry: string;
+    brandName: string;
+    productType: string;
+    targetAudience: string[];
+    location: string;
+    valueProposition: string;
+    conversionGoals: string[];
+  };
+  design: {
+    qualityLevel: "standard" | "premium" | "luxury";
+    brandVoice: string[];
+    visualPersonality: string[];
+    colors: string[];
+    typography: string;
+    imagery: string[];
+    motion: string[];
+    prohibitedPatterns: string[];
+  };
+  pages: BlueprintPage[];
+  features: BlueprintFeature[];
+  workflows: BlueprintWorkflow[];
+  architecture: {
+    routes: string[];
+    apiRoutes: string[];
+    dataModels: string[];
+    adminModules: string[];
+    integrations: string[];
+    authentication: boolean;
+    persistence: boolean;
+  };
+  delivery: {
+    preview: boolean;
+    sourcePackage: boolean;
+    downloadableZip: boolean;
+    documentation: string[];
+    deploymentFiles: string[];
+  };
+  compliance: {
+    requiredPromptTerms: string[];
+    prohibitedGenericTerms: string[];
+    minimumQualityScore: number;
+    blockDeliveryOnFailure: boolean;
+  };
+};
+
 export type BuildSpec = {
   originalPrompt: string;
   normalizedPrompt: string;
@@ -21,6 +91,7 @@ export type BuildSpec = {
   designPreset: DesignPreset;
   executionStandard: "full-function";
   suggestedPrompt: string;
+  authoritativeBlueprint: AuthoritativeBlueprint;
 };
 
 function clean(value: unknown) {
@@ -181,6 +252,299 @@ function detectBrand(prompt: string, fallback: string) {
   }
 
   return fallback;
+}
+
+// AUTHORITATIVE_BLUEPRINT_ENGINE
+function inferQualityLevel(
+  prompt: string
+): "standard" | "premium" | "luxury" {
+  if (/\b(luxury|ultra luxury|high-end|exclusive|vip|executive)\b/i.test(prompt)) {
+    return "luxury";
+  }
+
+  if (/\b(premium|professional|polished|modern|production-grade)\b/i.test(prompt)) {
+    return "premium";
+  }
+
+  return "standard";
+}
+
+function inferFeatureCategory(name: string) {
+  const value = name.toLowerCase();
+
+  if (/payment|invoice|billing|checkout|stripe/.test(value)) {
+    return "payments";
+  }
+
+  if (/admin|dashboard|review|manage|management/.test(value)) {
+    return "admin";
+  }
+
+  if (/api|integration|webhook/.test(value)) {
+    return "integration";
+  }
+
+  if (/database|storage|data|record/.test(value)) {
+    return "data";
+  }
+
+  if (/auth|login|register|role|permission/.test(value)) {
+    return "authentication";
+  }
+
+  if (/booking|quote|request|form|lead|intake/.test(value)) {
+    return "customer-action";
+  }
+
+  return "business-feature";
+}
+
+function routeFromPageName(name: string) {
+  const normalized = name.trim().toLowerCase();
+
+  if (normalized === "home") return "/";
+
+  return "/" + normalized
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function inferRequiredPromptTerms(
+  industry: string,
+  services: string[],
+  pages: string[],
+  features: string[]
+) {
+  return Array.from(
+    new Set(
+      [
+        industry,
+        ...services,
+        ...pages,
+        ...features,
+      ]
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
+function buildAuthoritativeBlueprint(input: {
+  originalPrompt: string;
+  industry: string;
+  brandName: string;
+  productType: string;
+  targetCustomer: string;
+  location: string;
+  services: string[];
+  pages: string[];
+  features: string[];
+  adminWorkflow: string[];
+  customerWorkflow: string[];
+  designPreset: DesignPreset;
+}): AuthoritativeBlueprint {
+  const qualityLevel = inferQualityLevel(input.originalPrompt);
+
+  const pages = input.pages.map((name) => ({
+    name,
+    purpose:
+      name.toLowerCase().includes("admin")
+        ? `Manage ${input.industry} operations, customer records, and workflow status.`
+        : `Support the ${input.industry} customer journey through ${name}.`,
+    requiredSections:
+      name.toLowerCase() === "home"
+        ? [
+            "Prompt-specific hero",
+            "Primary value proposition",
+            "Business-specific services",
+            "Trust evidence",
+            "Primary customer action",
+          ]
+        : [
+            `${name} introduction`,
+            `${name} primary content`,
+            `${name} customer action`,
+          ],
+    requiredActions:
+      name.toLowerCase().includes("admin")
+        ? ["Review records", "Update status", "Search and filter"]
+        : ["Navigate", "Review information", "Complete next action"],
+  }));
+
+  const features = input.features.map((name) => ({
+    name,
+    category: inferFeatureCategory(name),
+    required: true,
+    acceptanceCriteria: [
+      `${name} is represented in the generated source.`,
+      `${name} has an accessible customer or admin interaction path.`,
+      `${name} is documented in metadata or delivery documentation.`,
+    ],
+  }));
+
+  const workflows: BlueprintWorkflow[] = [
+    {
+      actor: "customer",
+      name: "Customer workflow",
+      steps: input.customerWorkflow,
+      statuses: ["started", "submitted", "in-review", "completed"],
+    },
+    {
+      actor: "admin",
+      name: "Admin workflow",
+      steps: input.adminWorkflow,
+      statuses: ["new", "reviewing", "assigned", "completed"],
+    },
+  ];
+
+  const apiRoutes = features
+    .filter((feature) =>
+      ["customer-action", "payments", "integration", "data"].includes(
+        feature.category
+      )
+    )
+    .map((feature) => {
+      const slug = feature.name
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      return `/api/${slug}`;
+    });
+
+  const dataModels = Array.from(
+    new Set([
+      "Customer",
+      "CustomerRequest",
+      "WorkflowRecord",
+      ...input.services.map((service) =>
+        service
+          .replace(/[^a-zA-Z0-9 ]+/g, " ")
+          .split(" ")
+          .filter(Boolean)
+          .slice(0, 3)
+          .map(
+            (word) =>
+              word.charAt(0).toUpperCase() +
+              word.slice(1).toLowerCase()
+          )
+          .join("")
+      ),
+    ])
+  ).filter(Boolean);
+
+  return {
+    version: "1.0",
+    source: "original-prompt",
+    business: {
+      industry: input.industry,
+      brandName: input.brandName,
+      productType: input.productType,
+      targetAudience: [input.targetCustomer],
+      location: input.location,
+      valueProposition:
+        `A ${qualityLevel} ${input.productType} built specifically for ${input.targetCustomer}.`,
+      conversionGoals: [
+        "Communicate the business value clearly",
+        "Move visitors into the requested customer workflow",
+        "Capture and manage qualified customer actions",
+      ],
+    },
+    design: {
+      qualityLevel,
+      brandVoice:
+        qualityLevel === "luxury"
+          ? ["confident", "exclusive", "refined", "trustworthy"]
+          : qualityLevel === "premium"
+            ? ["professional", "clear", "polished", "credible"]
+            : ["clear", "accessible", "business-focused"],
+      visualPersonality: [
+        input.designPreset.mood,
+        input.designPreset.layout,
+        input.designPreset.heroStyle,
+      ],
+      colors: [
+        input.designPreset.palette.background,
+        input.designPreset.palette.surface,
+        input.designPreset.palette.primary,
+        input.designPreset.palette.secondary,
+        input.designPreset.palette.accent,
+      ],
+      typography: input.designPreset.typography,
+      imagery: [input.designPreset.imageDirection],
+      motion: [input.designPreset.motionDirection],
+      prohibitedPatterns: [
+        "Unrelated industry terminology",
+        "Placeholder lorem ipsum",
+        "Generic business name",
+        "Repeated identical section copy",
+        "Homepage-only delivery",
+        "Feature labels without implementation evidence",
+      ],
+    },
+    pages,
+    features,
+    workflows,
+    architecture: {
+      routes: pages.map((page) => routeFromPageName(page.name)),
+      apiRoutes: Array.from(new Set(apiRoutes)),
+      dataModels,
+      adminModules: input.pages.filter((page) =>
+        /admin|dashboard|management|review/i.test(page)
+      ),
+      integrations: input.features.filter((feature) =>
+        /payment|stripe|email|sms|map|calendar|crm|webhook|integration/i.test(
+          feature
+        )
+      ),
+      authentication: input.features.some((feature) =>
+        /auth|login|register|role|permission|portal/i.test(feature)
+      ),
+      persistence: input.features.some((feature) =>
+        /storage|database|data|record|lead|booking|request|quote/i.test(feature)
+      ),
+    },
+    delivery: {
+      preview: true,
+      sourcePackage: true,
+      downloadableZip: true,
+      documentation: [
+        "README.md",
+        "DELIVERY.md",
+        "LAUNCH_CHECKLIST.md",
+        "metadata.json",
+      ],
+      deploymentFiles: [
+        "Dockerfile",
+        "docker-compose.yml",
+        ".env.example",
+      ],
+    },
+    compliance: {
+      requiredPromptTerms: inferRequiredPromptTerms(
+        input.industry,
+        input.services,
+        input.pages,
+        input.features
+      ),
+      prohibitedGenericTerms: [
+        "Lorem ipsum",
+        "Your company",
+        "Example business",
+        "Generic service",
+        "Placeholder content",
+      ],
+      minimumQualityScore:
+        qualityLevel === "luxury"
+          ? 95
+          : qualityLevel === "premium"
+            ? 92
+            : 88,
+      blockDeliveryOnFailure: true,
+    },
+  };
 }
 
 export function createBuildSpec(input: { prompt?: string; mode?: string; projectId?: string }): BuildSpec {
@@ -590,6 +954,22 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
 
   const suggestedPrompt = `Create a full-function ${productType} for ${brandName}. Include ${services.join(", ")}. Build pages for ${pages.join(", ")}. Add features for ${features.join(", ")}. Include customer workflow: ${customerWorkflow.join(" -> ")}. Include admin workflow: ${adminWorkflow.join(" -> ")}. Use ${visualDirection}. Deliver preview, source package, README.md, DELIVERY.md, LAUNCH_CHECKLIST.md, validation, and download ZIP.`;
 
+  const authoritativeBlueprint =
+    buildAuthoritativeBlueprint({
+      originalPrompt,
+      industry,
+      brandName,
+      productType,
+      targetCustomer,
+      location,
+      services,
+      pages,
+      features,
+      adminWorkflow,
+      customerWorkflow,
+      designPreset,
+    });
+
   return {
     originalPrompt,
     normalizedPrompt,
@@ -610,6 +990,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     visualDirection,
     designPreset,
     executionStandard: "full-function",
-    suggestedPrompt
+    suggestedPrompt,
+    authoritativeBlueprint
   };
 }
