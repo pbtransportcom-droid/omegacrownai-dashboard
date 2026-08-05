@@ -152,24 +152,41 @@ function cleanExplicitItems(items: string[]) {
     });
 }
 
-function splitExplicitList(value: string) {
-  return cleanExplicitItems(
-    value
-      .replace(/\s+(?:and|plus)\s+/gi, ",")
-      .split(/[,;|]/)
-  );
+// SEMANTIC_REQUIREMENT_PRESERVATION
+type ExplicitListOptions = {
+  splitConjunctions?: boolean;
+};
+
+function splitExplicitList(
+  value: string,
+  options: ExplicitListOptions = {}
+) {
+  const normalized = value
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const commaItems = normalized.split(/[,;|]/);
+
+  const items = options.splitConjunctions
+    ? commaItems.flatMap((item) =>
+        item.split(/\s+(?:and|plus)\s+/i)
+      )
+    : commaItems;
+
+  return cleanExplicitItems(items);
 }
 
 function extractExplicitList(
   prompt: string,
-  patterns: RegExp[]
+  patterns: RegExp[],
+  options: ExplicitListOptions = {}
 ): string[] {
   for (const pattern of patterns) {
     const match = prompt.match(pattern);
 
     if (!match?.[1]) continue;
 
-    const items = splitExplicitList(match[1]);
+    const items = splitExplicitList(match[1], options);
 
     if (items.length) return items;
   }
@@ -785,21 +802,33 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   // UNIVERSAL_PROMPT_PRESERVATION_ENGINE
   // Explicit user requirements are authoritative. Industry templates may
   // add useful defaults but must not remove explicitly requested items.
-  const explicitPages = extractExplicitList(originalPrompt, [
-    /pages?\s*:\s*([^\n.]+)/i,
-    /(?:build|create|include|add)\s+(?:the\s+following\s+)?pages?\s*(?:for|of|:)?\s*([^\n.]+)/i,
-    /include\s+([A-Z][A-Za-z0-9 &/-]+(?:\s*,\s*[A-Z][A-Za-z0-9 &/-]+){1,})/i,
-  ]);
+  const explicitPages = extractExplicitList(
+    originalPrompt,
+    [
+      /pages?\s*:\s*([^\n.]+)/i,
+      /(?:build|create|include|add)\s+(?:the\s+following\s+)?pages?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+      /include\s+([A-Z][A-Za-z0-9 &/-]+(?:\s*,\s*[A-Z][A-Za-z0-9 &/-]+){1,})/i,
+    ],
+    { splitConjunctions: true }
+  );
 
-  const explicitFeatures = extractExplicitList(originalPrompt, [
-    /(?:required\s+)?features?\s*:\s*([^\n.]+)/i,
-    /(?:add|include|create|support)\s+(?:the\s+following\s+)?features?\s*(?:for|of|:)?\s*([^\n.]+)/i,
-  ]);
+  const explicitFeatures = extractExplicitList(
+    originalPrompt,
+    [
+      /(?:required\s+)?features?\s*:\s*([^\n.]+)/i,
+      /(?:add|include|create|support)\s+(?:the\s+following\s+)?features?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+    ],
+    { splitConjunctions: false }
+  );
 
-  const explicitServices = extractExplicitList(originalPrompt, [
-    /services?\s*:\s*([^\n.]+)/i,
-    /(?:add|include|offer|provide)\s+(?:the\s+following\s+)?services?\s*(?:for|of|:)?\s*([^\n.]+)/i,
-  ]);
+  const explicitServices = extractExplicitList(
+    originalPrompt,
+    [
+      /services?\s*:\s*([^\n.]+)/i,
+      /(?:add|include|offer|provide)\s+(?:the\s+following\s+)?services?\s*(?:for|of|:)?\s*([^\n.]+)/i,
+    ],
+    { splitConjunctions: false }
+  );
 
   const explicitCustomerWorkflow =
     extractExplicitWorkflow(originalPrompt, "customer");

@@ -43,17 +43,22 @@ function cleanExplicitItems(items) {
         return true;
     });
 }
-function splitExplicitList(value) {
-    return cleanExplicitItems(value
-        .replace(/\s+(?:and|plus)\s+/gi, ",")
-        .split(/[,;|]/));
+function splitExplicitList(value, options = {}) {
+    const normalized = value
+        .replace(/\s+/g, " ")
+        .trim();
+    const commaItems = normalized.split(/[,;|]/);
+    const items = options.splitConjunctions
+        ? commaItems.flatMap((item) => item.split(/\s+(?:and|plus)\s+/i))
+        : commaItems;
+    return cleanExplicitItems(items);
 }
-function extractExplicitList(prompt, patterns) {
+function extractExplicitList(prompt, patterns, options = {}) {
     for (const pattern of patterns) {
         const match = prompt.match(pattern);
         if (!match?.[1])
             continue;
-        const items = splitExplicitList(match[1]);
+        const items = splitExplicitList(match[1], options);
         if (items.length)
             return items;
     }
@@ -569,15 +574,15 @@ export function createBuildSpec(input) {
         /pages?\s*:\s*([^\n.]+)/i,
         /(?:build|create|include|add)\s+(?:the\s+following\s+)?pages?\s*(?:for|of|:)?\s*([^\n.]+)/i,
         /include\s+([A-Z][A-Za-z0-9 &/-]+(?:\s*,\s*[A-Z][A-Za-z0-9 &/-]+){1,})/i,
-    ]);
+    ], { splitConjunctions: true });
     const explicitFeatures = extractExplicitList(originalPrompt, [
         /(?:required\s+)?features?\s*:\s*([^\n.]+)/i,
         /(?:add|include|create|support)\s+(?:the\s+following\s+)?features?\s*(?:for|of|:)?\s*([^\n.]+)/i,
-    ]);
+    ], { splitConjunctions: false });
     const explicitServices = extractExplicitList(originalPrompt, [
         /services?\s*:\s*([^\n.]+)/i,
         /(?:add|include|offer|provide)\s+(?:the\s+following\s+)?services?\s*(?:for|of|:)?\s*([^\n.]+)/i,
-    ]);
+    ], { splitConjunctions: false });
     const explicitCustomerWorkflow = extractExplicitWorkflow(originalPrompt, "customer");
     const explicitAdminWorkflow = extractExplicitWorkflow(originalPrompt, "admin");
     pages = mergeExplicitItems(pages, explicitPages);
