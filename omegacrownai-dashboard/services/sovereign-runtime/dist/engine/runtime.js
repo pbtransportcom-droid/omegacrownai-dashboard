@@ -3,6 +3,7 @@ import path from "path";
 import { runAgentChain } from "../agents/chain.js";
 import { buildArtifacts } from "../artifacts/builder.js";
 import { validateGeneratedArtifacts } from "../artifacts/generated-artifact-validator.js";
+import { applyBlueprintCompliance } from "../artifacts/blueprint-compliance-engine.js";
 import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
@@ -131,12 +132,37 @@ export async function executeRun(projectId, input) {
         appendTranscript(projectId, "Agent chain completed");
         run.status = "artifacts";
         saveRun(run);
-        const artifacts = await buildArtifacts(run);
-        run.artifacts = artifacts;
+        const generatedArtifacts = await buildArtifacts(run);
+        const blueprintCompliance = applyBlueprintCompliance(run, generatedArtifacts);
+        run.artifacts = blueprintCompliance.artifacts;
+        run.blueprintCompliance =
+            blueprintCompliance.report;
+        appendRunEvent(run, blueprintCompliance.report.deliveryBlocked
+            ? `Blueprint compliance blocked at ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}`
+            : `Blueprint compliance passed at ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}`);
+        appendTranscript(projectId, blueprintCompliance.report.deliveryBlocked
+            ? `Authoritative blueprint compliance blocked delivery. Missing pages: ${blueprintCompliance.report.missingPages.join(", ") || "none"}. Missing APIs: ${blueprintCompliance.report.missingApiRoutes.join(", ") || "none"}. Missing features: ${blueprintCompliance.report.missingFeatures.join(", ") || "none"}.`
+            : "Authoritative blueprint compliance passed.");
         appendRunEvent(run, "Artifacts generated");
         appendTranscript(projectId, "Artifacts generated");
-        const generatedArtifactValidation = validateGeneratedArtifacts(artifacts);
-        run.generatedArtifactValidation = generatedArtifactValidation;
+        const baseGeneratedArtifactValidation = validateGeneratedArtifacts(run.artifacts);
+        const generatedArtifactValidation = blueprintCompliance.report.deliveryBlocked
+            ? {
+                ...baseGeneratedArtifactValidation,
+                ok: false,
+                errors: [
+                    ...baseGeneratedArtifactValidation.errors,
+                    {
+                        level: "error",
+                        file: "blueprint-compliance.json",
+                        message: `Authoritative blueprint compliance blocked delivery with score ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}.`,
+                    },
+                ],
+                summary: `Generated artifact validation blocked by authoritative blueprint compliance. Score ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}.`,
+            }
+            : baseGeneratedArtifactValidation;
+        run.generatedArtifactValidation =
+            generatedArtifactValidation;
         if (!generatedArtifactValidation.ok) {
             run.validation = {
                 generatedArtifacts: generatedArtifactValidation,
