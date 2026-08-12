@@ -107,7 +107,7 @@ function titleCase(value) {
         .join(" ");
 }
 function detectBrand(prompt, fallback) {
-    const explicit = prompt.match(/(?:called|named|brand(?:ed)? as|business name is|company name is)\s+([A-Z][A-Za-z0-9&' -]{1,70})(?:[.,|]|$)/i);
+    const explicit = prompt.match(/(?:called|named|brand(?:ed)? as|business name is|company name is)\s+([A-Z][A-Za-z0-9&' -]{1,70}?)(?:\s*\(|[.,|]|$)/i);
     if (explicit?.[1])
         return titleCase(explicit[1]);
     const forMatch = prompt.match(/(?:for|for a|for an)\s+([A-Za-z0-9&' -]{3,80})(?:\s+with|\s+that|\s+including|[.,]|$)/i);
@@ -334,6 +334,121 @@ function buildAuthoritativeBlueprint(input) {
         },
     };
 }
+// BOOKSTORE_AUTHORITATIVE_EXTRACTION
+const semanticFeaturePatterns = [
+    {
+        pattern: /\bebooks?\b|\bdigital book delivery\b/i,
+        feature: "Ebook delivery",
+    },
+    {
+        pattern: /\baudiobooks?\b|\baudio book delivery\b/i,
+        feature: "Audiobook delivery",
+    },
+    {
+        pattern: /\bphysical book shipping\b|\bshipping calculator\b/i,
+        feature: "Physical book shipping calculator",
+    },
+    {
+        pattern: /\bshipping tracking\b|\bshipment tracking\b|\btracking\b/i,
+        feature: "Shipment tracking",
+    },
+    {
+        pattern: /\bmonthly book box\b|\bcurated reads\b|\bsubscription option\b/i,
+        feature: "Book subscription management",
+    },
+    {
+        pattern: /\bcustomer book reviews?\b|\breviews? and ratings?\b/i,
+        feature: "Customer reviews and ratings",
+    },
+    {
+        pattern: /\bauthor spotlights?\b/i,
+        feature: "Author spotlights",
+    },
+    {
+        pattern: /\bcustomers also bought\b|\brecommendations? engine\b/i,
+        feature: "Book recommendation engine",
+    },
+    {
+        pattern: /\bauto[- ]suggestions?\b|\bpowerful search\b/i,
+        feature: "Search with auto-suggestions",
+    },
+    {
+        pattern: /\bshopping cart\b|\breal-time cart\b/i,
+        feature: "Real-time shopping cart",
+    },
+    {
+        pattern: /\bstripe\b|\bsquare payments?\b|\bsecure checkout\b/i,
+        feature: "Secure Stripe or Square checkout",
+    },
+    {
+        pattern: /\bcustomer accounts?\b|\border history\b|\bguest accounts?\b/i,
+        feature: "Guest and customer accounts with order history",
+    },
+    {
+        pattern: /\bwishlist\b|\bsave for later\b/i,
+        feature: "Wishlist and save for later",
+    },
+    {
+        pattern: /\bpromo codes?\b|\bdiscount codes?\b/i,
+        feature: "Promo and discount codes",
+    },
+    {
+        pattern: /\babandoned cart recovery\b/i,
+        feature: "Abandoned cart recovery",
+    },
+    {
+        pattern: /\border confirmation emails?\b/i,
+        feature: "Order confirmation emails",
+    },
+    {
+        pattern: /\bseo optimized\b|\bseo optimisation\b/i,
+        feature: "SEO optimization",
+    },
+    {
+        pattern: /\bprofessional security\b|\bsecure platform\b/i,
+        feature: "Professional application security",
+    },
+    {
+        pattern: /\bformat options?\b|\bhardcover\b|\bpaperback\b/i,
+        feature: "Book format selection",
+    },
+    {
+        pattern: /\binventory\b/i,
+        feature: "Book inventory management",
+    },
+    {
+        pattern: /\bdiscounts?\b|\bpromotions?\b/i,
+        feature: "Discount and promotion management",
+    },
+];
+// MALFORMED_FEATURE_PARAGRAPH_FILTER
+function isMalformedFeatureParagraph(value) {
+    const normalized = clean(value);
+    const lower = normalized.toLowerCase();
+    const capabilityMarkers = [
+        "shopping cart",
+        "secure checkout",
+        "customer accounts",
+        "wishlist",
+        "digital book delivery",
+        "shipping calculator",
+        "subscription option",
+        "customer book reviews",
+        "author spotlights",
+        "admin dashboard",
+    ];
+    const markerCount = capabilityMarkers.filter((marker) => lower.includes(marker)).length;
+    return (normalized.length > 180 &&
+        markerCount >= 3);
+}
+function filterMalformedFeatureParagraphs(items) {
+    return items.filter((item) => !isMalformedFeatureParagraph(item));
+}
+function extractSemanticFeatureRequirements(prompt) {
+    return cleanExplicitItems(semanticFeaturePatterns
+        .filter(({ pattern }) => pattern.test(prompt))
+        .map(({ feature }) => feature));
+}
 export function createBuildSpec(input) {
     const originalPrompt = clean(input.prompt);
     const source = originalPrompt.toLowerCase();
@@ -545,6 +660,87 @@ export function createBuildSpec(input) {
     if (explicitProductTypeMatch?.[1]) {
         productType = explicitProductTypeMatch[1].trim();
     }
+    if (includesAny(source, [
+        "bookstore",
+        "book shop",
+        "bookseller",
+        "physical books",
+        "ebooks",
+        "audiobooks",
+        "book club",
+        "author spotlight",
+        "children's books",
+    ])) {
+        industry = "bookstore";
+        productType =
+            "premium ecommerce bookstore and digital reading platform";
+        brandFallback = "BookHaven";
+        targetCustomer =
+            "book lovers, students, gift buyers, audiobook listeners, and digital readers";
+        services = [
+            "Physical books",
+            "Ebooks",
+            "Audiobooks",
+            "Book-related merchandise",
+            "Curated book subscriptions",
+            "Gift purchases",
+        ];
+        pages = [
+            "Home",
+            "Books",
+            "Book Details",
+            "Categories",
+            "Authors",
+            "Search",
+            "Wishlist",
+            "Cart",
+            "Checkout",
+            "Customer Account",
+            "Digital Library",
+            "Subscriptions",
+            "Admin Dashboard",
+        ];
+        features = [
+            "Book catalog with genre filters",
+            "Author and format filters",
+            "Book detail pages",
+            "Search with auto-suggestions",
+            "Real-time shopping cart",
+            "Secure Stripe or Square checkout",
+            "Guest and customer accounts with order history",
+            "Wishlist and save for later",
+            "Ebook delivery",
+            "Audiobook delivery",
+            "Physical book shipping calculator",
+            "Shipment tracking",
+            "Book subscription management",
+            "Customer reviews and ratings",
+            "Author spotlights",
+            "Book recommendation engine",
+            "Book inventory management",
+            "Discount and promotion management",
+        ];
+        customerWorkflow = [
+            "Browse or search books",
+            "Filter by genre, author, format, language, price, or rating",
+            "Review book details and format options",
+            "Add to cart or wishlist",
+            "Complete secure checkout",
+            "Receive physical shipment tracking or digital library access",
+            "Review purchased books",
+        ];
+        adminWorkflow = [
+            "Manage books and authors",
+            "Manage inventory and formats",
+            "Review and fulfill orders",
+            "Manage customers and reviews",
+            "Create discounts and promotions",
+            "Manage subscriptions",
+            "Review sales and catalog analytics",
+        ];
+        visualDirection =
+            "premium warm literary bookstore design with elegant typography, rich book-cover displays, cozy editorial compositions, responsive catalog shelves, trustworthy checkout interfaces, and no generic SaaS sections";
+    }
     const brandName = detectBrand(originalPrompt, brandFallback);
     if (mode.includes("automation")) {
         industry = "workflow automation";
@@ -586,7 +782,13 @@ export function createBuildSpec(input) {
     const explicitCustomerWorkflow = extractExplicitWorkflow(originalPrompt, "customer");
     const explicitAdminWorkflow = extractExplicitWorkflow(originalPrompt, "admin");
     pages = mergeExplicitItems(pages, explicitPages);
-    features = mergeExplicitItems(features, explicitFeatures);
+    const semanticFeatures = extractSemanticFeatureRequirements(originalPrompt);
+    features = mergeExplicitItems(features, cleanExplicitItems([
+        ...filterMalformedFeatureParagraphs(explicitFeatures),
+        ...semanticFeatures,
+    ]));
+    features =
+        filterMalformedFeatureParagraphs(features);
     services = mergeExplicitItems(services, explicitServices);
     if (explicitCustomerWorkflow.length) {
         customerWorkflow = explicitCustomerWorkflow;
@@ -601,6 +803,53 @@ export function createBuildSpec(input) {
     const preservedProductType = originalPrompt.match(/product\s*type\s*:\s*([^\n.]+)/i)?.[1]?.trim();
     if (preservedProductType) {
         productType = preservedProductType;
+    }
+    // FORCE_MARKETING_CAMPAIGN_SPEC
+    if (mode.includes("marketing")) {
+        industry = "marketing campaign";
+        productType = "marketing campaign system";
+        targetCustomer = "campaign leads and business owners";
+        services = [
+            "Campaign landing page",
+            "Offer sections",
+            "Lead capture form",
+            "Email sequence plan",
+            "Ad copy",
+            "Social media captions",
+            "Campaign calendar",
+        ];
+        pages = [
+            "Campaign Landing Page",
+            "Offer Sections",
+            "Lead Capture",
+            "Email Sequence",
+            "Ad Copy Library",
+            "Social Calendar",
+            "Admin Review",
+        ];
+        features = [
+            "Campaign landing page",
+            "Offer positioning",
+            "Lead capture form",
+            "Email sequence plan",
+            "Ad copy",
+            "Social media captions",
+            "Campaign calendar",
+            "Admin review",
+        ];
+        customerWorkflow = [
+            "Visit campaign landing page",
+            "Review offer",
+            "Submit lead capture form",
+            "Receive campaign follow-up",
+        ];
+        adminWorkflow = [
+            "Review campaign leads",
+            "Approve campaign copy",
+            "Schedule email sequence",
+            "Publish social captions",
+            "Track campaign follow-up",
+        ];
     }
     const missingFields = [];
     if (!/(called|named|brand|business name|company name)/i.test(originalPrompt))
@@ -621,6 +870,30 @@ export function createBuildSpec(input) {
         industry,
         visualDirection
     });
+    // FORCE_MARKETING_PROFESSIONAL_CAMPAIGN_DESIGN
+    if (mode.includes("marketing")) {
+        visualDirection = "marketing campaign system with campaign landing page, offer sections, lead capture form, email sequence plan, ad copy library, social media captions, campaign calendar, admin review, API route, data storage, source package, delivery guide, and launch checklist. Professional campaign design with clear offer hierarchy, conversion sections, lead capture panel, campaign calendar, and approval workflow.";
+        designPreset = {
+            id: "professional_business",
+            name: "Professional Business Website",
+            mood: "clear, persuasive, campaign-focused, polished",
+            palette: {
+                background: "#f8fafc",
+                surface: "#ffffff",
+                primary: "#0f172a",
+                secondary: "#2563eb",
+                accent: "#22c55e",
+                text: "#0f172a",
+                muted: "#475569",
+            },
+            typography: "strong campaign headings, readable offer copy, clear CTA labels",
+            layout: "campaign hero, offer sections, lead capture panel, email sequence, social calendar, admin review",
+            heroStyle: "marketing campaign hero with offer promise and lead capture call-to-action",
+            sectionStyle: "clean campaign cards, offer proof sections, lead capture panel, launch package proof",
+            imageDirection: "campaign landing page, offer sections, lead capture, email sequence, social calendar, admin review",
+            motionDirection: "clean hover states, professional transitions, confident CTA movement",
+        };
+    }
     // FORCE_AUTOMATION_PROFESSIONAL_DESIGN
     if (mode.includes("automation")) {
         visualDirection = "workflow automation system with workflow dashboard, trigger and action map, automation request form, admin review, status tracking, run history, API route, data storage, source package, delivery guide, and launch checklist. Professional business design with clear workflow cards, status sections, admin review panels, and operations-focused copy.";
