@@ -1647,11 +1647,13 @@ export default function CheckoutPage() {
     content: `import fs from "node:fs/promises";
 import path from "node:path";
 
-const directory = path.join(
-  process.cwd(),
-  "data",
-  "runtime"
-);
+const directory =
+  process.env.OMEGACROWN_RUNTIME_DATA_DIR ||
+  path.join(
+    process.cwd(),
+    "data",
+    "runtime"
+  );
 
 export async function listCommerceRecords<T>(
   collection: string

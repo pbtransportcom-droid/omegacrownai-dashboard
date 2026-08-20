@@ -89,12 +89,77 @@ export async function prepareGeneratedApp(projectId: string) {
   const artifactDir = path.join(RUNTIME_ROOT, "data", "artifacts", projectId);
   const appDir = path.join(RUNTIME_ROOT, "generated-apps", projectId);
 
+  // GENERATED_APP_DURABLE_RUNTIME_DATA
+  // Mutable customer/application data must live outside the disposable
+  // generated-app directory because prepareGeneratedApp rebuilds appDir.
+  const runtimeDataDir = path.join(
+    RUNTIME_ROOT,
+    "data",
+    "runtime-apps",
+    projectId
+  );
+
+  fs.mkdirSync(runtimeDataDir, {
+    recursive: true,
+  });
+
+  // GENERATED_APP_LEGACY_RUNTIME_MIGRATION
+  // Older generated applications persisted mutable state inside
+  // generated-apps/<projectId>/data/runtime. Preserve that state
+  // before the disposable runnable directory is rebuilt.
+  const legacyRuntimeDataDir = path.join(
+    appDir,
+    "data",
+    "runtime"
+  );
+
+  if (
+    fs.existsSync(legacyRuntimeDataDir) &&
+    !fs.lstatSync(legacyRuntimeDataDir).isSymbolicLink()
+  ) {
+    copyDir(
+      legacyRuntimeDataDir,
+      runtimeDataDir
+    );
+  }
+
   if (!fs.existsSync(artifactDir)) {
     throw new Error(`Artifact folder not found for ${projectId}`);
   }
 
   fs.rmSync(appDir, { recursive: true, force: true });
   copyDir(artifactDir, appDir);
+
+  // GENERATED_APP_RUNTIME_DATA_MOUNT
+  // Keep the historical process.cwd()/data/runtime contract working
+  // while storing the actual mutable files outside disposable appDir.
+  const generatedDataDir = path.join(
+    appDir,
+    "data"
+  );
+
+  const generatedRuntimeDataDir = path.join(
+    generatedDataDir,
+    "runtime"
+  );
+
+  fs.mkdirSync(generatedDataDir, {
+    recursive: true,
+  });
+
+  fs.rmSync(
+    generatedRuntimeDataDir,
+    {
+      recursive: true,
+      force: true,
+    }
+  );
+
+  fs.symlinkSync(
+    runtimeDataDir,
+    generatedRuntimeDataDir,
+    "dir"
+  );
 
   // GENERATED_APP_RUNTIME_DEPENDENCY_NORMALIZATION
   // Preserve the delivered artifact while ensuring the temporary runnable
@@ -131,6 +196,7 @@ export async function prepareGeneratedApp(projectId: string) {
     ok: true,
     projectId,
     appDir,
+    runtimeDataDir,
     port,
     localUrl: `http://localhost:${port}`,
     publicPath: `/generated-app/${projectId}`,
@@ -197,6 +263,11 @@ export async function startGeneratedApp(projectId: string) {
     {
       detached: true,
       stdio: ["ignore", out, err],
+      env: {
+        ...process.env,
+        OMEGACROWN_RUNTIME_DATA_DIR:
+          manifest.runtimeDataDir,
+      },
     }
   );
 
