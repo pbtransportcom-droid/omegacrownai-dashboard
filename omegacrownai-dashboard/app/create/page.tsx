@@ -131,6 +131,8 @@ function CreatePageClient() {
   const type = normalizeType(searchParams.get("type") || undefined);
   const selected = builderTypes[type];
   const department = searchParams.get("department") || type;
+  const productId = searchParams.get("productId")?.trim() || "";
+  const productName = searchParams.get("productName")?.trim() || "";
 
   // HOMEPAGE_PROMPT_QUERY
   const initialPrompt =
@@ -154,6 +156,8 @@ function CreatePageClient() {
           prompt,
           type,
           department,
+          productId: productId || undefined,
+          productName: productName || undefined,
         }),
       });
 

@@ -110,6 +110,8 @@ export async function createRun(input: any) {
     runtimeId,
     mode: input.mode || input.intent || "general",
     prompt: input.prompt || "",
+    productId: input.productId || undefined,
+    productName: input.productName || undefined,
     status: "created",
     createdAt: now,
     updatedAt: now,
@@ -137,7 +139,13 @@ export async function executeRun(projectId: string, input: any) {
 
   try {
     run.status = "running";
-    const buildSpec = createBuildSpec({ prompt: run.prompt, mode: run.mode, projectId: run.projectId });
+    const buildSpec = createBuildSpec({
+      prompt: run.prompt,
+      mode: run.mode,
+      projectId: run.projectId,
+      productId: run.productId,
+      productName: run.productName,
+    });
     (run as any).buildSpec = buildSpec;
     (run as any).originalPrompt = buildSpec.originalPrompt;
     (run as any).normalizedPrompt = buildSpec.normalizedPrompt;

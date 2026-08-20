@@ -4,11 +4,15 @@ import {
 } from "@/lib/omega-product-registry";
 
 function productBuildUrl(product: {
+  id: string;
+  name: string;
   builderType: string;
   builderDepartment: string;
   buildPrompt: string;
 }) {
   const params = new URLSearchParams({
+    productId: product.id,
+    productName: product.name,
     type: product.builderType,
     department: product.builderDepartment,
     prompt: product.buildPrompt,

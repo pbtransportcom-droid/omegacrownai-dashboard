@@ -30,6 +30,8 @@ export type RuntimeRun = {
   runtimeId: string;
   mode: string;
   prompt: string;
+  productId?: string;
+  productName?: string;
   status: RuntimeStatus;
   createdAt: string;
   updatedAt: string;

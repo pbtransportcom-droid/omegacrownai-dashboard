@@ -71,6 +71,8 @@ export type AuthoritativeBlueprint = {
 };
 
 export type BuildSpec = {
+  productId?: string;
+  productName?: string;
   originalPrompt: string;
   normalizedPrompt: string;
   isIncomplete: boolean;
@@ -424,8 +426,17 @@ function buildAuthoritativeBlueprint(input: {
       )
     )
     .map((feature) => {
-      const slug = feature.name
-        .toLowerCase()
+      const normalizedName =
+        feature.name.toLowerCase();
+
+      if (
+        input.industry === "commerce" &&
+        /checkout/.test(normalizedName)
+      ) {
+        return "/api/orders";
+      }
+
+      const slug = normalizedName
         .replace(/&/g, "and")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
@@ -703,7 +714,13 @@ function extractSemanticFeatureRequirements(
   );
 }
 
-export function createBuildSpec(input: { prompt?: string; mode?: string; projectId?: string }): BuildSpec {
+export function createBuildSpec(input: {
+  prompt?: string;
+  mode?: string;
+  projectId?: string;
+  productId?: string;
+  productName?: string;
+}): BuildSpec {
   const originalPrompt = clean(input.prompt);
   const source = originalPrompt.toLowerCase();
   const mode = clean(input.mode || "website").toLowerCase();
@@ -844,7 +861,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     targetCustomer = "online shoppers";
     services = ["Product catalog", "Cart flow", "Checkout request", "Customer account"];
     pages = ["Home", "Products", "Cart", "Checkout", "Customer Account", "Admin"];
-    features = ["Product catalog", "Cart", "Checkout placeholder", "Order review", "Admin products"];
+    features = ["Product catalog", "Cart", "Secure checkout", "Order review", "Admin products"];
     adminWorkflow = ["Manage products", "Review orders", "Manage customers", "Update content"];
     customerWorkflow = ["Browse products", "Add to cart", "Submit checkout", "Receive confirmation"];
   }
@@ -1364,6 +1381,8 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
     });
 
   return {
+    productId: clean(input.productId) || undefined,
+    productName: clean(input.productName) || undefined,
     originalPrompt,
     normalizedPrompt,
     isIncomplete,
