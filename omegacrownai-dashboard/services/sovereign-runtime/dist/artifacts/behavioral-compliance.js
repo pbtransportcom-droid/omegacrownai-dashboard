@@ -270,6 +270,68 @@ function automationRequirements(artifacts) {
         }),
     ];
 }
+// GENERAL_BUSINESS_BEHAVIORAL_CONTRACT
+function generalBusinessRequirements(artifacts) {
+    return [
+        requirement(artifacts, {
+            id: "general-business-persistence",
+            label: "Persistent business data",
+            files: [
+                "lib/runtime-store.ts",
+                "prisma/schema.prisma",
+            ],
+            terms: [
+                "createrecord",
+                "listrecords",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "general-business-api",
+            label: "Operational API workflows",
+            files: [
+                "route.ts",
+            ],
+            terms: [
+                "export async function get",
+                "export async function post",
+                "createrecord",
+                "listrecords",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "general-business-admin",
+            label: "Business administration interface",
+            files: [
+                "app/admin/page.tsx",
+            ],
+            terms: [
+                "admin",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "general-business-customer-workflow",
+            label: "Customer-facing business workflow",
+            files: [
+                "app/page.tsx",
+            ],
+            terms: [
+                "executivehero",
+                "modulegrid",
+                "workflowpanel",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "general-business-smoke-test",
+            label: "Operational smoke-test coverage",
+            files: [
+                "scripts/smoke-test.ts",
+            ],
+            terms: [
+                "fetch",
+            ],
+        }),
+    ];
+}
 // TRANSPORT_LEGAL_HEALTHCARE_BEHAVIORAL_CONTRACTS
 function transportationRequirements(artifacts) {
     return [
@@ -491,6 +553,7 @@ export function evaluateBehavioralCompliance(industry, artifacts) {
         .toLowerCase();
     const specializedIndustries = new Set([
         "bookstore",
+        "general-business",
         "transportation",
         "legal",
         "healthcare",
@@ -503,6 +566,10 @@ export function evaluateBehavioralCompliance(industry, artifacts) {
     const inspectable = artifacts;
     let requirements = [];
     switch (normalizedIndustry) {
+        case "general-business":
+            requirements =
+                generalBusinessRequirements(inspectable);
+            break;
         case "transportation":
             requirements =
                 transportationRequirements(inspectable);

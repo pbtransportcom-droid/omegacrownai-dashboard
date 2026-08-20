@@ -294,9 +294,21 @@ export default function HomePage() {
                 .split("/")
                 .length - 1))}components/AppHeader";
 
-const sections = ${JSON.stringify(page.sections, null, 2)};
+const sections = ${JSON.stringify(page.sections.length > 0
+                ? page.sections
+                : page.requiredFeatures, null, 2)};
 
-const actions = ${JSON.stringify(page.actions, null, 2)};
+const actions = ${JSON.stringify(page.actions.length > 0
+                ? page.actions
+                : ["Continue"], null, 2)};
+
+const features = ${JSON.stringify(page.requiredFeatures.length > 0
+                ? page.requiredFeatures
+                : page.sections, null, 2)};
+
+const audience = ${JSON.stringify(page.audience.length > 0
+                ? page.audience
+                : ["customers"], null, 2)};
 
 export default function Page() {
   return (
@@ -305,26 +317,58 @@ export default function Page() {
 
       <section className="standard-page">
         <p className="eyebrow">
-          ${safe(page.role)}
+          ${safe(page.role)} experience
         </p>
 
         <h1>${safe(page.name)}</h1>
-        <p>${safe(page.purpose)}</p>
+
+        <p>
+          ${safe(page.purpose ||
+                `Use ${page.name} to support the ${plan.business.brandName || plan.business.industry} workflow.`)}
+        </p>
 
         <div className="section-list">
+          <article>
+            <h2>Who this is for</h2>
+            <p>
+              {audience.join(", ")}
+            </p>
+          </article>
+
           {sections.map((section) => (
             <article key={section}>
               <h2>{section}</h2>
+
               <p>
-                Production interface for {section}.
+                Use {section.toLowerCase()} to complete
+                the ${safe(page.name)} workflow with the
+                information, controls, and next steps
+                required for this experience.
               </p>
             </article>
           ))}
+
+          {features.length > 0 && (
+            <article>
+              <h2>Included capabilities</h2>
+
+              <ul>
+                {features.map((feature) => (
+                  <li key={feature}>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          )}
         </div>
 
         <div className="action-row">
           {actions.map((action) => (
-            <button key={action} type="button">
+            <button
+              key={action}
+              type="button"
+            >
               {action}
             </button>
           ))}
@@ -849,6 +893,125 @@ select {
     display: none;
   }
 }
+`,
+    });
+    files.push({
+        file: "scripts/smoke-test.ts",
+        title: "Living OS Operational Smoke Test",
+        type: "typescript",
+        content: `const baseUrl =
+  process.env.SMOKE_BASE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://127.0.0.1:3000";
+
+async function request(
+  pathname: string,
+  init?: RequestInit
+) {
+  const response = await fetch(
+    new URL(pathname, baseUrl),
+    init
+  );
+
+  const body = await response.text();
+
+  if (!response.ok) {
+    throw new Error(
+      \`${"${init?.method || \"GET\"}"} ${"${pathname}"} failed with ${"${response.status}"}: ${"${body}"}\`
+    );
+  }
+
+  return {
+    status: response.status,
+    body,
+  };
+}
+
+async function main() {
+  const home = await request("/");
+
+  console.log(
+    "PASS: customer interface",
+    home.status
+  );
+
+  const admin = await request("/admin");
+
+  console.log(
+    "PASS: admin interface",
+    admin.status
+  );
+
+  const apiRoutes = ${JSON.stringify(plan.architecture.apiRoutes, null, 2)};
+
+  if (apiRoutes.length > 0) {
+    const apiRoute = apiRoutes[0];
+
+    const before = await request(apiRoute);
+
+    console.log(
+      "PASS: API GET",
+      apiRoute,
+      before.status
+    );
+
+    const marker =
+      "OmegaCrownAI smoke " +
+      Date.now();
+
+    const created = await request(
+      apiRoute,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          name: marker,
+          source: "smoke-test",
+        }),
+      }
+    );
+
+    if (created.status !== 201) {
+      throw new Error(
+        \`Expected POST ${"${apiRoute}"} to return 201 but received ${"${created.status}"}\`
+      );
+    }
+
+    console.log(
+      "PASS: API POST",
+      apiRoute,
+      created.status
+    );
+
+    const after = await request(apiRoute);
+
+    if (!after.body.includes(marker)) {
+      throw new Error(
+        "Created smoke record was not returned by the API."
+      );
+    }
+
+    console.log(
+      "PASS: persistence round trip",
+      apiRoute
+    );
+  }
+
+  console.log(
+    "PASS: operational smoke test"
+  );
+}
+
+main().catch((error) => {
+  console.error(
+    "SMOKE TEST FAILED:",
+    error
+  );
+  process.exit(1);
+});
 `,
     });
     return files;
