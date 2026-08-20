@@ -239,6 +239,30 @@ export function WorkflowPanel() {
 `,
     });
     files.push({
+        file: "app/layout.tsx",
+        title: "Root Layout",
+        type: "typescript",
+        content: `import "./globals.css";
+
+export const metadata = {
+  title: "${safe(plan.business.brandName || plan.business.industry)}",
+  description: "${safe(plan.business.valueProposition)}",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+`,
+    });
+    files.push({
         file: "app/page.tsx",
         title: "Living OS Homepage",
         type: "typescript",
@@ -268,7 +292,7 @@ export default function HomePage() {
             type: "typescript",
             content: `import { AppHeader } from "${"../".repeat(Math.max(1, routeFile(page.route)
                 .split("/")
-                .length - 2))}components/AppHeader";
+                .length - 1))}components/AppHeader";
 
 const sections = ${JSON.stringify(page.sections, null, 2)};
 

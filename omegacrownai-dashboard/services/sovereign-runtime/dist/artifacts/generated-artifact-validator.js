@@ -159,6 +159,17 @@ function validateVisualAssets(artifacts, errors) {
     const artifactFileSet = new Set(artifacts
         .map((artifact) => normalizeArtifactPath(artifactFile(artifact)))
         .filter(Boolean));
+    // NEXT_APP_ROUTER_ROOT_LAYOUT_VALIDATION
+    // Any generated Next.js App Router package containing app/page.tsx
+    // must also contain app/layout.tsx or next build will fail.
+    if (artifactFileSet.has("app/page.tsx") &&
+        !artifactFileSet.has("app/layout.tsx")) {
+        errors.push({
+            level: "error",
+            file: "app/layout.tsx",
+            message: "Generated Next.js App Router application requires app/layout.tsx.",
+        });
+    }
     function normalizeReferencedAsset(file) {
         return file
             .replace(/^\/+/, "")
