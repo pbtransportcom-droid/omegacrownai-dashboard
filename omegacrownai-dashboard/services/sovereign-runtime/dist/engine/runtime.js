@@ -216,10 +216,23 @@ export async function executeRun(projectId, input) {
             generatedArtifactValidation;
         if (!generatedArtifactValidation.ok) {
             run.validation = {
+                status: "blocked",
                 generatedArtifacts: generatedArtifactValidation,
             };
-            run.status = "validation";
-            appendRunEvent(run, "Generated artifact validation failed");
+            run.delivery = {
+                status: "blocked",
+                reason: generatedArtifactValidation.summary,
+            };
+            run.summary = {
+                agents: run.agents.length,
+                artifacts: run.artifacts.length,
+                validation: "blocked",
+                delivery: "blocked",
+            };
+            run.status = "blocked";
+            run.error =
+                generatedArtifactValidation.summary;
+            appendRunEvent(run, "Generated artifact validation blocked delivery");
             appendTranscript(projectId, generatedArtifactValidation.summary);
             await saveRun(run);
             return run;

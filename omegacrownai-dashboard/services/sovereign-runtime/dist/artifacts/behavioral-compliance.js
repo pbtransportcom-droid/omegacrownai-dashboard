@@ -341,12 +341,13 @@ function transportationRequirements(artifacts) {
             files: [
                 "components/BookingForm.tsx",
                 "components/ReservationForm.tsx",
+                "app/booking/page.tsx",
                 "app/api/bookings/route.ts",
                 "app/api/reservations/route.ts",
             ],
             terms: [
                 "pickup",
-                "dropoff",
+                "destination",
                 "passenger",
                 "date",
             ],
@@ -357,7 +358,12 @@ function transportationRequirements(artifacts) {
             files: [
                 "app/admin/dispatch/page.tsx",
                 "components/DispatchBoard.tsx",
+                "app/dispatcher/page.tsx",
+                "app/driver/page.tsx",
+                "app/admin/fleet/page.tsx",
                 "app/api/dispatch/route.ts",
+                "app/api/drivers/route.ts",
+                "app/api/fleet/route.ts",
             ],
             terms: [
                 "driver",

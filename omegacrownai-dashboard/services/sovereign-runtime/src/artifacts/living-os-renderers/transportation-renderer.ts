@@ -371,6 +371,32 @@ export default function HomePage() {
   });
 
   files.push({
+    file: "app/layout.tsx",
+    title: "Transportation Application Layout",
+    type: "typescript",
+    content: `import "./globals.css";
+
+export const metadata = {
+  title: "Transportation Operations Platform",
+  description:
+    "Production transportation booking, dispatch, fleet, customer, pricing, and operations platform.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+`,
+  });
+
+  files.push({
     file: "components/BookingForm.tsx",
     title: "Transportation Booking Form",
     type: "typescript",

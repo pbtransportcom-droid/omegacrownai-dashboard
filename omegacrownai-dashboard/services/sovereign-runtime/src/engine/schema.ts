@@ -7,6 +7,7 @@ export type RuntimeStatus =
   | "validation"
   | "delivery"
   | "completed"
+  | "blocked"
   | "error";
 
 export type AgentRun = {
