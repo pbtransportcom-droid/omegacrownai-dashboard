@@ -61,7 +61,7 @@ function killPort(port) {
 async function waitForPortDown(port, timeoutMs = 20000) {
     const started = Date.now();
     while (Date.now() - started < timeoutMs) {
-        const check = await checkPort(port, "/api/content");
+        const check = await checkPort(port, "/");
         if (!check.reachable) {
             return { down: true, waitedMs: Date.now() - started };
         }
@@ -77,6 +77,26 @@ export async function prepareGeneratedApp(projectId) {
     }
     fs.rmSync(appDir, { recursive: true, force: true });
     copyDir(artifactDir, appDir);
+    // GENERATED_APP_RUNTIME_DEPENDENCY_NORMALIZATION
+    // Preserve the delivered artifact while ensuring the temporary runnable
+    // copy uses the platform-tested dependency versions.
+    const packagePath = path.join(appDir, "package.json");
+    if (fs.existsSync(packagePath)) {
+        const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+        pkg.dependencies = {
+            ...(pkg.dependencies || {}),
+            "@prisma/client": "6.19.0",
+            prisma: "6.19.0",
+            "@types/node": "22.10.2",
+            "@types/react": "19.0.2",
+            "@types/react-dom": "19.0.2",
+            next: "15.5.19",
+            react: "19.0.0",
+            "react-dom": "19.0.0",
+            typescript: "5.7.2",
+        };
+        fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + "\n");
+    }
     const port = portForProject(projectId);
     const manifestDir = path.join(RUNTIME_ROOT, "data", "generated-apps");
     fs.mkdirSync(manifestDir, { recursive: true });
@@ -94,6 +114,35 @@ export async function prepareGeneratedApp(projectId) {
     return manifest;
 }
 export async function startGeneratedApp(projectId) {
+    // GENERATED_APP_SINGLE_START_GUARD
+    // Never remove/rebuild the same runnable app while an earlier install,
+    // build, or server process for that project is still alive.
+    const existing = getGeneratedAppManifest(projectId);
+    if (existing?.pid) {
+        let processAlive = false;
+        try {
+            process.kill(Number(existing.pid), 0);
+            processAlive = true;
+        }
+        catch {
+            processAlive = false;
+        }
+        if (processAlive) {
+            const portCheck = existing.port
+                ? await checkPort(Number(existing.port), "/")
+                : { reachable: false, error: "Missing port" };
+            return {
+                ...existing,
+                ok: true,
+                status: portCheck.reachable ? "running" : "starting",
+                processAlive: true,
+                portReachable: portCheck.reachable,
+                portStatus: portCheck.status,
+                portError: portCheck.error,
+                reusedExistingProcess: true,
+            };
+        }
+    }
     const manifest = await prepareGeneratedApp(projectId);
     const logDir = path.join(RUNTIME_ROOT, "logs", "generated-apps");
     fs.mkdirSync(logDir, { recursive: true });
@@ -148,7 +197,7 @@ export async function getGeneratedAppStatus(projectId) {
         processAlive = false;
     }
     const portCheck = manifest.port
-        ? await checkPort(Number(manifest.port), "/api/content")
+        ? await checkPort(Number(manifest.port), "/")
         : { reachable: false, error: "Missing port" };
     return {
         ok: true,
