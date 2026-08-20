@@ -23,6 +23,9 @@ export type OmegaProductArea =
 export type OmegaProduct = {
   id: string;
   name: string;
+  builderType: string;
+  builderDepartment: string;
+  buildPrompt: string;
   shortName?: string;
   description: string;
   area: OmegaProductArea;

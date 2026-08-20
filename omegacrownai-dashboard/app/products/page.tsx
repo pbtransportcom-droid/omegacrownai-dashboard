@@ -3,6 +3,20 @@ import {
   getOmegaPlatformCatalog,
 } from "@/lib/omega-product-registry";
 
+function productBuildUrl(product: {
+  builderType: string;
+  builderDepartment: string;
+  buildPrompt: string;
+}) {
+  const params = new URLSearchParams({
+    type: product.builderType,
+    department: product.builderDepartment,
+    prompt: product.buildPrompt,
+  });
+
+  return `/create?${params.toString()}`;
+}
+
 export default function ProductsPage() {
   const catalog =
     getOmegaPlatformCatalog();
@@ -226,11 +240,10 @@ export default function ProductsPage() {
                 >
                   {family.products.map(
                     product => (
-                      <a
+                      <div
                         key={
                           product.id
                         }
-                        href={product.href}
                         style={{
                           border:
                             "1px solid rgba(255,255,255,.08)",
@@ -323,7 +336,44 @@ export default function ProductsPage() {
                               )
                             )}
                         </div>
-                      </a>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 10,
+                            marginTop: 18,
+                          }}
+                        >
+                          <a
+                            href={product.href}
+                            style={{
+                              padding: "10px 14px",
+                              borderRadius: 999,
+                              border: "1px solid rgba(255,255,255,.14)",
+                              color: "#e2e8f0",
+                              fontSize: 13,
+                              fontWeight: 800,
+                            }}
+                          >
+                            Open Product
+                          </a>
+
+                          <a
+                            href={productBuildUrl(product)}
+                            style={{
+                              padding: "10px 14px",
+                              borderRadius: 999,
+                              background: "#f8fafc",
+                              color: "#05070d",
+                              fontSize: 13,
+                              fontWeight: 900,
+                            }}
+                          >
+                            Build This Product
+                          </a>
+                        </div>
+                      </div>
                     )
                   )}
                 </div>
