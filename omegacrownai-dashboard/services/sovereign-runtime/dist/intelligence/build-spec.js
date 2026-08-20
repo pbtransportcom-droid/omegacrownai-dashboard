@@ -107,9 +107,9 @@ function titleCase(value) {
         .join(" ");
 }
 function detectBrand(prompt, fallback) {
-    const explicit = prompt.match(/(?:called|named|brand(?:ed)? as|business name is|company name is)\s+([A-Z][A-Za-z0-9&' -]{1,70}?)(?:\s*\(|[.,|]|$)/i);
+    const explicit = prompt.match(/(?:called|named|brand(?:ed)? as|business name is|company name is)\s+([A-Z][A-Za-z0-9&' -]{1,70}?)(?=\s+(?:for|with|that|including|featuring|offering|serving|using|where|which)\b|\s*\(|[.,|]|$)/i);
     if (explicit?.[1])
-        return titleCase(explicit[1]);
+        return explicit[1].trim();
     const forMatch = prompt.match(/(?:for|for a|for an)\s+([A-Za-z0-9&' -]{3,80})(?:\s+with|\s+that|\s+including|[.,]|$)/i);
     if (forMatch?.[1]) {
         const candidate = forMatch[1].trim();
@@ -741,7 +741,27 @@ export function createBuildSpec(input) {
         visualDirection =
             "premium warm literary bookstore design with elegant typography, rich book-cover displays, cozy editorial compositions, responsive catalog shelves, trustworthy checkout interfaces, and no generic SaaS sections";
     }
-    const brandName = detectBrand(originalPrompt, brandFallback);
+    // EXPLICIT_PRODUCT_IDENTITY_PRESERVATION
+    // Product activation prompts commonly begin with forms such as:
+    // "Build a production-ready Living AI Operating System..."
+    // Preserve that authoritative product identity instead of allowing the
+    // generic app fallback ("business web app" / "Custom Business Website")
+    // to become the generated product name.
+    const explicitBuildIdentityMatch = originalPrompt.match(/\b(?:build|create)\s+(?:a|an)\s+(?:(?:production|customer|launch)[ -]?ready\s+)?(.{1,120}?\b(?:Operating System|Platform|Application|App|System))\b/i);
+    const explicitBuildIdentity = explicitBuildIdentityMatch?.[1]?.trim() || "";
+    const hasExplicitNamedBrand = /\b(?:called|named|brand(?:ed)?(?:\s+as)?|business name|company name)\b/i.test(originalPrompt);
+    const genericProductTypes = new Set([
+        "business web app",
+        "customer-ready website",
+        "workflow automation system",
+    ]);
+    if (explicitBuildIdentity &&
+        genericProductTypes.has(productType.toLowerCase())) {
+        productType = explicitBuildIdentity;
+    }
+    const brandName = explicitBuildIdentity && !hasExplicitNamedBrand
+        ? explicitBuildIdentity
+        : detectBrand(originalPrompt, brandFallback);
     if (mode.includes("automation")) {
         industry = "workflow automation";
         productType = "workflow automation system";
