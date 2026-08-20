@@ -44,3 +44,6 @@ public/runtime-deployments/
 routes.txt
 services/sovereign-runtime/generated-apps/
 services/sovereign-runtime/logs/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
