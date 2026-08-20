@@ -238,6 +238,24 @@ export function applyBlueprintCompliance(run, inputArtifacts) {
         .map((artifact) => `${artifactName(artifact)}\n${artifactContent(artifact)}`)
         .join("\n")
         .toLowerCase();
+    // CONTROL_ARTIFACT_EXCLUSION_FOR_CONTENT_POLICY_SCAN
+    // Blueprint/compliance/traceability files contain the policy labels
+    // themselves and must not be treated as customer-facing output.
+    const prohibitedSearchText = artifacts
+        .filter((artifact) => {
+        const name = artifactName(artifact).toLowerCase();
+        return ![
+            "authoritative-blueprint.json",
+            "blueprint-compliance.json",
+            "behavioral-compliance.json",
+            "living-os-plan.json",
+            "living-os-traceability.json",
+            "blueprint_compliance.md",
+        ].includes(name);
+    })
+        .map((artifact) => `${artifactName(artifact)}\n${artifactContent(artifact)}`)
+        .join("\n")
+        .toLowerCase();
     const persistenceRequired = Boolean(blueprint?.architecture?.persistence);
     const persistenceImplemented = !persistenceRequired ||
         hasFile(artifacts, "prisma/schema.prisma") ||
@@ -258,7 +276,7 @@ export function applyBlueprintCompliance(run, inputArtifacts) {
     const prohibitedPatterns = Array.isArray(blueprint?.design?.prohibitedPatterns)
         ? blueprint.design.prohibitedPatterns.map(String)
         : [];
-    const prohibitedPatternMatches = prohibitedPatterns.filter((pattern) => allText.includes(pattern.toLowerCase()));
+    const prohibitedPatternMatches = prohibitedPatterns.filter((pattern) => prohibitedSearchText.includes(pattern.toLowerCase()));
     const missingPages = pageEvidence
         .filter((item) => !item.implemented)
         .map((item) => item.name);

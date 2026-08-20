@@ -409,6 +409,29 @@ export function applyBlueprintCompliance(
     .join("\n")
     .toLowerCase();
 
+  // CONTROL_ARTIFACT_EXCLUSION_FOR_CONTENT_POLICY_SCAN
+  // Blueprint/compliance/traceability files contain the policy labels
+  // themselves and must not be treated as customer-facing output.
+  const prohibitedSearchText = artifacts
+    .filter((artifact) => {
+      const name = artifactName(artifact).toLowerCase();
+
+      return ![
+        "authoritative-blueprint.json",
+        "blueprint-compliance.json",
+        "behavioral-compliance.json",
+        "living-os-plan.json",
+        "living-os-traceability.json",
+        "blueprint_compliance.md",
+      ].includes(name);
+    })
+    .map(
+      (artifact) =>
+        `${artifactName(artifact)}\n${artifactContent(artifact)}`
+    )
+    .join("\n")
+    .toLowerCase();
+
   const persistenceRequired = Boolean(
     blueprint?.architecture?.persistence
   );
@@ -468,7 +491,7 @@ export function applyBlueprintCompliance(
 
   const prohibitedPatternMatches =
     prohibitedPatterns.filter((pattern: string) =>
-      allText.includes(pattern.toLowerCase())
+      prohibitedSearchText.includes(pattern.toLowerCase())
     );
 
   const missingPages = pageEvidence

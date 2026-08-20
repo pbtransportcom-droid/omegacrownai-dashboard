@@ -5,6 +5,8 @@ import { buildLegalFirmArtifacts, isLegalFirmPrompt } from "./legal-firm-builder
 import { buildTradingPlatformArtifacts, isTradingPlatformPrompt } from "./trading-platform-builder.js";
 import { buildRestaurantPlatformArtifacts, isRestaurantPlatformPrompt } from "./restaurant-platform-builder.js";
 import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./universal-anything-builder.js";
+import { createLivingOSProductionPlan } from "./living-os-planner.js";
+import { composeLivingOSApplication } from "./living-os-composer.js";
 import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./finance-platform-builder.js";
 
 
@@ -557,6 +559,355 @@ export async function buildArtifacts(run: any) {
     specIndustry === "trading" ||
     specProductType.includes("trading") ||
     isTradingPlatformPrompt(routingPrompt);
+
+  // LIVING_OS_APPLICATION_COMPOSER_ROUTE
+  const authoritativeBlueprint =
+    (run as any).buildSpec?.authoritativeBlueprint;
+
+  if (authoritativeBlueprint) {
+    const livingOSPlan =
+      createLivingOSProductionPlan(
+        authoritativeBlueprint
+      );
+
+    const composition =
+      composeLivingOSApplication(
+        livingOSPlan
+      );
+
+    if (composition.supported) {
+      const records = [];
+
+      const livingOSFiles = [...composition.files];
+      const existingLivingOSFiles = new Set(
+        livingOSFiles.map((file) => file.file)
+      );
+
+      const productionScaffold = [
+        {
+          file: "package.json",
+          title: "Production Package Manifest",
+          type: "json",
+          content: JSON.stringify(
+            {
+              name: String(
+                (run as any)?.projectId ||
+                "omegacrownai-generated-application"
+              ).toLowerCase(),
+              version: "1.0.0",
+              private: true,
+              scripts: {
+                dev: "next dev",
+                postinstall: "prisma generate",
+                build: "prisma generate && next build",
+                start: "next start",
+                "db:generate": "prisma generate",
+                smoke: "tsx scripts/smoke-test.ts",
+              },
+              dependencies: {
+                "@prisma/client": "6.19.0",
+                prisma: "6.19.0",
+                "@types/node": "22.10.2",
+                "@types/react": "19.0.2",
+                "@types/react-dom": "19.0.2",
+                next: "15.5.19",
+                react: "19.0.0",
+                "react-dom": "19.0.0",
+                typescript: "5.7.2",
+                tsx: "latest",
+              },
+            },
+            null,
+            2
+          ),
+        },
+        {
+          file: "next.config.mjs",
+          title: "Next.js Configuration",
+          type: "javascript",
+          content: `/** @type {import("next").NextConfig} */
+const nextConfig = {};
+
+export default nextConfig;
+`,
+        },
+        {
+          file: "tsconfig.json",
+          title: "TypeScript Configuration",
+          type: "json",
+          content: JSON.stringify(
+            {
+              compilerOptions: {
+                target: "ES2020",
+                lib: ["dom", "dom.iterable", "esnext"],
+                allowJs: true,
+                skipLibCheck: true,
+                strict: false,
+                noEmit: true,
+                esModuleInterop: true,
+                module: "esnext",
+                moduleResolution: "bundler",
+                resolveJsonModule: true,
+                isolatedModules: true,
+                jsx: "preserve",
+                incremental: true,
+                plugins: [{ name: "next" }],
+              },
+              include: [
+                "next-env.d.ts",
+                "**/*.ts",
+                "**/*.tsx",
+                ".next/types/**/*.ts",
+              ],
+              exclude: ["node_modules"],
+            },
+            null,
+            2
+          ),
+        },
+        {
+          file: "next-env.d.ts",
+          title: "Next.js Type Declarations",
+          type: "typescript",
+          content: `/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+`,
+        },
+        {
+          file: "global.d.ts",
+          title: "CSS Type Declarations",
+          type: "typescript",
+          content: `declare module "*.css";
+`,
+        },
+        {
+          file: ".env.example",
+          title: "Environment Template",
+          type: "env",
+          content: `DATABASE_URL="postgresql://user:password@localhost:5432/generated_app"
+`,
+        },
+        {
+          file: "DELIVERY.md",
+          title: "Customer Delivery Guide",
+          type: "markdown",
+          content: `# Customer Delivery Guide
+
+This OmegaCrownAI project includes the generated application source, customer-facing pages, operational workflows, API routes, persistence foundation, production scaffold, validation support, and deployment files.
+
+## Review
+
+1. Review the generated application pages.
+2. Test customer-facing workflows.
+3. Review administrative workflows.
+4. Run npm install.
+5. Run npm run db:generate.
+6. Run npm run smoke.
+7. Run npm run build.
+8. Configure production credentials and database.
+9. Deploy behind HTTPS.
+
+## Production
+
+Protect administrative routes with authentication, store secrets securely, configure a production database, enable monitoring and backups, and test the live application before customer launch.
+`,
+        },
+        {
+          file: "LAUNCH_CHECKLIST.md",
+          title: "Launch Checklist",
+          type: "markdown",
+          content: `# Launch Checklist
+
+- [ ] Confirm generated business identity and content.
+- [ ] Review all customer-facing pages.
+- [ ] Review administrative workflows.
+- [ ] Test all calls to action and forms.
+- [ ] Configure DATABASE_URL.
+- [ ] Run npm install.
+- [ ] Run npm run db:generate.
+- [ ] Run npm run smoke.
+- [ ] Run npm run build.
+- [ ] Protect administrative routes.
+- [ ] Configure production secrets.
+- [ ] Configure HTTPS and domain.
+- [ ] Configure monitoring and backups.
+- [ ] Test the live deployment.
+- [ ] Approve customer delivery package.
+`,
+        },
+        {
+          file: "data/asset-manifest.json",
+          title: "Generated Visual Asset Manifest",
+          type: "json",
+          content: JSON.stringify(
+            {
+              hero: "public/images/hero-visual.svg",
+              preview: "public/images/preview-visual.svg",
+              thumbnail: "public/images/thumbnail-visual.svg",
+              assets: [
+                {
+                  role: "hero",
+                  file: "public/images/hero-visual.svg"
+                },
+                {
+                  role: "preview",
+                  file: "public/images/preview-visual.svg"
+                },
+                {
+                  role: "thumbnail",
+                  file: "public/images/thumbnail-visual.svg"
+                }
+              ]
+            },
+            null,
+            2
+          ),
+        },
+        {
+          file: "public/images/hero-visual.svg",
+          title: "Generated Hero Visual",
+          type: "svg",
+          content: `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="hero-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="55%" stop-color="#123b57"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="hero-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#67e8f9" stop-opacity=".95"/>
+      <stop offset="100%" stop-color="#facc15" stop-opacity=".9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" rx="48" fill="url(#hero-bg)"/>
+  <circle cx="1280" cy="170" r="260" fill="#67e8f9" opacity=".08"/>
+  <circle cx="230" cy="760" r="300" fill="#facc15" opacity=".07"/>
+  <rect x="110" y="120" width="1380" height="660" rx="42" fill="#ffffff" opacity=".055" stroke="#ffffff" stroke-opacity=".16"/>
+  <rect x="180" y="205" width="510" height="34" rx="17" fill="#67e8f9" opacity=".88"/>
+  <rect x="180" y="280" width="820" height="76" rx="22" fill="#ffffff" opacity=".92"/>
+  <rect x="180" y="385" width="650" height="24" rx="12" fill="#ffffff" opacity=".38"/>
+  <rect x="180" y="430" width="520" height="24" rx="12" fill="#ffffff" opacity=".22"/>
+  <rect x="180" y="520" width="230" height="68" rx="24" fill="url(#hero-card)"/>
+  <rect x="450" y="520" width="210" height="68" rx="24" fill="#ffffff" opacity=".12" stroke="#ffffff" stroke-opacity=".25"/>
+  <rect x="1040" y="240" width="340" height="390" rx="36" fill="#020617" opacity=".48" stroke="#67e8f9" stroke-opacity=".32"/>
+  <rect x="1090" y="300" width="240" height="22" rx="11" fill="#67e8f9" opacity=".75"/>
+  <rect x="1090" y="355" width="180" height="18" rx="9" fill="#ffffff" opacity=".3"/>
+  <rect x="1090" y="405" width="240" height="92" rx="20" fill="#ffffff" opacity=".07"/>
+  <rect x="1090" y="525" width="240" height="38" rx="19" fill="#facc15" opacity=".8"/>
+</svg>`,
+        },
+        {
+          file: "public/images/preview-visual.svg",
+          title: "Generated Preview Visual",
+          type: "svg",
+          content: `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="preview-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#164e63"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" rx="44" fill="url(#preview-bg)"/>
+  <rect x="80" y="80" width="1040" height="640" rx="34" fill="#ffffff" opacity=".055" stroke="#ffffff" stroke-opacity=".14"/>
+  <rect x="130" y="135" width="940" height="76" rx="24" fill="#020617" opacity=".55"/>
+  <circle cx="180" cy="173" r="15" fill="#67e8f9"/>
+  <rect x="225" y="158" width="260" height="28" rx="14" fill="#ffffff" opacity=".75"/>
+  <rect x="130" y="260" width="280" height="390" rx="28" fill="#020617" opacity=".42"/>
+  <rect x="450" y="260" width="620" height="180" rx="28" fill="#ffffff" opacity=".08"/>
+  <rect x="450" y="480" width="290" height="170" rx="28" fill="#67e8f9" opacity=".13"/>
+  <rect x="780" y="480" width="290" height="170" rx="28" fill="#facc15" opacity=".12"/>
+  <rect x="175" y="315" width="190" height="18" rx="9" fill="#67e8f9" opacity=".75"/>
+  <rect x="175" y="365" width="145" height="16" rx="8" fill="#ffffff" opacity=".3"/>
+  <rect x="175" y="410" width="165" height="16" rx="8" fill="#ffffff" opacity=".22"/>
+  <rect x="175" y="455" width="120" height="16" rx="8" fill="#ffffff" opacity=".22"/>
+</svg>`,
+        },
+        {
+          file: "public/images/thumbnail-visual.svg",
+          title: "Generated Thumbnail Visual",
+          type: "svg",
+          content: `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="thumb-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#082f49"/>
+      <stop offset="55%" stop-color="#155e75"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" rx="72" fill="url(#thumb-bg)"/>
+  <circle cx="640" cy="150" r="180" fill="#67e8f9" opacity=".1"/>
+  <circle cx="150" cy="680" r="210" fill="#facc15" opacity=".08"/>
+  <rect x="115" y="115" width="570" height="570" rx="54" fill="#020617" opacity=".38" stroke="#ffffff" stroke-opacity=".16"/>
+  <rect x="175" y="205" width="310" height="30" rx="15" fill="#67e8f9" opacity=".85"/>
+  <rect x="175" y="285" width="450" height="62" rx="22" fill="#ffffff" opacity=".9"/>
+  <rect x="175" y="385" width="340" height="20" rx="10" fill="#ffffff" opacity=".34"/>
+  <rect x="175" y="430" width="275" height="20" rx="10" fill="#ffffff" opacity=".22"/>
+  <rect x="175" y="520" width="190" height="66" rx="24" fill="#facc15" opacity=".88"/>
+</svg>`,
+        },
+        {
+          file: "scripts/smoke-test.ts",
+          title: "Generated Application Smoke Test",
+          type: "typescript",
+          content: `import fs from "node:fs";
+
+const required = [
+  "package.json",
+  "next.config.mjs",
+  "tsconfig.json",
+  "next-env.d.ts",
+  "global.d.ts",
+  "app/page.tsx",
+  "prisma/schema.prisma",
+  "DELIVERY.md",
+  "LAUNCH_CHECKLIST.md"
+];
+
+const missing = required.filter((file) => !fs.existsSync(file));
+
+if (missing.length) {
+  console.error("Missing required files:", missing);
+  process.exit(1);
+}
+
+console.log("OmegaCrownAI generated application smoke test passed.");
+`,
+        },
+      ];
+
+      for (const file of productionScaffold) {
+        if (!existingLivingOSFiles.has(file.file)) {
+          livingOSFiles.push(file);
+        }
+      }
+
+      for (const file of livingOSFiles) {
+        const target = path.join(
+          outDir,
+          file.file
+        );
+
+        fs.mkdirSync(
+          path.dirname(target),
+          { recursive: true }
+        );
+
+        fs.writeFileSync(
+          target,
+          file.content
+        );
+
+        records.push({
+          type: file.type,
+          title: file.title,
+          path: target,
+          status: "ready",
+        });
+      }
+
+      return records;
+    }
+  }
 
   if (!automationFromSpec && saasFromSpec) {
     return buildSaasLandingArtifacts(run, outDir);

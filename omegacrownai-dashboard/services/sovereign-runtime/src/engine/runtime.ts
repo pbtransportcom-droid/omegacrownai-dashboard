@@ -4,11 +4,13 @@ import { runAgentChain } from "../agents/chain.js";
 import { buildArtifacts } from "../artifacts/builder.js";
 import { validateGeneratedArtifacts } from "../artifacts/generated-artifact-validator.js";
 import { applyBlueprintCompliance } from "../artifacts/blueprint-compliance-engine.js";
+import { evaluateBehavioralCompliance } from "../artifacts/behavioral-compliance.js";
 import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
 import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
 import type { RuntimeRun } from "./schema.js";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 import { createBuildSpec } from "../intelligence/build-spec.js";
 
 function id(prefix: string) {
@@ -30,7 +32,10 @@ function safeReadJson(file: string): any | null {
 
 function writeDeliveryManifest(run: RuntimeRun) {
   const projectId = run.projectId;
+  // CANONICAL_RUNTIME_DATA_PATH
+  // RUNTIME_CWD_REPAIR
   const cwd = process.cwd();
+
   const runtimeRoot = cwd.endsWith(path.join("services", "sovereign-runtime"))
     ? cwd
     : path.resolve(cwd, "services", "sovereign-runtime");
@@ -164,6 +169,62 @@ export async function executeRun(projectId: string, input: any) {
     (run as any).blueprintCompliance =
       blueprintCompliance.report;
 
+    // BEHAVIORAL_BLUEPRINT_COMPLIANCE_GATE
+    const behavioralCompliance =
+      evaluateBehavioralCompliance(
+        buildSpec.industry,
+        run.artifacts
+      );
+
+    (run as any).behavioralCompliance =
+      behavioralCompliance;
+
+    // BEHAVIORAL_COMPLIANCE_ARTIFACT
+    const behavioralCompliancePath =
+      path.join(
+        process.cwd(),
+        "data",
+        "artifacts",
+        projectId,
+        "behavioral-compliance.json"
+      );
+
+    fs.writeFileSync(
+      behavioralCompliancePath,
+      JSON.stringify(
+        behavioralCompliance,
+        null,
+        2
+      )
+    );
+
+    run.artifacts.push({
+      file: "behavioral-compliance.json",
+      path: behavioralCompliancePath,
+      title: "Behavioral Compliance Report",
+      type: "json",
+      content: JSON.stringify(
+        behavioralCompliance,
+        null,
+        2
+      ),
+      status: "ready",
+    } as any);
+
+    appendRunEvent(
+      run,
+      behavioralCompliance.deliveryBlocked
+        ? `Behavioral compliance blocked at ${behavioralCompliance.score}/100`
+        : `Behavioral compliance passed at ${behavioralCompliance.score}/100`
+    );
+
+    appendTranscript(
+      projectId,
+      behavioralCompliance.deliveryBlocked
+        ? `Behavioral compliance blocked delivery. Missing behavior: ${behavioralCompliance.failedRequirements.join(", ") || "unknown"}.`
+        : "Behavioral compliance passed."
+    );
+
     appendRunEvent(
       run,
       blueprintCompliance.report.deliveryBlocked
@@ -184,22 +245,45 @@ export async function executeRun(projectId: string, input: any) {
     const baseGeneratedArtifactValidation =
       validateGeneratedArtifacts(run.artifacts);
 
+    // COMBINED_BLUEPRINT_BEHAVIORAL_VALIDATION_GATE
+    const complianceBlocked =
+      blueprintCompliance.report.deliveryBlocked ||
+      behavioralCompliance.deliveryBlocked;
+
+    const complianceErrors = [
+      ...(blueprintCompliance.report.deliveryBlocked
+        ? [
+            {
+              level: "error" as const,
+              file: "blueprint-compliance.json",
+              message:
+                `Authoritative blueprint compliance blocked delivery with score ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}.`,
+            },
+          ]
+        : []),
+      ...(behavioralCompliance.deliveryBlocked
+        ? [
+            {
+              level: "error" as const,
+              file: "behavioral-compliance.json",
+              message:
+                `Behavioral compliance blocked delivery with score ${behavioralCompliance.score}/100. Missing behavior: ${behavioralCompliance.failedRequirements.join(", ") || "unknown"}.`,
+            },
+          ]
+        : []),
+    ];
+
     const generatedArtifactValidation =
-      blueprintCompliance.report.deliveryBlocked
+      complianceBlocked
         ? {
             ...baseGeneratedArtifactValidation,
             ok: false,
             errors: [
               ...baseGeneratedArtifactValidation.errors,
-              {
-                level: "error" as const,
-                file: "blueprint-compliance.json",
-                message:
-                  `Authoritative blueprint compliance blocked delivery with score ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}.`,
-              },
+              ...complianceErrors,
             ],
             summary:
-              `Generated artifact validation blocked by authoritative blueprint compliance. Score ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}.`,
+              `Generated artifact validation blocked by compliance. Blueprint: ${blueprintCompliance.report.score}/${blueprintCompliance.report.minimumQualityScore}. Behavioral: ${behavioralCompliance.score}/100.`,
           }
         : baseGeneratedArtifactValidation;
 

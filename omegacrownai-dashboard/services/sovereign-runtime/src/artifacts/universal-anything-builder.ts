@@ -476,9 +476,857 @@ export function isUniversalAnythingPrompt(prompt: string) {
   return cleanPrompt(prompt).length > 0;
 }
 
+
+// LIVING_OPERATING_SYSTEM_BLUEPRINT_RENDERER
+type GeneratedArtifactFile = {
+  file: string;
+  title: string;
+  type?: string;
+  content: string;
+};
+
+type BlueprintEvidenceResult = {
+  status: "passed" | "blocked";
+  score: number;
+  minimumQualityScore: number;
+  deliveryBlocked: boolean;
+  missingPages: string[];
+  missingApiRoutes: string[];
+  missingFeatures: string[];
+  pageEvidence: Array<{
+    name: string;
+    route: string;
+    file: string;
+    implemented: boolean;
+  }>;
+  apiEvidence: Array<{
+    route: string;
+    file: string;
+    implemented: boolean;
+  }>;
+  featureEvidence: Array<{
+    name: string;
+    implemented: boolean;
+    evidenceFiles: string[];
+  }>;
+  workflowEvidence: Array<{
+    name: string;
+    actor: string;
+    implemented: boolean;
+    evidenceFiles: string[];
+  }>;
+  designEvidence: {
+    requestedQualityLevel: string;
+    premiumLanguagePresent: boolean;
+    designSystemPresent: boolean;
+    prohibitedPatternMatches: string[];
+  };
+};
+
+function cleanBlueprintRoute(route: string) {
+  const value = String(route || "")
+    .trim()
+    .replace(/[?#].*$/, "");
+
+  if (!value || value === "/") return "/";
+
+  return "/" + value
+    .replace(/^\/+/, "")
+    .replace(/\/+/g, "/")
+    .replace(/\/$/, "");
+}
+
+function pageFileFromRoute(route: string) {
+  const normalized = cleanBlueprintRoute(route);
+
+  if (normalized === "/") {
+    return "app/page.tsx";
+  }
+
+  return `app${normalized}/page.tsx`;
+}
+
+function apiFileFromRoute(route: string) {
+  const normalized = cleanBlueprintRoute(route);
+
+  if (!normalized.startsWith("/api/")) {
+    return "";
+  }
+
+  return `app${normalized}/route.ts`;
+}
+
+function relativeLibImport(file: string) {
+  const directorySegments = file
+    .split("/")
+    .slice(0, -1)
+    .filter(Boolean);
+
+  return "../".repeat(directorySegments.length) + "lib";
+}
+
+function safeIdentifier(value: string, fallback: string) {
+  const result = String(value || "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) =>
+      word.charAt(0).toUpperCase() +
+      word.slice(1)
+    )
+    .join("");
+
+  return result || fallback;
+}
+
+function tokenizeRequirement(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/)
+    .filter((token) =>
+      token.length >= 3 &&
+      ![
+        "and",
+        "the",
+        "with",
+        "for",
+        "from",
+        "into",
+        "page",
+        "pages",
+        "feature",
+        "features",
+        "system",
+        "platform",
+        "support",
+      ].includes(token)
+    );
+}
+
+function requirementEvidenceFiles(
+  files: GeneratedArtifactFile[],
+  requirement: string
+) {
+  const tokens = tokenizeRequirement(requirement);
+
+  if (!tokens.length) return [];
+
+  return files
+    .filter((file) => {
+      const searchable = `${file.file}\n${file.title}\n${file.content}`
+        .toLowerCase();
+
+      const matched = tokens.filter((token) =>
+        searchable.includes(token)
+      );
+
+      const requiredMatches =
+        tokens.length <= 2
+          ? tokens.length
+          : Math.max(2, Math.ceil(tokens.length * 0.6));
+
+      return matched.length >= requiredMatches;
+    })
+    .map((file) => file.file);
+}
+
+function createBlueprintPageFile(
+  page: any,
+  route: string,
+  brand: string,
+  blueprint: any
+): GeneratedArtifactFile {
+  const file = pageFileFromRoute(route);
+  const componentName = safeIdentifier(
+    page?.name,
+    "GeneratedPage"
+  );
+
+  const pagePayload = JSON.stringify(
+    {
+      name: String(page?.name || "Business Page"),
+      purpose: String(
+        page?.purpose ||
+        "Support the requested business workflow."
+      ),
+      requiredSections: Array.isArray(page?.requiredSections)
+        ? page.requiredSections
+        : [],
+      requiredActions: Array.isArray(page?.requiredActions)
+        ? page.requiredActions
+        : [],
+    },
+    null,
+    2
+  );
+
+  const qualityLevel = JSON.stringify(
+    blueprint?.design?.qualityLevel || "standard"
+  );
+
+  const productType = JSON.stringify(
+    blueprint?.business?.productType ||
+    "Business Operating System"
+  );
+
+  return {
+    file,
+    title: `${page?.name || componentName} Blueprint Page`,
+    content: `const page = ${pagePayload};
+const qualityLevel = ${qualityLevel};
+const productType = ${productType};
+
+export default function ${componentName}Page() {
+  return (
+    <main className="min-h-screen app-shell">
+      <section className="px-6 py-20 md:px-12">
+        <p className="eyebrow">{productType}</p>
+        <h1
+          style={{
+            marginTop: 18,
+            maxWidth: 980,
+            fontSize: "clamp(42px, 7vw, 82px)",
+            lineHeight: 0.96,
+            fontWeight: 950,
+          }}
+        >
+          {page.name}
+        </h1>
+        <p
+          className="muted"
+          style={{
+            marginTop: 24,
+            maxWidth: 760,
+            fontSize: 19,
+            lineHeight: 1.7,
+          }}
+        >
+          {page.purpose}
+        </p>
+
+        <div className="grid grid-3" style={{ marginTop: 40 }}>
+          {page.requiredSections.map((section: string) => (
+            <article className="card" key={section}>
+              <p className="eyebrow">{qualityLevel} experience</p>
+              <h2 style={{ marginTop: 14 }}>{section}</h2>
+              <p className="muted">
+                This section is required by the authoritative
+                OmegaCrownAI project blueprint for ${brand}.
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <section className="card" style={{ marginTop: 30 }}>
+          <p className="eyebrow">Required actions</p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              marginTop: 18,
+            }}
+          >
+            {page.requiredActions.map((action: string) => (
+              <button className="button" type="button" key={action}>
+                {action}
+              </button>
+            ))}
+          </div>
+        </section>
+      </section>
+    </main>
+  );
+}
+`,
+  };
+}
+
+function createBlueprintStoreFile(): GeneratedArtifactFile {
+  return {
+    file: "lib/blueprint-store.ts",
+    title: "Blueprint Data Store",
+    content: `import fs from "node:fs/promises";
+import path from "node:path";
+
+export type BlueprintRecord = {
+  id: string;
+  resource: string;
+  payload: Record<string, unknown>;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const dataDirectory = path.join(
+  process.cwd(),
+  "data",
+  "blueprint-records"
+);
+
+function fileForResource(resource: string) {
+  const safeResource = resource
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return path.join(
+    dataDirectory,
+    (safeResource || "records") + ".json"
+  );
+}
+
+export async function listBlueprintRecords(
+  resource: string
+): Promise<BlueprintRecord[]> {
+  try {
+    const content = await fs.readFile(
+      fileForResource(resource),
+      "utf8"
+    );
+
+    const records = JSON.parse(content);
+
+    return Array.isArray(records) ? records : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createBlueprintRecord(
+  resource: string,
+  payload: Record<string, unknown>
+): Promise<BlueprintRecord> {
+  const records = await listBlueprintRecords(resource);
+  const now = new Date().toISOString();
+
+  const record: BlueprintRecord = {
+    id:
+      resource.replace(/[^a-z0-9]+/gi, "-").toLowerCase() +
+      "-" +
+      Date.now(),
+    resource,
+    payload,
+    status: "new",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  records.unshift(record);
+
+  await fs.mkdir(dataDirectory, { recursive: true });
+  await fs.writeFile(
+    fileForResource(resource),
+    JSON.stringify(records, null, 2)
+  );
+
+  return record;
+}
+
+export async function updateBlueprintRecordStatus(
+  resource: string,
+  id: string,
+  status: string
+): Promise<BlueprintRecord | null> {
+  const records = await listBlueprintRecords(resource);
+  const index = records.findIndex(
+    (record) => record.id === id
+  );
+
+  if (index === -1) return null;
+
+  records[index] = {
+    ...records[index],
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await fs.mkdir(dataDirectory, { recursive: true });
+  await fs.writeFile(
+    fileForResource(resource),
+    JSON.stringify(records, null, 2)
+  );
+
+  return records[index];
+}
+`,
+  };
+}
+
+function createBlueprintApiFile(
+  route: string,
+  featureName: string
+): GeneratedArtifactFile {
+  const file = apiFileFromRoute(route);
+  const importBase = relativeLibImport(file);
+  const resource = featureName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return {
+    file,
+    title: `${featureName} API`,
+    content: `import { NextResponse } from "next/server";
+import {
+  createBlueprintRecord,
+  listBlueprintRecords,
+  updateBlueprintRecordStatus,
+} from "${importBase}/blueprint-store";
+
+const resource = ${JSON.stringify(resource || "records")};
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const records = await listBlueprintRecords(resource);
+
+  return NextResponse.json({
+    ok: true,
+    resource,
+    records,
+  });
+}
+
+export async function POST(request: Request) {
+  const payload = await request.json();
+
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "A JSON object payload is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const record = await createBlueprintRecord(
+    resource,
+    payload
+  );
+
+  return NextResponse.json(
+    {
+      ok: true,
+      resource,
+      record,
+    },
+    { status: 201 }
+  );
+}
+
+export async function PATCH(request: Request) {
+  const payload = await request.json();
+  const id = String(payload?.id || "");
+  const status = String(payload?.status || "");
+
+  if (!id || !status) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Both id and status are required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const record = await updateBlueprintRecordStatus(
+    resource,
+    id,
+    status
+  );
+
+  if (!record) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Record not found.",
+      },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    resource,
+    record,
+  });
+}
+`,
+  };
+}
+
+function evaluateBlueprintEvidence(
+  files: GeneratedArtifactFile[],
+  blueprint: any
+): BlueprintEvidenceResult {
+  const pageEvidence = (
+    Array.isArray(blueprint?.pages)
+      ? blueprint.pages
+      : []
+  ).map((page: any) => {
+    const route =
+      blueprint?.architecture?.routes?.[
+        blueprint.pages.indexOf(page)
+      ] ||
+      "/" +
+        String(page?.name || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+    const file = pageFileFromRoute(route);
+
+    return {
+      name: String(page?.name || route),
+      route,
+      file,
+      implemented: files.some(
+        (candidate) => candidate.file === file
+      ),
+    };
+  });
+
+  const apiEvidence = (
+    Array.isArray(blueprint?.architecture?.apiRoutes)
+      ? blueprint.architecture.apiRoutes
+      : []
+  ).map((route: string) => {
+    const file = apiFileFromRoute(route);
+
+    return {
+      route,
+      file,
+      implemented:
+        Boolean(file) &&
+        files.some((candidate) => candidate.file === file),
+    };
+  });
+
+  const featureEvidence = (
+    Array.isArray(blueprint?.features)
+      ? blueprint.features
+      : []
+  ).map((feature: any) => {
+    const evidenceFiles = requirementEvidenceFiles(
+      files,
+      String(feature?.name || "")
+    );
+
+    return {
+      name: String(feature?.name || ""),
+      implemented: evidenceFiles.length > 0,
+      evidenceFiles,
+    };
+  });
+
+  const workflowEvidence = (
+    Array.isArray(blueprint?.workflows)
+      ? blueprint.workflows
+      : []
+  ).map((workflow: any) => {
+    const workflowText = [
+      workflow?.name,
+      workflow?.actor,
+      ...(Array.isArray(workflow?.steps)
+        ? workflow.steps
+        : []),
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const evidenceFiles = requirementEvidenceFiles(
+      files,
+      workflowText
+    );
+
+    return {
+      name: String(workflow?.name || "Workflow"),
+      actor: String(workflow?.actor || "business"),
+      implemented: evidenceFiles.length > 0,
+      evidenceFiles,
+    };
+  });
+
+  const missingPages = pageEvidence
+    .filter(
+      (item: BlueprintEvidenceResult["pageEvidence"][number]) =>
+        !item.implemented
+    )
+    .map(
+      (item: BlueprintEvidenceResult["pageEvidence"][number]) =>
+        item.name
+    );
+
+  const missingApiRoutes = apiEvidence
+    .filter(
+      (item: BlueprintEvidenceResult["apiEvidence"][number]) =>
+        !item.implemented
+    )
+    .map(
+      (item: BlueprintEvidenceResult["apiEvidence"][number]) =>
+        item.route
+    );
+
+  const missingFeatures = featureEvidence
+    .filter(
+      (item: BlueprintEvidenceResult["featureEvidence"][number]) =>
+        !item.implemented
+    )
+    .map(
+      (item: BlueprintEvidenceResult["featureEvidence"][number]) =>
+        item.name
+    );
+
+  const searchableOutput = files
+    .map((file) => `${file.file}\n${file.content}`)
+    .join("\n")
+    .toLowerCase();
+
+  const prohibitedPatternMatches = (
+    blueprint?.design?.prohibitedPatterns || []
+  ).filter((pattern: string) =>
+    searchableOutput.includes(
+      String(pattern).toLowerCase()
+    )
+  );
+
+  const requestedQualityLevel =
+    blueprint?.design?.qualityLevel || "standard";
+
+  const premiumLanguagePresent =
+    requestedQualityLevel === "standard" ||
+    /premium|luxury|executive|refined|polished|high-end/.test(
+      searchableOutput
+    );
+
+  const designSystemPresent = files.some(
+    (file) =>
+      file.file === "app/globals.css" ||
+      file.file === "styles.css"
+  );
+
+  const totalChecks =
+    pageEvidence.length +
+    apiEvidence.length +
+    featureEvidence.length +
+    workflowEvidence.length +
+    2;
+
+  const passedChecks =
+    pageEvidence.filter(
+      (item: BlueprintEvidenceResult["pageEvidence"][number]) =>
+        item.implemented
+    ).length +
+    apiEvidence.filter(
+      (item: BlueprintEvidenceResult["apiEvidence"][number]) =>
+        item.implemented
+    ).length +
+    featureEvidence.filter(
+      (item: BlueprintEvidenceResult["featureEvidence"][number]) =>
+        item.implemented
+    ).length +
+    workflowEvidence.filter(
+      (item: BlueprintEvidenceResult["workflowEvidence"][number]) =>
+        item.implemented
+    ).length +
+    Number(premiumLanguagePresent) +
+    Number(designSystemPresent);
+
+  const score =
+    totalChecks > 0
+      ? Math.round((passedChecks / totalChecks) * 100)
+      : 0;
+
+  const minimumQualityScore = Number(
+    blueprint?.compliance?.minimumQualityScore || 88
+  );
+
+  const deliveryBlocked =
+    Boolean(
+      blueprint?.compliance?.blockDeliveryOnFailure
+    ) &&
+    (
+      missingPages.length > 0 ||
+      missingApiRoutes.length > 0 ||
+      missingFeatures.length > 0 ||
+      score < minimumQualityScore ||
+      prohibitedPatternMatches.length > 0
+    );
+
+  return {
+    status: deliveryBlocked ? "blocked" : "passed",
+    score,
+    minimumQualityScore,
+    deliveryBlocked,
+    missingPages,
+    missingApiRoutes,
+    missingFeatures,
+    pageEvidence,
+    apiEvidence,
+    featureEvidence,
+    workflowEvidence,
+    designEvidence: {
+      requestedQualityLevel,
+      premiumLanguagePresent,
+      designSystemPresent,
+      prohibitedPatternMatches,
+    },
+  };
+}
+
+function appendBlueprintDrivenArtifacts(
+  files: GeneratedArtifactFile[],
+  blueprint: any,
+  brand: string
+) {
+  if (!blueprint) return null;
+
+  if (
+    !files.some(
+      (file) => file.file === "lib/blueprint-store.ts"
+    )
+  ) {
+    files.push(createBlueprintStoreFile());
+  }
+
+  const blueprintPages = Array.isArray(blueprint.pages)
+    ? blueprint.pages
+    : [];
+
+  const blueprintRoutes = Array.isArray(
+    blueprint?.architecture?.routes
+  )
+    ? blueprint.architecture.routes
+    : [];
+
+  blueprintPages.forEach((page: any, index: number) => {
+    const route =
+      blueprintRoutes[index] ||
+      "/" +
+        String(page?.name || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+    const file = pageFileFromRoute(route);
+
+    if (!files.some((candidate) => candidate.file === file)) {
+      files.push(
+        createBlueprintPageFile(
+          page,
+          route,
+          brand,
+          blueprint
+        )
+      );
+    }
+  });
+
+  const apiRoutes = Array.isArray(
+    blueprint?.architecture?.apiRoutes
+  )
+    ? blueprint.architecture.apiRoutes
+    : [];
+
+  apiRoutes.forEach((route: string, index: number) => {
+    const file = apiFileFromRoute(route);
+
+    if (!file) return;
+
+    if (!files.some((candidate) => candidate.file === file)) {
+      const featureName =
+        blueprint?.features?.[index]?.name ||
+        route.split("/").filter(Boolean).at(-1) ||
+        "Business record";
+
+      files.push(
+        createBlueprintApiFile(route, featureName)
+      );
+    }
+  });
+
+  files.push({
+    file: "authoritative-blueprint.json",
+    title: "Authoritative Project Blueprint",
+    type: "json",
+    content: JSON.stringify(blueprint, null, 2),
+  });
+
+  const evidence = evaluateBlueprintEvidence(
+    files,
+    blueprint
+  );
+
+  files.push({
+    file: "blueprint-compliance.json",
+    title: "Blueprint Compliance Evidence",
+    type: "json",
+    content: JSON.stringify(evidence, null, 2),
+  });
+
+  files.push({
+    file: "BLUEPRINT_COMPLIANCE.md",
+    title: "Blueprint Compliance Report",
+    type: "markdown",
+    content: `# Blueprint Compliance Report
+
+- Status: ${evidence.status}
+- Score: ${evidence.score}
+- Minimum required score: ${evidence.minimumQualityScore}
+- Delivery blocked: ${evidence.deliveryBlocked}
+
+## Missing pages
+
+${
+  evidence.missingPages.length
+    ? evidence.missingPages
+        .map((item) => `- ${item}`)
+        .join("\n")
+    : "- None"
+}
+
+## Missing API routes
+
+${
+  evidence.missingApiRoutes.length
+    ? evidence.missingApiRoutes
+        .map((item) => `- ${item}`)
+        .join("\n")
+    : "- None"
+}
+
+## Missing feature evidence
+
+${
+  evidence.missingFeatures.length
+    ? evidence.missingFeatures
+        .map((item) => `- ${item}`)
+        .join("\n")
+    : "- None"
+}
+
+The generated project must not be described as ready when
+deliveryBlocked is true.
+`,
+  });
+
+  return evidence;
+}
+
+
 export async function buildUniversalAnythingArtifacts(run: any, outDir: string) {
   const now = new Date().toISOString();
   const buildSpec = run.buildSpec || null;
+  const authoritativeBlueprint =
+    buildSpec?.authoritativeBlueprint || null;
   const prompt = cleanPrompt(buildSpec?.normalizedPrompt || run.prompt || "");
   const domain = inferDomain(prompt, buildSpec);
   const brand = cleanPrompt(buildSpec?.brandName || "") || safeBrand(prompt, domain.product);
@@ -1351,10 +2199,10 @@ function svgAsset(title: string, emoji: string, bgA = "#fb923c", bgB = "#facc15"
           "@types/node": "22.10.2",
           "@types/react": "19.0.2",
           "@types/react-dom": "19.0.2",
-          next: "latest",
-          react: "latest",
+          next: "15.5.19",
+          react: "19.0.0",
           "react-dom": "19.0.0",
-          typescript: "latest",
+          typescript: "5.7.2",
           tsx: "latest"
         }
       }, null, 2)
@@ -4012,7 +4860,63 @@ export default function EditorPage() {
   }
 
   rewriteBookstoreCommerceFiles();
-  files.splice(0, files.length, ...applyIndustryAssetSpecialization(files, prompt, brand, buildSpec));
+  files.splice(
+    0,
+    files.length,
+    ...applyIndustryAssetSpecialization(
+      files,
+      prompt,
+      brand,
+      buildSpec
+    )
+  );
+
+  const blueprintEvidence =
+    appendBlueprintDrivenArtifacts(
+      files,
+      authoritativeBlueprint,
+      brand
+    );
+
+  if (blueprintEvidence?.deliveryBlocked) {
+    const metadataFile = files.find(
+      (file) => file.file === "metadata.json"
+    );
+
+    if (metadataFile) {
+      try {
+        const metadata = JSON.parse(metadataFile.content);
+
+        metadata.blueprintCompliance =
+          blueprintEvidence;
+
+        metadata.generatedArtifactQualityReport = {
+          ...(metadata.generatedArtifactQualityReport || {}),
+          expectedTermsPassed:
+            blueprintEvidence.missingFeatures.length === 0,
+          frontendComplete:
+            blueprintEvidence.missingPages.length === 0,
+          apiComplete:
+            blueprintEvidence.missingApiRoutes.length === 0,
+          delivered: false,
+          customerReady: false,
+          deliveryBlocked: true,
+          blueprintScore: blueprintEvidence.score,
+          minimumBlueprintScore:
+            blueprintEvidence.minimumQualityScore,
+        };
+
+        metadataFile.content = JSON.stringify(
+          metadata,
+          null,
+          2
+        );
+      } catch {
+        // Preserve artifact generation if legacy metadata
+        // cannot be parsed.
+      }
+    }
+  }
 
   const records: ArtifactRecord[] = [];
 

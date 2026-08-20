@@ -1,9 +1,13 @@
 import fs from "fs";
 import path from "path";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 
 export async function prepareDelivery(run: any) {
   const blueprintCompliance =
     (run as any).blueprintCompliance || null;
+
+  const behavioralCompliance =
+    (run as any).behavioralCompliance || null;
 
   const generatedArtifactValidation =
     (run as any).generatedArtifactValidation ||
@@ -12,15 +16,20 @@ export async function prepareDelivery(run: any) {
 
   const deliveryBlocked =
     Boolean(blueprintCompliance?.deliveryBlocked) ||
+    Boolean(behavioralCompliance?.deliveryBlocked) ||
     generatedArtifactValidation?.ok === false;
 
-  const exportDir = path.join(process.cwd(), "data", "exports");
+  const exportDir =
+    runtimeDataPath(
+      "exports"
+    );
   fs.mkdirSync(exportDir, { recursive: true });
 
   const manifestPath = path.join(exportDir, `${run.projectId}.json`);
 
   const buildProof = {
     blueprintCompliance,
+    behavioralCompliance,
     generatedArtifactValidation,
     standaloneBuildReady:
       !deliveryBlocked &&

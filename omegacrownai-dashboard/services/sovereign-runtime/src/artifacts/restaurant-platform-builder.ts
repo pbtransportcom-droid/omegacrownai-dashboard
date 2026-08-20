@@ -305,7 +305,7 @@ export async function buildRestaurantPlatformArtifacts(run: any, outDir: string)
       file: "package.json",
       title: "Package Manifest",
       type: "json",
-      content: `{"name":"crown-table-restaurant-platform","version":"1.0.0","private":true,"scripts":{"dev":"next dev","postinstall":"prisma generate","build":"prisma generate && next build","start":"next start","db:generate":"prisma generate","smoke":"tsx scripts/smoke-test.ts"},"dependencies":{"@prisma/client":"6.19.0","prisma":"6.19.0","@types/node":"latest","@types/react":"latest","@types/react-dom":"latest","next":"latest","react":"latest","react-dom":"latest","typescript":"latest","tsx":"latest"}}`
+      content: `{"name":"crown-table-restaurant-platform","version":"1.0.0","private":true,"scripts":{"dev":"next dev","postinstall":"prisma generate","build":"prisma generate && next build","start":"next start","db:generate":"prisma generate","smoke":"tsx scripts/smoke-test.ts"},"dependencies":{"@prisma/client":"6.19.0","prisma":"6.19.0","@types/node":"22.10.2","@types/react":"19.0.2","@types/react-dom":"19.0.2","next":"15.5.19","react":"19.0.0","react-dom":"19.0.0","typescript":"5.7.2","tsx":"latest"}}`
     },
     {
       file: "app/page.tsx",

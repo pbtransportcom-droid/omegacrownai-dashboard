@@ -203,7 +203,9 @@ function validateVisualAssets(artifacts: GeneratedArtifact[], errors: GeneratedA
 
   const artifactFileSet = new Set(
     artifacts
-      .map((artifact) => artifact.file || artifact.path || "")
+      .map((artifact) =>
+        normalizeArtifactPath(artifactFile(artifact))
+      )
       .filter(Boolean)
   );
 

@@ -1017,8 +1017,14 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   }
 
 
+  const isMarketingBuild =
+    mode.includes("marketing") ||
+    /\b(marketing|marketing campaign|campaign landing page|campaign system|ad copy|email sequence|social media captions|social captions|campaign calendar|lead capture)\b/i.test(
+      originalPrompt
+    );
+
   // FORCE_MARKETING_CAMPAIGN_SYSTEM
-  if (mode.includes("marketing")) {
+  if (isMarketingBuild) {
     industry = "marketing campaign";
     productType = "marketing campaign system";
     targetCustomer = "campaign managers, business owners, and growth teams";
@@ -1109,50 +1115,56 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   }
 
   // FORCE_MARKETING_CAMPAIGN_SPEC
-  if (mode.includes("marketing")) {
+  if (isMarketingBuild) {
     industry = "marketing campaign";
     productType = "marketing campaign system";
-    targetCustomer = "campaign leads and business owners";
+    targetCustomer = "campaign leads, business owners, and campaign managers";
+
     services = [
       "Campaign landing page",
       "Offer sections",
-      "Lead capture form",
-      "Email sequence plan",
-      "Ad copy",
-      "Social media captions",
-      "Campaign calendar",
-    ];
-    pages = [
-      "Campaign Landing Page",
-      "Offer Sections",
-      "Lead Capture",
-      "Email Sequence",
-      "Ad Copy Library",
-      "Social Calendar",
-      "Admin Review",
-    ];
-    features = [
-      "Campaign landing page",
-      "Offer positioning",
-      "Lead capture form",
+      "Lead capture",
       "Email sequence plan",
       "Ad copy",
       "Social media captions",
       "Campaign calendar",
       "Admin review",
     ];
-    customerWorkflow = [
-      "Visit campaign landing page",
-      "Review offer",
-      "Submit lead capture form",
-      "Receive campaign follow-up",
+
+    pages = [
+      "Campaign Landing Page",
+      "Offers",
+      "Lead Capture",
+      "Email Sequence",
+      "Ad Copy",
+      "Social Calendar",
+      "Admin Dashboard",
     ];
+
+    features = [
+      "Lead capture",
+      "Offer sections",
+      "Email sequence plan",
+      "Ad copy",
+      "Social media captions",
+      "Campaign calendar",
+      "Admin review",
+      "Status tracking",
+    ];
+
+    customerWorkflow = [
+      "Visit campaign page",
+      "Review offer",
+      "Submit lead form",
+      "Receive follow-up",
+    ];
+
     adminWorkflow = [
-      "Review campaign leads",
-      "Approve campaign copy",
-      "Schedule email sequence",
-      "Publish social captions",
-      "Track campaign follow-up",
+      "Review leads",
+      "Approve campaign assets",
+      "Schedule content",
+      "Track responses",
+      "Prepare follow-up",
     ];
   }
 
@@ -1173,7 +1185,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   });
 
   // FORCE_MARKETING_PROFESSIONAL_CAMPAIGN_DESIGN
-  if (mode.includes("marketing")) {
+  if (isMarketingBuild) {
     visualDirection = "marketing campaign system with campaign landing page, offer sections, lead capture form, email sequence plan, ad copy library, social media captions, campaign calendar, admin review, API route, data storage, source package, delivery guide, and launch checklist. Professional campaign design with clear offer hierarchy, conversion sections, lead capture panel, campaign calendar, and approval workflow.";
 
     designPreset = {
@@ -1225,7 +1237,7 @@ export function createBuildSpec(input: { prompt?: string; mode?: string; project
   }
 
   // FORCE_MARKETING_PROFESSIONAL_DESIGN
-  if (mode.includes("marketing")) {
+  if (isMarketingBuild) {
     visualDirection = "marketing campaign system with campaign landing page, offer sections, lead capture form, email sequence plan, ad copy, social media captions, campaign calendar, admin review, API route, data storage, source package, delivery guide, and launch checklist. Professional business design with persuasive campaign sections, clear conversion paths, review panels, and campaign-focused copy.";
 
     designPreset = {

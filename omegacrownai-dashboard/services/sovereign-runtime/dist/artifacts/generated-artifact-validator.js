@@ -157,7 +157,7 @@ function validatePromptMatch(artifacts, errors) {
 function validateVisualAssets(artifacts, errors) {
     const manifest = parseJsonArtifact(findArtifact(artifacts, "data/asset-manifest.json"));
     const artifactFileSet = new Set(artifacts
-        .map((artifact) => artifact.file || artifact.path || "")
+        .map((artifact) => normalizeArtifactPath(artifactFile(artifact)))
         .filter(Boolean));
     function normalizeReferencedAsset(file) {
         return file
