@@ -132,6 +132,10 @@ function CreatePageClient() {
   const selected = builderTypes[type];
   const department = searchParams.get("department") || type;
 
+  // HOMEPAGE_PROMPT_QUERY
+  const initialPrompt =
+    searchParams.get("prompt")?.trim() || selected.defaultPrompt;
+
 
   async function launchSovereignBuild(formData: FormData) {
     try {
@@ -265,7 +269,7 @@ function CreatePageClient() {
                 </span>
                 <textarea
                   name="prompt"
-                  defaultValue={selected.defaultPrompt}
+                  defaultValue={initialPrompt}
                   rows={8}
                   className="mt-2 w-full rounded-xl border border-slate-700 bg-black/30 px-4 py-3 text-sm leading-7 text-white outline-none focus:border-cyan-300"
                 />
