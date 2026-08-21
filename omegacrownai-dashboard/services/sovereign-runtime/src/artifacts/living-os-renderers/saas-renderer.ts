@@ -582,13 +582,27 @@ export function WorkspaceDashboard() {
     title: "SaaS Dashboard",
     type: "typescript",
     content: `import {
+  redirect,
+} from "next/navigation";
+
+import {
+  requireSaasSession,
+} from "../../lib/saas-auth";
+
+import {
   SaasHeader,
 } from "../../components/SaasHeader";
 import {
   WorkspaceDashboard,
 } from "../../components/WorkspaceDashboard";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  try {
+    await requireSaasSession();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main>
       <SaasHeader />
@@ -736,13 +750,27 @@ export function AutomationBuilder() {
     title: "Automation Workspace",
     type: "typescript",
     content: `import {
+  redirect,
+} from "next/navigation";
+
+import {
+  requireSaasSession,
+} from "../../lib/saas-auth";
+
+import {
   SaasHeader,
 } from "../../components/SaasHeader";
 import {
   AutomationBuilder,
 } from "../../components/AutomationBuilder";
 
-export default function AutomationsPage() {
+export default async function AutomationsPage() {
+  try {
+    await requireSaasSession();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main>
       <SaasHeader />
@@ -856,13 +884,27 @@ export function TeamManager() {
     title: "Team Management Page",
     type: "typescript",
     content: `import {
+  redirect,
+} from "next/navigation";
+
+import {
+  requireSaasSession,
+} from "../../lib/saas-auth";
+
+import {
   SaasHeader,
 } from "../../components/SaasHeader";
 import {
   TeamManager,
 } from "../../components/TeamManager";
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  try {
+    await requireSaasSession();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main>
       <SaasHeader />
@@ -1015,13 +1057,27 @@ export function BillingManager() {
     title: "Subscription Billing",
     type: "typescript",
     content: `import {
+  redirect,
+} from "next/navigation";
+
+import {
+  requireSaasSession,
+} from "../../lib/saas-auth";
+
+import {
   SaasHeader,
 } from "../../components/SaasHeader";
 import {
   BillingManager,
 } from "../../components/BillingManager";
 
-export default function BillingPage() {
+export default async function BillingPage() {
+  try {
+    await requireSaasSession();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main>
       <SaasHeader />
@@ -1111,8 +1167,1185 @@ export async function createSaasRecord<
 `,
   });
 
+  // SAAS_PROTECTED_PAGE_AUTHORIZATION
+  // Protected SaaS pages validate the opaque session token against
+  // durable server-side session state before rendering. Middleware
+  // remains only a fast missing-cookie redirect.
+
+  // SAAS_PRODUCTION_AUTH_ARTIFACTS
+  // Generated SaaS applications receive persistent password-based
+  // authentication and opaque server-side sessions. This intentionally
+  // does not reuse the generic demo-session scaffold.
+  files.push({
+    file: "lib/saas-auth-store.ts",
+    title: "SaaS Authentication Store",
+    type: "typescript",
+    content: `import fs from "fs/promises";
+import path from "path";
+import {
+  createHash,
+  randomBytes,
+  scryptSync,
+  timingSafeEqual,
+} from "crypto";
+
+const runtimeRoot =
+  process.env.OMEGACROWN_RUNTIME_DATA_DIR ||
+  path.join(process.cwd(), "data", "runtime");
+
+const usersFile =
+  path.join(runtimeRoot, "auth-users.json");
+
+const sessionsFile =
+  path.join(runtimeRoot, "auth-sessions.json");
+
+const workspacesFile =
+  path.join(runtimeRoot, "workspaces.json");
+
+const membershipsFile =
+  path.join(runtimeRoot, "memberships.json");
+
+const SESSION_TTL_MS =
+  7 * 24 * 60 * 60 * 1000;
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  passwordSalt: string;
+  passwordHash: string;
+  createdAt: string;
+};
+
+export type PublicAuthUser = {
+  id: string;
+  email: string;
+  name: string;
+};
+
+type SessionRecord = {
+  tokenHash: string;
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+};
+
+type WorkspaceRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+};
+
+type MembershipRecord = {
+  id: string;
+  userId: string;
+  workspaceId: string;
+  role: string;
+  createdAt: string;
+};
+
+async function readList<T>(
+  file: string
+): Promise<T[]> {
+  try {
+    return JSON.parse(
+      await fs.readFile(file, "utf8")
+    );
+  } catch {
+    return [];
+  }
+}
+
+async function writeList<T>(
+  file: string,
+  value: T[]
+) {
+  await fs.mkdir(runtimeRoot, {
+    recursive: true,
+  });
+
+  await fs.writeFile(
+    file,
+    JSON.stringify(value, null, 2)
+  );
+}
+
+function normalizeEmail(
+  value: unknown
+) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
+function passwordDigest(
+  password: string,
+  salt: string
+) {
+  return scryptSync(
+    password,
+    salt,
+    64
+  ).toString("hex");
+}
+
+function tokenDigest(
+  token: string
+) {
+  return createHash("sha256")
+    .update(token)
+    .digest("hex");
+}
+
+function publicUser(
+  user: AuthUser
+): PublicAuthUser {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+  };
+}
+
+export async function registerUser(
+  input: {
+    email?: unknown;
+    password?: unknown;
+    name?: unknown;
+    workspaceName?: unknown;
+  }
+) {
+  const email =
+    normalizeEmail(input.email);
+
+  const password =
+    String(input.password || "");
+
+  const name =
+    String(input.name || "").trim();
+
+  if (
+    !email ||
+    !email.includes("@")
+  ) {
+    throw new Error(
+      "A valid email is required."
+    );
+  }
+
+  if (password.length < 10) {
+    throw new Error(
+      "Password must contain at least 10 characters."
+    );
+  }
+
+  if (!name) {
+    throw new Error(
+      "Name is required."
+    );
+  }
+
+  const users =
+    await readList<AuthUser>(
+      usersFile
+    );
+
+  if (
+    users.some(
+      (user) =>
+        user.email === email
+    )
+  ) {
+    throw new Error(
+      "An account already exists for this email."
+    );
+  }
+
+  const now =
+    new Date().toISOString();
+
+  const userId =
+    "user-" +
+    randomBytes(12)
+      .toString("hex");
+
+  const salt =
+    randomBytes(16)
+      .toString("hex");
+
+  const user: AuthUser = {
+    id: userId,
+    email,
+    name,
+    passwordSalt: salt,
+    passwordHash:
+      passwordDigest(
+        password,
+        salt
+      ),
+    createdAt: now,
+  };
+
+  users.push(user);
+
+  await writeList(
+    usersFile,
+    users
+  );
+
+  const workspaceName =
+    String(
+      input.workspaceName ||
+      \`\${name}'s Workspace\`
+    ).trim();
+
+  const workspaceId =
+    "workspace-" +
+    randomBytes(10)
+      .toString("hex");
+
+  const workspace: WorkspaceRecord = {
+    id: workspaceId,
+    name: workspaceName,
+    slug:
+      workspaceName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") +
+      "-" +
+      randomBytes(3)
+        .toString("hex"),
+    createdAt: now,
+  };
+
+  const workspaces =
+    await readList<WorkspaceRecord>(
+      workspacesFile
+    );
+
+  workspaces.push(workspace);
+
+  await writeList(
+    workspacesFile,
+    workspaces
+  );
+
+  const memberships =
+    await readList<MembershipRecord>(
+      membershipsFile
+    );
+
+  memberships.push({
+    id:
+      "membership-" +
+      randomBytes(10)
+        .toString("hex"),
+    userId,
+    workspaceId,
+    role: "owner",
+    createdAt: now,
+  });
+
+  await writeList(
+    membershipsFile,
+    memberships
+  );
+
+  return {
+    user: publicUser(user),
+    workspace,
+    role: "owner",
+  };
+}
+
+export async function authenticateUser(
+  emailInput: unknown,
+  passwordInput: unknown
+) {
+  const email =
+    normalizeEmail(emailInput);
+
+  const password =
+    String(passwordInput || "");
+
+  const users =
+    await readList<AuthUser>(
+      usersFile
+    );
+
+  const user =
+    users.find(
+      (candidate) =>
+        candidate.email === email
+    );
+
+  if (!user) {
+    return null;
+  }
+
+  const expected =
+    Buffer.from(
+      user.passwordHash,
+      "hex"
+    );
+
+  const actual =
+    Buffer.from(
+      passwordDigest(
+        password,
+        user.passwordSalt
+      ),
+      "hex"
+    );
+
+  if (
+    expected.length !==
+    actual.length
+  ) {
+    return null;
+  }
+
+  if (
+    !timingSafeEqual(
+      expected,
+      actual
+    )
+  ) {
+    return null;
+  }
+
+  return publicUser(user);
+}
+
+export async function createSession(
+  userId: string
+) {
+  const token =
+    randomBytes(32)
+      .toString("base64url");
+
+  const sessions =
+    await readList<SessionRecord>(
+      sessionsFile
+    );
+
+  const now =
+    Date.now();
+
+  const active =
+    sessions.filter(
+      (session) =>
+        new Date(
+          session.expiresAt
+        ).getTime() > now
+    );
+
+  active.push({
+    tokenHash:
+      tokenDigest(token),
+    userId,
+    createdAt:
+      new Date(now)
+        .toISOString(),
+    expiresAt:
+      new Date(
+        now + SESSION_TTL_MS
+      ).toISOString(),
+  });
+
+  await writeList(
+    sessionsFile,
+    active
+  );
+
+  return {
+    token,
+    maxAge:
+      Math.floor(
+        SESSION_TTL_MS / 1000
+      ),
+  };
+}
+
+export async function deleteSession(
+  token: string
+) {
+  if (!token) return;
+
+  const digest =
+    tokenDigest(token);
+
+  const sessions =
+    await readList<SessionRecord>(
+      sessionsFile
+    );
+
+  await writeList(
+    sessionsFile,
+    sessions.filter(
+      (session) =>
+        session.tokenHash !==
+        digest
+    )
+  );
+}
+
+export async function resolveSession(
+  token: string
+) {
+  if (!token) {
+    return null;
+  }
+
+  const digest =
+    tokenDigest(token);
+
+  const sessions =
+    await readList<SessionRecord>(
+      sessionsFile
+    );
+
+  const now =
+    Date.now();
+
+  const session =
+    sessions.find(
+      (candidate) =>
+        candidate.tokenHash ===
+          digest &&
+        new Date(
+          candidate.expiresAt
+        ).getTime() > now
+    );
+
+  if (!session) {
+    return null;
+  }
+
+  const users =
+    await readList<AuthUser>(
+      usersFile
+    );
+
+  const user =
+    users.find(
+      (candidate) =>
+        candidate.id ===
+        session.userId
+    );
+
+  if (!user) {
+    return null;
+  }
+
+  const memberships =
+    await readList<MembershipRecord>(
+      membershipsFile
+    );
+
+  const membership =
+    memberships.find(
+      (candidate) =>
+        candidate.userId ===
+        user.id
+    ) || null;
+
+  return {
+    user: publicUser(user),
+    membership,
+  };
+}
+`,
+  });
+
+  files.push({
+    file: "lib/saas-auth.ts",
+    title: "SaaS Authentication Helpers",
+    type: "typescript",
+    content: `import {
+  cookies,
+} from "next/headers";
+
+import {
+  resolveSession,
+} from "./saas-auth-store";
+
+export const
+  SAAS_SESSION_COOKIE =
+    "crownflow_session";
+
+export async function
+currentSaasSession() {
+  const cookieStore =
+    await cookies();
+
+  const token =
+    cookieStore.get(
+      SAAS_SESSION_COOKIE
+    )?.value || "";
+
+  return resolveSession(token);
+}
+
+export async function
+requireSaasSession() {
+  const session =
+    await currentSaasSession();
+
+  if (!session) {
+    throw new Error(
+      "Authentication required."
+    );
+  }
+
+  return session;
+}
+`,
+  });
+
+  files.push({
+    file: "app/api/auth/register/route.ts",
+    title: "SaaS Registration API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  SAAS_SESSION_COOKIE,
+} from "../../../../lib/saas-auth";
+
+import {
+  createSession,
+  registerUser,
+} from "../../../../lib/saas-auth-store";
+
+export async function POST(
+  request: Request
+) {
+  try {
+    const input =
+      await request.json();
+
+    const account =
+      await registerUser(
+        input || {}
+      );
+
+    const session =
+      await createSession(
+        account.user.id
+      );
+
+    const response =
+      NextResponse.json(
+        {
+          ok: true,
+          user:
+            account.user,
+          workspace:
+            account.workspace,
+          role:
+            account.role,
+        },
+        {
+          status: 201,
+        }
+      );
+
+    response.cookies.set(
+      SAAS_SESSION_COOKIE,
+      session.token,
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        secure:
+          process.env.NODE_ENV ===
+          "production",
+        path: "/",
+        maxAge:
+          session.maxAge,
+      }
+    );
+
+    return response;
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Registration failed.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+}
+`,
+  });
+
+  files.push({
+    file: "app/api/auth/login/route.ts",
+    title: "SaaS Login API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  SAAS_SESSION_COOKIE,
+} from "../../../../lib/saas-auth";
+
+import {
+  authenticateUser,
+  createSession,
+} from "../../../../lib/saas-auth-store";
+
+export async function POST(
+  request: Request
+) {
+  const input =
+    await request.json();
+
+  const user =
+    await authenticateUser(
+      input?.email,
+      input?.password
+    );
+
+  if (!user) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Invalid email or password.",
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
+  const session =
+    await createSession(
+      user.id
+    );
+
+  const response =
+    NextResponse.json({
+      ok: true,
+      user,
+    });
+
+  response.cookies.set(
+    SAAS_SESSION_COOKIE,
+    session.token,
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      path: "/",
+      maxAge:
+        session.maxAge,
+    }
+  );
+
+  return response;
+}
+`,
+  });
+
+  files.push({
+    file: "app/api/auth/logout/route.ts",
+    title: "SaaS Logout API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  SAAS_SESSION_COOKIE,
+} from "../../../../lib/saas-auth";
+
+import {
+  deleteSession,
+} from "../../../../lib/saas-auth-store";
+
+export async function POST(
+  request: Request
+) {
+  const cookieHeader =
+    request.headers.get(
+      "cookie"
+    ) || "";
+
+  const token =
+    cookieHeader
+      .split(";")
+      .map(
+        (item) =>
+          item.trim()
+      )
+      .find(
+        (item) =>
+          item.startsWith(
+            SAAS_SESSION_COOKIE +
+            "="
+          )
+      )
+      ?.slice(
+        SAAS_SESSION_COOKIE.length +
+        1
+      ) || "";
+
+  await deleteSession(token);
+
+  const response =
+    NextResponse.json({
+      ok: true,
+    });
+
+  response.cookies.set(
+    SAAS_SESSION_COOKIE,
+    "",
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      path: "/",
+      maxAge: 0,
+    }
+  );
+
+  return response;
+}
+`,
+  });
+
+  files.push({
+    file: "app/api/auth/session/route.ts",
+    title: "SaaS Session API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  currentSaasSession,
+} from "../../../../lib/saas-auth";
+
+export async function GET() {
+  const session =
+    await currentSaasSession();
+
+  if (!session) {
+    return NextResponse.json(
+      {
+        ok: false,
+        authenticated: false,
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    authenticated: true,
+    user:
+      session.user,
+    membership:
+      session.membership,
+  });
+}
+`,
+  });
+
+  files.push({
+    file: "components/AuthAccessForm.tsx",
+    title: "SaaS Account Access Form",
+    type: "typescript",
+    content: `"use client";
+
+import {
+  FormEvent,
+  useState,
+} from "react";
+
+type Mode =
+  | "login"
+  | "register";
+
+export function AuthAccessForm({
+  mode,
+}: {
+  mode: Mode;
+}) {
+  const [status, setStatus] =
+    useState("");
+
+  async function submit(
+    event:
+      FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    setStatus(
+      mode === "login"
+        ? "Signing in..."
+        : "Creating account..."
+    );
+
+    const form =
+      new FormData(
+        event.currentTarget
+      );
+
+    const payload = {
+      name:
+        form.get("name"),
+      email:
+        form.get("email"),
+      password:
+        form.get("password"),
+      workspaceName:
+        form.get(
+          "workspaceName"
+        ),
+    };
+
+    const response =
+      await fetch(
+        \`/api/auth/\${mode}\`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body:
+            JSON.stringify(
+              payload
+            ),
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (!response.ok) {
+      setStatus(
+        result?.error ||
+        "Account access failed."
+      );
+      return;
+    }
+
+    window.location.href =
+      "/dashboard";
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: 24,
+      }}
+    >
+      <section
+        style={{
+          width: "min(560px,100%)",
+          padding: 32,
+          borderRadius: 24,
+          border:
+            "1px solid rgba(148,163,184,.24)",
+        }}
+      >
+        <p className="eyebrow">
+          {mode === "login"
+            ? "Account access"
+            : "Create workspace"}
+        </p>
+
+        <h1>
+          {mode === "login"
+            ? "Sign in to your workspace."
+            : "Create your CrownFlow account."}
+        </h1>
+
+        <form
+          onSubmit={submit}
+          style={{
+            display: "grid",
+            gap: 16,
+            marginTop: 24,
+          }}
+        >
+          {mode === "register" ? (
+            <>
+              <label>
+                Name
+                <input
+                  name="name"
+                  required
+                />
+              </label>
+
+              <label>
+                Workspace name
+                <input
+                  name="workspaceName"
+                  required
+                />
+              </label>
+            </>
+          ) : null}
+
+          <label>
+            Email
+            <input
+              name="email"
+              type="email"
+              required
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              minLength={10}
+              required
+            />
+          </label>
+
+          <button
+            type="submit"
+          >
+            {mode === "login"
+              ? "Sign in"
+              : "Create account"}
+          </button>
+        </form>
+
+        {status ? (
+          <p>{status}</p>
+        ) : null}
+
+        <p
+          style={{
+            marginTop: 20,
+          }}
+        >
+          {mode === "login" ? (
+            <a href="/register">
+              Create an account
+            </a>
+          ) : (
+            <a href="/login">
+              Already have an account?
+            </a>
+          )}
+        </p>
+      </section>
+    </main>
+  );
+}
+`,
+  });
+
+  files.push({
+    file: "app/login/page.tsx",
+    title: "SaaS Login Page",
+    type: "typescript",
+    content: `import {
+  AuthAccessForm,
+} from "../../components/AuthAccessForm";
+
+export default function LoginPage() {
+  return (
+    <AuthAccessForm
+      mode="login"
+    />
+  );
+}
+`,
+  });
+
+  files.push({
+    file: "app/register/page.tsx",
+    title: "SaaS Registration Page",
+    type: "typescript",
+    content: `import {
+  AuthAccessForm,
+} from "../../components/AuthAccessForm";
+
+export default function RegisterPage() {
+  return (
+    <AuthAccessForm
+      mode="register"
+    />
+  );
+}
+`,
+  });
+
+  files.push({
+    file: "middleware.ts",
+    title: "SaaS Authentication Middleware",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import type {
+  NextRequest,
+} from "next/server";
+
+const COOKIE =
+  "crownflow_session";
+
+export function middleware(
+  request: NextRequest
+) {
+  const token =
+    request.cookies.get(
+      COOKIE
+    )?.value;
+
+  if (!token) {
+    const url =
+      request.nextUrl.clone();
+
+    url.pathname =
+      "/login";
+
+    url.searchParams.set(
+      "next",
+      request.nextUrl.pathname
+    );
+
+    return NextResponse.redirect(
+      url
+    );
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/dashboard/:path*",
+    "/team/:path*",
+    "/billing/:path*",
+    "/automations/:path*",
+    "/admin/:path*",
+  ],
+};
+`,
+  });
+
+  files.push({
+    file: "scripts/auth-smoke-test.ts",
+    title: "SaaS Authentication Smoke Test",
+    type: "typescript",
+    content: `import fs from "fs";
+import path from "path";
+
+const required = [
+  "lib/saas-auth-store.ts",
+  "lib/saas-auth.ts",
+  "app/api/auth/register/route.ts",
+  "app/api/auth/login/route.ts",
+  "app/api/auth/logout/route.ts",
+  "app/api/auth/session/route.ts",
+  "app/login/page.tsx",
+  "app/register/page.tsx",
+  "middleware.ts",
+];
+
+for (const file of required) {
+  const full =
+    path.join(
+      process.cwd(),
+      file
+    );
+
+  if (!fs.existsSync(full)) {
+    throw new Error(
+      "Missing authentication artifact: " +
+      file
+    );
+  }
+}
+
+const store =
+  fs.readFileSync(
+    path.join(
+      process.cwd(),
+      "lib/saas-auth-store.ts"
+    ),
+    "utf8"
+  );
+
+for (const signal of [
+  "scryptSync",
+  "timingSafeEqual",
+  "randomBytes(32)",
+  "auth-sessions.json",
+  "memberships.json",
+]) {
+  if (!store.includes(signal)) {
+    throw new Error(
+      "Missing authentication security signal: " +
+      signal
+    );
+  }
+}
+
+const register =
+  fs.readFileSync(
+    path.join(
+      process.cwd(),
+      "app/api/auth/register/route.ts"
+    ),
+    "utf8"
+  );
+
+for (const signal of [
+  "httpOnly: true",
+  'sameSite: "lax"',
+  "createSession",
+]) {
+  if (!register.includes(signal)) {
+    throw new Error(
+      "Missing secure registration signal: " +
+      signal
+    );
+  }
+}
+
+console.log(
+  "OmegaCrownAI SaaS authentication smoke test passed."
+);
+`,
+  });
+
   const apiRoutes = [
     "projects",
+    "tasks",
     "workspaces",
     "automations",
     "analytics",
@@ -1248,11 +2481,34 @@ export async function POST(
       description,
     ] of adminPages
   ) {
+    // SAAS_ADMIN_PAGE_AUTHORIZATION
+    // Admin pages are generated at two route depths. Resolve the
+    // correct server auth helper path and validate the durable session
+    // before rendering any administrative surface.
+    const authImport =
+      file === "app/admin/page.tsx"
+        ? "../../lib/saas-auth"
+        : "../../../lib/saas-auth";
+
     files.push({
       file,
       title,
       type: "typescript",
-      content: `export default function Page() {
+      content: `import {
+  redirect,
+} from "next/navigation";
+
+import {
+  requireSaasSession,
+} from "${authImport}";
+
+export default async function Page() {
+  try {
+    await requireSaasSession();
+  } catch {
+    redirect("/login");
+  }
+
   return (
     <main className="saas-admin-page">
       <p className="eyebrow">

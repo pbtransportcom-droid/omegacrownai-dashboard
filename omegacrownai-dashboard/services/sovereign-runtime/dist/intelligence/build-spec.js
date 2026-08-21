@@ -239,6 +239,12 @@ function buildAuthoritativeBlueprint(input) {
     if (input.industry === "transportation") {
         apiRoutes.splice(0, apiRoutes.length, "/api/bookings", "/api/dispatch", "/api/fleet", "/api/drivers", "/api/customers", "/api/availability", "/api/pricing", "/api/invoices", "/api/payments", "/api/notifications");
     }
+    // SAAS_AUTHORITATIVE_API_CONTRACT
+    // Align the authoritative SaaS blueprint with the operational
+    // endpoints emitted by saas-renderer.
+    if (input.industry === "saas") {
+        apiRoutes.splice(0, apiRoutes.length, "/api/workspaces", "/api/projects", "/api/tasks", "/api/automations", "/api/team/invitations", "/api/subscriptions", "/api/usage", "/api/analytics", "/api/notifications", "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/session");
+    }
     const dataModels = Array.from(new Set([
         "Customer",
         "CustomerRequest",
@@ -870,6 +876,71 @@ export function createBuildSpec(input) {
         }
         else if (/bookstore|bookseller|ebook|audiobook/.test(industryEvidence)) {
             industry = "bookstore";
+        }
+    }
+    // SAAS_SEMANTIC_CLASSIFICATION_PROFILE
+    // Strong SaaS product semantics must route into the dedicated SaaS
+    // renderer instead of the generic business fallback. Preserve an
+    // explicitly supplied Industry: value.
+    if (!preservedIndustry &&
+        industry === "general business") {
+        const saasEvidence = `${productType} ${originalPrompt}`.toLowerCase();
+        const strongSaasIdentity = /\bsaas\b|software as a service|multi[- ]tenant|workspace accounts?|subscription plans?|subscription billing/.test(saasEvidence);
+        const operationalSaasIdentity = /workspace|organization|team members?|member roles?|projects?|tasks?|usage tracking|billing/.test(saasEvidence) &&
+            /subscription|tenant|workspace|organization/.test(saasEvidence);
+        if (strongSaasIdentity ||
+            operationalSaasIdentity) {
+            industry = "saas";
+            services = [
+                "Workspace management",
+                "Team collaboration",
+                "Project and task management",
+                "Subscription management",
+                "Usage and account operations",
+            ];
+            pages = mergeExplicitItems([
+                "Home",
+                "Workspace",
+                "Projects",
+                "Tasks",
+                "Team",
+                "Billing",
+                "Usage",
+                "Analytics",
+                "Notifications",
+                "Admin",
+            ], pages);
+            features = [
+                "Multi-tenant workspaces",
+                "Team members and roles",
+                "Project management",
+                "Task assignments and status",
+                "Activity history",
+                "Subscription billing",
+                "Usage tracking",
+                "Notifications",
+                "Analytics",
+                "Admin operations",
+            ];
+            adminWorkflow = [
+                "Review organizations and workspaces",
+                "Manage members and roles",
+                "Manage subscription status",
+                "Review usage and account health",
+                "Review platform activity",
+            ];
+            customerWorkflow = [
+                "Create or enter workspace",
+                "Invite team members",
+                "Create projects",
+                "Create and assign tasks",
+                "Update task status",
+                "Review activity",
+                "Manage subscription",
+                "Review usage",
+            ];
+            visualDirection =
+                "premium multi-tenant SaaS application with workspace navigation, project and task operations, team management, subscription billing, usage analytics, notifications, and administrative controls";
         }
     }
     // PRODUCT_SEMANTIC_PROFILE_RECOVERY
