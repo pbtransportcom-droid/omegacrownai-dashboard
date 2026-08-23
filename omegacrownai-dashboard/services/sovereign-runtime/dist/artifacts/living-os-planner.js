@@ -18,6 +18,22 @@ function normalizeRoute(value) {
             .replace(/\/$/, ""));
 }
 function detectIndustry(blueprint) {
+    // PROFESSIONAL_SERVICES_AUTHORITATIVE_INDUSTRY
+    // The authoritative blueprint has already completed product-family
+    // classification. Preserve a recognized explicit industry before
+    // applying heuristic text inference, otherwise consulting language
+    // such as "consultation", "client", or "documents" can be mistaken
+    // for the legal family.
+    const authoritativeIndustry = String(blueprint?.business?.industry ||
+        "")
+        .trim()
+        .toLowerCase();
+    if (authoritativeIndustry ===
+        "professional services" ||
+        authoritativeIndustry ===
+            "professional-services") {
+        return "professional-services";
+    }
     // AUTHORITATIVE_INDUSTRY_PRECEDENCE
     // The authoritative blueprint is the primary source
     // of truth. Semantic keyword inference is fallback only.

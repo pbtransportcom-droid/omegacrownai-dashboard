@@ -245,6 +245,10 @@ function buildAuthoritativeBlueprint(input) {
     if (input.industry === "saas") {
         apiRoutes.splice(0, apiRoutes.length, "/api/workspaces", "/api/projects", "/api/tasks", "/api/automations", "/api/team/invitations", "/api/subscriptions", "/api/usage", "/api/analytics", "/api/notifications", "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/api/auth/session");
     }
+    // PROFESSIONAL_SERVICES_AUTHORITATIVE_API_CONTRACT
+    if (input.industry === "professional services") {
+        apiRoutes.splice(0, apiRoutes.length, "/api/clients", "/api/contacts", "/api/inquiries", "/api/proposals", "/api/engagements", "/api/projects", "/api/tasks", "/api/deliverables", "/api/documents", "/api/meetings", "/api/time-entries", "/api/invoices", "/api/payments", "/api/notifications", "/api/analytics");
+    }
     const dataModels = Array.from(new Set([
         "Customer",
         "CustomerRequest",
@@ -776,7 +780,7 @@ export function createBuildSpec(input) {
         genericProductTypes.has(productType.toLowerCase())) {
         productType = explicitBuildIdentity;
     }
-    const brandName = explicitBuildIdentity && !hasExplicitNamedBrand
+    let brandName = explicitBuildIdentity && !hasExplicitNamedBrand
         ? explicitBuildIdentity
         : detectBrand(originalPrompt, brandFallback);
     if (mode.includes("automation")) {
@@ -1155,6 +1159,119 @@ export function createBuildSpec(input) {
             "Prepare follow-up",
         ];
     }
+    // PROFESSIONAL_SERVICES_SEMANTIC_PROFILE
+    // Recover client-service operating systems after broad marketing,
+    // SaaS, or generic-business classification. Strong family evidence
+    // wins, while regulated/specialized families retain precedence.
+    const professionalServicesSource = originalPrompt.toLowerCase();
+    const professionalServicesExplicit = /\bprofessional services?\b/.test(professionalServicesSource);
+    const professionalServicesFamilySignal = /\bconsult(?:ing|ant|ancy)\b|\badvisory\b|\baccounting\b|\baccountant\b|\bbookkeeping\b|\bbookkeeper\b|\bagency\b|\bclient delivery\b|\bengineering firm\b|\barchitecture firm\b|\barchitectural firm\b|\bit services\b|\bmanaged services\b|\bstatement of work\b|\bsow\b|\bretainer\b/.test(professionalServicesSource);
+    const professionalServicesOperationsSignal = /\bclient portal\b|\bclients?\b|\bproposals?\b|\bengagements?\b|\bdeliverables?\b|\bmilestones?\b|\bstaff assignments?\b|\btime tracking\b|\btime entries\b|\binvoices?\b|\bproject delivery\b|\bdocument requests?\b/.test(professionalServicesSource);
+    const professionalServicesExcluded = /\blaw firm\b|\blegal practice\b|\battorney\b|\bclinic\b|\bpatient\b|\bhealthcare\b|\btransportation\b|\bdispatch\b|\bfleet\b|\brestaurant\b|\bstorefront\b|\bshopping cart\b|\becommerce\b|\be-commerce\b|\btrading\b|\bbrokerage\b|\bbroker\b|\bsoftware as a service\b|\bmulti-tenant saas\b|\bsaas platform\b|\bsubscription software platform\b/.test(professionalServicesSource);
+    const isProfessionalServicesBuild = !professionalServicesExcluded &&
+        (professionalServicesExplicit ||
+            (professionalServicesFamilySignal &&
+                professionalServicesOperationsSignal));
+    if (isProfessionalServicesBuild) {
+        industry = "professional services";
+        const subtype = /\baccounting\b|\baccountant\b|\bbookkeeping\b|\bbookkeeper\b/.test(professionalServicesSource)
+            ? "accounting and bookkeeping"
+            : /\bagency\b|\bcreative agency\b|\bdigital agency\b/.test(professionalServicesSource)
+                ? "agency and creative services"
+                : /\bengineering firm\b|\barchitecture firm\b|\barchitectural firm\b/.test(professionalServicesSource)
+                    ? "engineering and architecture"
+                    : /\bit services\b|\bmanaged services\b|\bmanaged service provider\b|\bmsp\b/.test(professionalServicesSource)
+                        ? "IT and managed services"
+                        : "consulting and advisory";
+        if (/marketing campaign system|customer-ready website|business web app|multi-tenant saas|saas project management|subscription software platform/i.test(productType)) {
+            productType =
+                `${subtype} professional services operating platform`;
+        }
+        services = [
+            "Client organizations and contacts",
+            "Inquiry and consultation intake",
+            "Proposal and statement-of-work management",
+            "Engagement management",
+            "Project and milestone delivery",
+            "Task and staff assignment",
+            "Deliverable tracking",
+            "Document management",
+            "Meeting coordination",
+            "Time and retainer tracking",
+            "Invoice management",
+            "Payment workflow",
+            "Client portal",
+            "Notifications",
+            "Analytics",
+        ];
+        pages = mergeExplicitItems([
+            "Home",
+            "Services",
+            "Client Portal",
+            "Clients",
+            "Contacts",
+            "Inquiries",
+            "Proposals",
+            "Engagements",
+            "Projects",
+            "Tasks",
+            "Deliverables",
+            "Documents",
+            "Meetings",
+            "Time Entries",
+            "Invoices",
+            "Payments",
+            "Notifications",
+            "Analytics",
+            "Admin",
+        ], pages);
+        features = [
+            "Client organizations and contacts",
+            "Inquiry and consultation intake",
+            "Proposal management",
+            "Statement-of-work and engagement lifecycle",
+            "Project and milestone management",
+            "Staff assignments",
+            "Task management",
+            "Deliverable tracking",
+            "Document management",
+            "Meeting tracking",
+            "Time and retainer tracking",
+            "Invoice management",
+            "Payment workflow",
+            "Client portal",
+            "Notifications",
+            "Analytics",
+            "Administrative operations",
+        ];
+        adminWorkflow = [
+            "Review inquiries",
+            "Manage clients and contacts",
+            "Prepare and approve proposals",
+            "Open and manage engagements",
+            "Assign staff and project work",
+            "Track milestones and deliverables",
+            "Review documents and meetings",
+            "Review time and retainers",
+            "Manage invoices and payments",
+            "Monitor notifications and analytics",
+        ];
+        customerWorkflow = [
+            "Submit inquiry",
+            "Schedule consultation",
+            "Review proposal",
+            "Accept engagement",
+            "Enter client portal",
+            "Review project status",
+            "Review milestones and deliverables",
+            "Access documents",
+            "Review invoices",
+            "Submit payment",
+            "Receive updates",
+        ];
+        visualDirection =
+            "premium professional services operating platform with client relationship management, proposal and engagement workflows, project delivery, deliverable tracking, client portal operations, billing, analytics, and executive administrative controls";
+    }
     const missingFields = [];
     if (!/(called|named|brand|business name|company name)/i.test(originalPrompt))
         missingFields.push("brandName");
@@ -1175,7 +1292,8 @@ export function createBuildSpec(input) {
         visualDirection
     });
     // FORCE_MARKETING_PROFESSIONAL_CAMPAIGN_DESIGN
-    if (isMarketingBuild) {
+    if (isMarketingBuild &&
+        industry !== "professional services") {
         visualDirection = "marketing campaign system with campaign landing page, offer sections, lead capture form, email sequence plan, ad copy library, social media captions, campaign calendar, admin review, API route, data storage, source package, delivery guide, and launch checklist. Professional campaign design with clear offer hierarchy, conversion sections, lead capture panel, campaign calendar, and approval workflow.";
         designPreset = {
             id: "professional_business",
@@ -1266,6 +1384,169 @@ export function createBuildSpec(input) {
             sectionStyle: "clean service cards, trust sections, customer request panel, launch package proof",
             imageDirection: "business services, customer request workflow, admin review, launch package, team trust",
             motionDirection: "clean hover states, professional transitions, confident CTA movement"
+        };
+    }
+    // PROFESSIONAL_SERVICES_CANONICAL_SEMANTICS
+    // Final family reconciliation runs after broad legal, SaaS,
+    // commerce, marketing, and generic heuristics. Preserve the
+    // professional-services subtype while removing only foreign
+    // family semantics that leaked from earlier classification.
+    if (industry === "professional services") {
+        const professionalSemanticSource = originalPrompt.toLowerCase();
+        const professionalSubtype = /\baccounting\b|\baccountant\b|\bbookkeeping\b|\bbookkeeper\b/.test(professionalSemanticSource)
+            ? "accounting and bookkeeping"
+            : /\bagency\b|\bcreative agency\b|\bdigital agency\b|\bmarketing agency\b/.test(professionalSemanticSource)
+                ? "agency and creative services"
+                : /\bengineering firm\b|\barchitecture firm\b|\barchitectural firm\b|\bengineering\b|\barchitecture\b/.test(professionalSemanticSource)
+                    ? "engineering and architecture"
+                    : /\bit services\b|\bmanaged services\b|\bmanaged service provider\b|\bmsp\b/.test(professionalSemanticSource)
+                        ? "IT and managed services"
+                        : "consulting and advisory";
+        productType =
+            `${professionalSubtype} professional services operating platform`;
+        const foreignProfessionalPages = new Set([
+            "practice areas",
+            "attorney profiles",
+            "admin case review",
+            "case intake",
+            "legal consultation",
+            "cases",
+            "attorneys",
+        ]);
+        pages = pages.filter((page) => !foreignProfessionalPages.has(String(page)
+            .trim()
+            .toLowerCase()));
+        pages = mergeExplicitItems([
+            "Home",
+            "Services",
+            "Client Portal",
+            "Clients",
+            "Contacts",
+            "Inquiries",
+            "Proposals",
+            "Engagements",
+            "Projects",
+            "Tasks",
+            "Deliverables",
+            "Documents",
+            "Meetings",
+            "Time Entries",
+            "Invoices",
+            "Payments",
+            "Notifications",
+            "Analytics",
+            "Admin",
+        ], pages);
+        services = [
+            "Client organizations and contacts",
+            "Inquiry and consultation intake",
+            "Proposal and statement-of-work management",
+            "Engagement management",
+            "Project and milestone delivery",
+            "Task and staff assignment",
+            "Deliverable tracking",
+            "Document management",
+            "Meeting coordination",
+            "Time and retainer tracking",
+            "Invoice management",
+            "Payment workflow",
+            "Client portal",
+            "Notifications",
+            "Analytics",
+        ];
+        features = [
+            "Client organizations and contacts",
+            "Inquiry and consultation intake",
+            "Proposal management",
+            "Statement-of-work and engagement lifecycle",
+            "Project and milestone management",
+            "Staff assignments",
+            "Task management",
+            "Deliverable tracking",
+            "Document management",
+            "Meeting tracking",
+            "Time and retainer tracking",
+            "Invoice management",
+            "Payment workflow",
+            "Client portal",
+            "Notifications",
+            "Analytics",
+            "Administrative operations",
+        ];
+        adminWorkflow = [
+            "Review inquiries",
+            "Manage clients and contacts",
+            "Prepare and approve proposals",
+            "Open and manage engagements",
+            "Assign staff and project work",
+            "Track milestones and deliverables",
+            "Review documents and meetings",
+            "Review time and retainers",
+            "Manage invoices and payments",
+            "Monitor notifications and analytics",
+        ];
+        customerWorkflow = [
+            "Submit inquiry",
+            "Schedule consultation",
+            "Review proposal",
+            "Accept engagement",
+            "Enter client portal",
+            "Review project status",
+            "Review milestones and deliverables",
+            "Access documents",
+            "Review invoices",
+            "Submit payment",
+            "Receive updates",
+        ];
+    }
+    // PROFESSIONAL_SERVICES_CANONICAL_BRAND
+    // An explicitly supplied productName is authoritative for the
+    // professional-services product identity. Earlier family detection
+    // must never replace an explicit product brand with a legal,
+    // generic-business, SaaS, or other inferred website identity.
+    if (industry === "professional services") {
+        const requestedProfessionalBrand = typeof input.productName === "string"
+            ? input.productName.trim()
+            : "";
+        if (requestedProfessionalBrand) {
+            brandName =
+                requestedProfessionalBrand;
+        }
+    }
+    // PROFESSIONAL_SERVICES_CANONICAL_TARGET_CUSTOMER
+    // Final family reconciliation must also replace audience semantics
+    // inherited from earlier legal or other broad classifiers.
+    if (industry === "professional services") {
+        targetCustomer =
+            "professional services clients and prospective engagement leads";
+    }
+    // PROFESSIONAL_SERVICES_CANONICAL_DESIGN
+    // This is intentionally the final industry design override.
+    // Subtype-specific product semantics remain intact, while broad
+    // SaaS, commerce, marketing, or other visual heuristics cannot
+    // override the professional-services operating-system identity.
+    if (industry === "professional services") {
+        visualDirection =
+            "premium professional services operating platform with client relationship management, inquiry and consultation intake, proposal and engagement workflows, project and milestone delivery, staff assignments, task and deliverable operations, document and meeting management, client portal service delivery, time and retainer tracking, invoicing, payments, notifications, analytics, and executive administration";
+        designPreset = {
+            id: "professional_services",
+            name: "Professional Services Operating Platform",
+            mood: "executive, trustworthy, structured, client-focused, polished",
+            palette: {
+                background: "#f8fafc",
+                surface: "#ffffff",
+                primary: "#0f172a",
+                secondary: "#2563eb",
+                accent: "#0ea5e9",
+                text: "#0f172a",
+                muted: "#475569",
+            },
+            typography: "executive business headings, highly readable operational copy, clear client, engagement, project, billing, and workflow labels",
+            layout: "executive application shell, client relationship overview, intake and proposal workflow, engagement and project delivery panels, client portal, time and billing operations, analytics, and administration",
+            heroStyle: "professional services operating-platform hero focused on client relationships, engagements, project delivery, and measurable business outcomes",
+            sectionStyle: "clean operational cards, client and engagement panels, project delivery sections, document workflows, billing operations, analytics, and administrative controls",
+            imageDirection: "professional advisory teams, client collaboration, executive meetings, project delivery, documents, analytics, and business operations",
+            motionDirection: "subtle professional transitions, clear workflow state changes, restrained executive interaction",
         };
     }
     visualDirection = [

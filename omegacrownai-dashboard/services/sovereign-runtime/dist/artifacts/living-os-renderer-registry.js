@@ -7,6 +7,7 @@ import { renderRestaurantLivingOS, } from "./living-os-renderers/restaurant-rend
 import { renderCommerceLivingOS, } from "./living-os-renderers/commerce-renderer.js";
 import { renderSaasLivingOS, } from "./living-os-renderers/saas-renderer.js";
 import { renderFinanceLivingOS, } from "./living-os-renderers/finance-renderer.js";
+import { renderProfessionalServicesLivingOS, } from "./living-os-renderers/professional-services-renderer.js";
 import { renderAutomationLivingOS, } from "./living-os-renderers/automation-renderer.js";
 const registry = new Map();
 export function registerLivingOSRenderer(registration) {
@@ -96,6 +97,13 @@ registerLivingOSRenderer({
     name: "finance-renderer",
     version: "2.0.0",
     renderer: renderFinanceLivingOS,
+});
+// PROFESSIONAL_SERVICES_LIVING_OS_REGISTRATION
+registerLivingOSRenderer({
+    industry: "professional-services",
+    name: "professional-services-renderer",
+    version: "2.0.0",
+    renderer: renderProfessionalServicesLivingOS,
 });
 // AUTOMATION_LIVING_OS_REGISTRATION
 registerLivingOSRenderer({

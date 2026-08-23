@@ -333,6 +333,87 @@ function generalBusinessRequirements(artifacts) {
     ];
 }
 // TRANSPORT_LEGAL_HEALTHCARE_BEHAVIORAL_CONTRACTS
+function professionalServicesRequirements(artifacts) {
+    return [
+        requirement(artifacts, {
+            id: "professional-services-client-management",
+            label: "Professional services client management",
+            files: [
+                "app/clients/page.tsx",
+                "app/client-portal/page.tsx",
+                "app/api/clients/route.ts",
+                "app/api/contacts/route.ts",
+                "app/api/inquiries/route.ts",
+            ],
+            terms: [
+                "clients",
+                "contacts",
+                "inquiries",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "professional-services-engagement-lifecycle",
+            label: "Proposal and engagement lifecycle",
+            files: [
+                "app/proposals/page.tsx",
+                "app/engagements/page.tsx",
+                "app/api/proposals/route.ts",
+                "app/api/engagements/route.ts",
+            ],
+            terms: [
+                "proposals",
+                "engagements",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "professional-services-delivery",
+            label: "Project, task, and deliverable operations",
+            files: [
+                "app/projects/page.tsx",
+                "app/tasks/page.tsx",
+                "app/deliverables/page.tsx",
+                "app/api/projects/route.ts",
+                "app/api/tasks/route.ts",
+                "app/api/deliverables/route.ts",
+            ],
+            terms: [
+                "projects",
+                "tasks",
+                "deliverables",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "professional-services-billing",
+            label: "Professional services billing workflow",
+            files: [
+                "app/invoices/page.tsx",
+                "app/payments/page.tsx",
+                "app/api/invoices/route.ts",
+                "app/api/payments/route.ts",
+            ],
+            terms: [
+                "invoices",
+                "payments",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "professional-services-client-delivery",
+            label: "Client portal and service-delivery evidence",
+            files: [
+                "app/client-portal/page.tsx",
+                "app/documents/page.tsx",
+                "app/meetings/page.tsx",
+                "app/api/documents/route.ts",
+                "app/api/meetings/route.ts",
+            ],
+            terms: [
+                "client",
+                "documents",
+                "meetings",
+            ],
+        }),
+    ];
+}
 function transportationRequirements(artifacts) {
     return [
         requirement(artifacts, {
@@ -560,6 +641,7 @@ export function evaluateBehavioralCompliance(industry, artifacts) {
     const specializedIndustries = new Set([
         "bookstore",
         "general-business",
+        "professional services",
         "transportation",
         "legal",
         "healthcare",
@@ -575,6 +657,10 @@ export function evaluateBehavioralCompliance(industry, artifacts) {
         case "general-business":
             requirements =
                 generalBusinessRequirements(inspectable);
+            break;
+        case "professional services":
+            requirements =
+                professionalServicesRequirements(artifacts);
             break;
         case "transportation":
             requirements =
