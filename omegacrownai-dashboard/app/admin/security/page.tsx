@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/db";
 
+// SECURITY_ADMIN_REQUEST_TIME_DATABASE_BOUNDARY
+// This administration surface depends on live database state.
+// Execute it at request time rather than during static prerender.
+export const dynamic = "force-dynamic";
+
 export default async function AdminSecurityPage() {
   const [recent, blocked, allowed] = await Promise.all([
     prisma.securityAuditEvent.findMany({

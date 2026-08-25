@@ -1,6 +1,13 @@
 import { getPremiumProviderActivationDashboard } from "@/lib/sugent/premium-provider-activation/premiumProviderActivationEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// PREMIUM_PROVIDER_REQUEST_TIME_DATABASE_BOUNDARY
+// Provider activation depends on live adapter, environment,
+// payment-link, usage, and provider database state.
+// Execute this administration surface at request time.
+export const dynamic = "force-dynamic";
+
+
 export default async function PremiumProvidersAdminPage() {
   const data = await getPremiumProviderActivationDashboard();
 

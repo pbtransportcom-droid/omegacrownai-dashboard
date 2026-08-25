@@ -1,6 +1,13 @@
 import { getCustomerAdminDashboard } from "@/lib/sugent/customer-admin/customerAdminEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// CUSTOMER_ADMIN_REQUEST_TIME_DATABASE_BOUNDARY
+// Customer administration depends on live organization,
+// subscription, project, and usage database state.
+// Execute this surface at request time.
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminCustomersPage({
   searchParams,
 }: {

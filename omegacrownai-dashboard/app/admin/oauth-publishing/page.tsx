@@ -1,6 +1,12 @@
 import { getOAuthPublishingDashboard } from "@/lib/sugent/oauth-publishing/oauthPublishingEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// OAUTH_PUBLISHING_REQUEST_TIME_DATABASE_BOUNDARY
+// This administration surface depends on live provider/database state.
+// It must execute at request time rather than during `next build`.
+export const dynamic = "force-dynamic";
+
+
 export default async function OAuthPublishingAdminPage() {
   const data = await getOAuthPublishingDashboard();
 

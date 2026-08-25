@@ -2,6 +2,12 @@ import { notFound } from "next/navigation";
 import { getSharePortalDetails, recordSharePortalEvent } from "@/lib/sugent/distribution/creatorDistributionEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// INDIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page invokes a DB-backed engine.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function PublicSharePage({
   params,
 }: {

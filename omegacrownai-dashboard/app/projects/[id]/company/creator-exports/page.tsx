@@ -6,6 +6,12 @@ import { getCreatorRenderJobDashboard } from "@/lib/sugent/creator-render/render
 import { getCreatorDistributionDashboard } from "@/lib/sugent/distribution/creatorDistributionEngine";
 import { getCreatorBillingDashboard } from "@/lib/sugent/billing/creatorBillingEngine";
 
+// DIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page reads live Prisma database state.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function CreatorExportsPage({
   params,
 }: {

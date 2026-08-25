@@ -3,6 +3,12 @@ import { prisma } from "@/lib/db";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { getIdentityDashboard } from "@/lib/sugent/identity/platformIdentityEngine";
 
+// DIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page reads live Prisma database state.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function IdentityPage({
   params,
 }: {

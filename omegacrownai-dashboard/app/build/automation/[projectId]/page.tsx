@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/db";
 import AutomationWorkspace from "@/components/build/AutomationWorkspace";
 
+// DIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page reads live Prisma database state.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function AutomationWorkspacePage({
   params,
   searchParams,

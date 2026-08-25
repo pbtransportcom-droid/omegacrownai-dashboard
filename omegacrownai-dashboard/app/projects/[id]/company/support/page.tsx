@@ -2,6 +2,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// DIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page reads live Prisma database state.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function SupportDashboardPage({
   params,
 }: {

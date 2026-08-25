@@ -1,6 +1,13 @@
 import { getCustomerAdminOrganizationDetail } from "@/lib/sugent/customer-admin/customerAdminEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// CUSTOMER_DETAIL_REQUEST_TIME_DATABASE_BOUNDARY
+// Customer organization detail depends on live customer,
+// project, subscription, and usage database state.
+// Execute this surface at request time.
+export const dynamic = "force-dynamic";
+
+
 export default async function AdminCustomerDetailPage({
   params,
 }: {

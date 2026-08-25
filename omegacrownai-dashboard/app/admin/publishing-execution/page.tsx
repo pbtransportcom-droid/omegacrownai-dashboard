@@ -1,6 +1,13 @@
 import { getPublishingExecutionDashboard } from "@/lib/sugent/publishing-execution/publishingExecutionEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// PUBLISHING_EXECUTION_REQUEST_TIME_DATABASE_BOUNDARY
+// Publishing execution depends on live provider, job,
+// credential, and publishing database state.
+// Execute this surface at request time.
+export const dynamic = "force-dynamic";
+
+
 export default async function PublishingExecutionAdminPage() {
   const data = await getPublishingExecutionDashboard();
 

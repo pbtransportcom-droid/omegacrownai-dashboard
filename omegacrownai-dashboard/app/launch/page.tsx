@@ -1,6 +1,12 @@
 import { getLaunchReadinessDashboard } from "@/lib/sugent/launch-readiness/launchReadinessEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// INDIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page invokes a DB-backed engine.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function LaunchReadinessPage() {
   const data = await getLaunchReadinessDashboard();
   const safeData = data as any;

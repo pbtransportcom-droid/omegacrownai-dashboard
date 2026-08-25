@@ -1,6 +1,12 @@
 import { getCustomerPublishingDashboard } from "@/lib/sugent/customer-publishing/customerPublishingEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// INDIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page invokes a DB-backed engine.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function CustomerPublishingPage({
   params,
 }: {

@@ -1,6 +1,11 @@
 import { getExternalPaymentsDashboard } from "@/lib/sugent/external-payments/externalPaymentEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// EXTERNAL_PAYMENTS_REQUEST_TIME_DATABASE_BOUNDARY
+// External payment administration depends on live payment-link
+// and provider database state. Execute it at request time.
+export const dynamic = "force-dynamic";
+
 export default async function ExternalPaymentsAdminPage() {
   const data = await getExternalPaymentsDashboard();
 

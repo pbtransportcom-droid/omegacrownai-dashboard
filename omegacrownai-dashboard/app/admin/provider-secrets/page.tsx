@@ -1,6 +1,11 @@
 import { getProviderSecretsDashboard } from "@/lib/sugent/provider-secrets/providerSecretsEngine";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 
+// PROVIDER_SECRETS_REQUEST_TIME_DATABASE_BOUNDARY
+// This administration surface depends on live database state.
+// Execute it at request time rather than during static prerender.
+export const dynamic = "force-dynamic";
+
 export default async function ProviderSecretsPage() {
   const data = await getProviderSecretsDashboard();
   const safeData = data as any;

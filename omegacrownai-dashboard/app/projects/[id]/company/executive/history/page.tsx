@@ -2,6 +2,12 @@ import Link from "next/link";
 import { OmegaLogo } from "@/components/brand/OmegaLogo";
 import { getExecutiveHistory } from "@/lib/sugent/executive/scheduler";
 
+// INDIRECT_PRISMA_REQUEST_TIME_DATABASE_BOUNDARY
+// This server-rendered page invokes a DB-backed engine.
+// Execute it at request time instead of static prerender.
+export const dynamic = "force-dynamic";
+
+
 export default async function ExecutiveHistoryPage({
   params,
 }: {
