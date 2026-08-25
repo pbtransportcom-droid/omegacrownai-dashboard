@@ -302,6 +302,10 @@ export async function startGeneratedApp(projectId: string) {
     ...manifest,
     pid: child.pid,
     status: "starting",
+    watchdogPid: undefined,
+    autoStopped: undefined,
+    stoppedAt: undefined,
+    portDown: undefined,
     startedAt: new Date(now).toISOString(),
     expiresAt,
     ttlSeconds: Math.round(GENERATED_PREVIEW_TTL_MS / 1000),
@@ -325,7 +329,17 @@ export async function startGeneratedApp(projectId: string) {
   );
   watchdog.unref();
 
-  return running;
+  const runningWithWatchdog = {
+    ...running,
+    watchdogPid: watchdog.pid,
+  };
+
+  fs.writeFileSync(
+    generatedAppManifestPath(projectId),
+    JSON.stringify(runningWithWatchdog, null, 2)
+  );
+
+  return runningWithWatchdog;
 }
 
 export function getGeneratedAppManifest(projectId: string) {
@@ -379,6 +393,26 @@ export async function stopGeneratedApp(projectId: string) {
   }
 
   const pid = Number(manifest.pid);
+
+  // GENERATED_APP_WATCHDOG_OWNERSHIP
+  // Every generated-app process owns exactly one TTL watchdog.
+  // Stop that watchdog when the application is explicitly stopped
+  // or restarted so obsolete sleep processes do not accumulate.
+  const watchdogPid = Number(manifest.watchdogPid || 0);
+
+  if (
+    Number.isInteger(watchdogPid) &&
+    watchdogPid > 1 &&
+    watchdogPid !== process.pid
+  ) {
+    try {
+      process.kill(-watchdogPid, "SIGTERM");
+    } catch {
+      try {
+        process.kill(watchdogPid, "SIGTERM");
+      } catch {}
+    }
+  }
 
   if (manifest.port) {
     killPort(Number(manifest.port));
