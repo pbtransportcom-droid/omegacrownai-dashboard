@@ -320,7 +320,19 @@ function buildAuthoritativeBlueprint(input) {
         workflows,
         architecture: {
             routes: pages.map((page) => routeFromPageName(page.name)),
-            apiRoutes: Array.from(new Set(apiRoutes)),
+            // DIGITAL_INTELLIGENCE_AUTOMATION_API_CONTRACT
+            //
+            // The automation renderer exposes workflow intake and workflow
+            // management through /api/workflows. Keep the authoritative blueprint
+            // aligned with that executable renderer contract instead of requiring
+            // a mechanically inferred /api/workflow-request-intake endpoint.
+            apiRoutes: Array.from(new Set(input.industry === "automation"
+                ? [
+                    ...apiRoutes.filter((route) => route !==
+                        "/api/workflow-request-intake"),
+                    "/api/workflows",
+                ]
+                : apiRoutes)),
             dataModels,
             adminModules: input.pages.filter((page) => /admin|dashboard|management|review/i.test(page)),
             integrations: input.features.filter((feature) => /payment|stripe|email|sms|map|calendar|crm|webhook|integration/i.test(feature)),
@@ -376,7 +388,7 @@ const semanticFeaturePatterns = [
         feature: "Physical book shipping calculator",
     },
     {
-        pattern: /\bshipping tracking\b|\bshipment tracking\b|\btracking\b/i,
+        pattern: /\bshipping tracking\b|\bshipment tracking\b|\bshipping status\b|\bpackage tracking\b|\btrack(?:ing)? (?:a |the )?(?:shipment|package|order)\b/i,
         feature: "Shipment tracking",
     },
     {
@@ -622,6 +634,92 @@ export function createBuildSpec(input) {
         features = ["Product catalog", "Cart", "Secure checkout", "Order review", "Admin products"];
         adminWorkflow = ["Manage products", "Review orders", "Manage customers", "Update content"];
         customerWorkflow = ["Browse products", "Add to cart", "Submit checkout", "Receive confirmation"];
+    }
+    // DIGITAL_INTELLIGENCE_EARLY_WORKFLOW_CLASSIFICATION
+    //
+    // Detect operational workflow intent before explicit industry/product
+    // overrides are processed. This prevents workflow systems from collapsing
+    // into the generic business fallback merely because the prompt describes
+    // requests, customers, services, or an admin dashboard.
+    //
+    // Explicit automation language is sufficient by itself. Otherwise require
+    // several independent operational signals so ordinary business websites
+    // are not incorrectly promoted to automation systems.
+    const digitalIntelligenceSource = originalPrompt.toLowerCase();
+    const explicitWorkflowAutomationIntent = /\b(workflow automation|automation platform|automation system|automate workflows?|automated workflows?|trigger(?: and action)? map|trigger rules?|action rules?|webhooks?)\b/i.test(digitalIntelligenceSource);
+    const operationalWorkflowSignals = [
+        /\b(assign(?:ed|ment)?|owner|assignee|routing rules?)\b/i,
+        /\b(approve|approval|reject|rejection)\b/i,
+        /\b(status|statuses|stages?|state transitions?)\b/i,
+        /\b(deadline|due date|overdue)\b/i,
+        /\b(follow[- ]?up|next action)\b/i,
+        /\b(notification|notify|reminder)\b/i,
+        /\b(escalation|escalate)\b/i,
+        /\b(pending|blocked|waiting)\b/i,
+        /\b(audit|history|activity log|run history)\b/i,
+        /\b(rule|rules|condition|conditions)\b/i,
+        /\b(queue|pipeline|work queue)\b/i,
+    ].filter((pattern) => pattern.test(digitalIntelligenceSource)).length;
+    const hasWorkflowOperatingContext = /\b(workflow|process|request|requests|task|tasks|case|cases|job|jobs|work item|work items|intake|operations)\b/i.test(digitalIntelligenceSource);
+    const semanticWorkflowAutomationIntent = explicitWorkflowAutomationIntent ||
+        (hasWorkflowOperatingContext &&
+            operationalWorkflowSignals >= 3);
+    if (semanticWorkflowAutomationIntent) {
+        industry = "automation";
+        productType = "workflow automation and operations platform";
+        brandFallback = "Workflow Automation Platform";
+        targetCustomer =
+            "operations teams, administrators, managers, and staff coordinating structured work";
+        services = [
+            "Workflow intake",
+            "Assignment and ownership",
+            "Approval routing",
+            "Status tracking",
+            "Deadline management",
+            "Notifications and escalation",
+            "Workflow history",
+        ];
+        pages = [
+            "Home",
+            "Workflow Dashboard",
+            "Requests",
+            "Assignments",
+            "Approvals",
+            "Status Tracking",
+            "Run History",
+            "Admin Dashboard",
+        ];
+        features = [
+            "Workflow request intake",
+            "Assignment rules",
+            "Approval steps",
+            "Status stages",
+            "Deadline tracking",
+            "Notification rules",
+            "Escalation rules",
+            "Pending and blocked work views",
+            "Searchable workflow history",
+            "Admin workflow configuration",
+        ];
+        adminWorkflow = [
+            "Review incoming work",
+            "Assign an owner",
+            "Approve or reject requests",
+            "Update workflow status",
+            "Track deadlines and overdue work",
+            "Review blocked items",
+            "Configure notification and escalation rules",
+            "Review workflow history",
+        ];
+        customerWorkflow = [
+            "Submit request",
+            "Receive assignment or acknowledgement",
+            "Track status",
+            "Respond to approval or information requests",
+            "Receive completion follow-up",
+        ];
+        visualDirection =
+            "professional workflow operations design with clear queues, status cards, assignment controls, approval panels, deadlines, alerts, and run history";
     }
     const explicitIndustryMatch = originalPrompt.match(/industry\s*:\s*([a-zA-Z -]+)/i);
     const explicitIndustry = explicitIndustryMatch?.[1]?.toLowerCase().trim() || "";
