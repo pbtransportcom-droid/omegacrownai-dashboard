@@ -356,7 +356,8 @@ export function FinanceHeader() {
     file: "components/FinanceHero.tsx",
     title: "Finance Hero",
     type: "typescript",
-    content: `import Link from "next/link";
+    content: `import Image from "next/image";
+import Link from "next/link";
 
 export function FinanceHero() {
   return (
@@ -418,6 +419,18 @@ export function FinanceHero() {
       </div>
 
       <aside className="finance-preview">
+        {/* FINANCE_PRODUCTION_VISUAL_STORY */}
+        <div className="finance-hero-visual">
+          <Image
+            src="/images/hero-visual.svg"
+            alt="CrownLedger financial operations dashboard showing account visibility, transaction oversight, transfer controls, and financial performance"
+            width={1280}
+            height={860}
+            priority
+            sizes="(max-width: 900px) 100vw, 46vw"
+          />
+        </div>
+
         <p className="eyebrow">
           Financial overview
         </p>
@@ -469,7 +482,9 @@ export function FinanceHero() {
     file: "app/page.tsx",
     title: "Finance Homepage",
     type: "typescript",
-    content: `import {
+    content: `import Image from "next/image";
+
+import {
   FinanceHero,
 } from "../components/FinanceHero";
 
@@ -477,6 +492,95 @@ export default function HomePage() {
   return (
     <main>
       <FinanceHero />
+
+      <section
+        className="finance-story-section"
+        aria-labelledby="finance-story-heading"
+      >
+        <div className="finance-story-copy">
+          <p className="eyebrow">
+            Financial clarity
+          </p>
+
+          <h2 id="finance-story-heading">
+            See the financial story behind every decision.
+          </h2>
+
+          <p>
+            CrownLedger brings accounts,
+            transactions, transfers,
+            budgets, reporting, risk,
+            compliance, and audit activity
+            into one operating view so
+            teams can understand what
+            changed, why it matters, and
+            what needs attention next.
+          </p>
+
+          <div className="finance-story-points">
+            <article>
+              <strong>
+                One financial view
+              </strong>
+
+              <span>
+                Connect account position,
+                transaction activity,
+                budgets, and reporting.
+              </span>
+            </article>
+
+            <article>
+              <strong>
+                Controlled movement
+              </strong>
+
+              <span>
+                Review transfers,
+                beneficiaries, approvals,
+                and exceptions with clear
+                operational context.
+              </span>
+            </article>
+
+            <article>
+              <strong>
+                Governance built in
+              </strong>
+
+              <span>
+                Surface risk, compliance,
+                and audit activity alongside
+                daily financial operations.
+              </span>
+            </article>
+          </div>
+        </div>
+
+        <div className="finance-story-visual">
+          <Image
+            src="/images/preview-visual.svg"
+            alt="CrownLedger financial story view connecting accounts, transactions, budgeting, reporting, risk, compliance, and audit activity"
+            width={1280}
+            height={900}
+            sizes="(max-width: 900px) 100vw, 48vw"
+          />
+
+          <div className="finance-story-thumbnail">
+            <Image
+              src="/images/thumbnail-visual.svg"
+              alt="CrownLedger compact financial operations overview"
+              width={560}
+              height={360}
+              sizes="(max-width: 900px) 48vw, 18vw"
+            />
+
+            <span>
+              Live financial operating view
+            </span>
+          </div>
+        </div>
+      </section>
 
       <section className="content-section">
         <p className="eyebrow">
@@ -1162,6 +1266,732 @@ export async function createFinanceRecord<
 `,
   });
 
+  // FINANCE_FULLSTACK_PRODUCTION_CONTRACT
+  // The Finance renderer owns the complete operational backend
+  // required by generated-artifact-validator. JSON persistence remains
+  // available for the existing dashboard surfaces while Prisma provides
+  // the production database contract.
+
+  files.push({
+    file: "lib/db.ts",
+    title: "Finance Prisma Client",
+    type: "typescript",
+    content: `import {
+  PrismaClient,
+} from "@prisma/client";
+
+const globalForPrisma =
+  globalThis as unknown as {
+    prisma?: PrismaClient;
+  };
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient();
+
+if (
+  process.env.NODE_ENV !==
+  "production"
+) {
+  globalForPrisma.prisma =
+    prisma;
+}
+
+export default prisma;
+`,
+  });
+
+  files.push({
+    file: "lib/finance-service.ts",
+    title: "Finance Service Layer",
+    type: "typescript",
+    content: `import {
+  prisma,
+} from "./db";
+
+export async function listTransactions() {
+  return prisma.transaction.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getTransaction(
+  id: string
+) {
+  return prisma.transaction.findUnique({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function createTransaction(
+  input: {
+    accountId?: string;
+    description: string;
+    amount: number;
+    type?: string;
+    category?: string;
+    status?: string;
+  }
+) {
+  return prisma.transaction.create({
+    data: {
+      accountId:
+        input.accountId || null,
+      description:
+        input.description,
+      amount:
+        input.amount,
+      type:
+        input.type || "debit",
+      category:
+        input.category || null,
+      status:
+        input.status || "posted",
+    },
+  });
+}
+
+export async function updateTransaction(
+  id: string,
+  input: {
+    description?: string;
+    amount?: number;
+    type?: string;
+    category?: string | null;
+    status?: string;
+  }
+) {
+  return prisma.transaction.update({
+    where: {
+      id,
+    },
+    data: input,
+  });
+}
+
+export async function deleteTransaction(
+  id: string
+) {
+  return prisma.transaction.delete({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function getSettings() {
+  return prisma.setting.findMany({
+    orderBy: {
+      key: "asc",
+    },
+  });
+}
+
+export async function updateSettings(
+  input: Record<string, unknown>
+) {
+  const entries =
+    Object.entries(input);
+
+  return Promise.all(
+    entries.map(
+      ([key, value]) =>
+        prisma.setting.upsert({
+          where: {
+            key,
+          },
+          update: {
+            value:
+              JSON.stringify(value),
+          },
+          create: {
+            key,
+            value:
+              JSON.stringify(value),
+          },
+        })
+    )
+  );
+}
+
+export async function importTransactions(
+  rows: Array<{
+    accountId?: string;
+    description?: string;
+    amount?: number;
+    type?: string;
+    category?: string;
+    status?: string;
+  }>
+) {
+  const validRows =
+    rows.filter(
+      (row) =>
+        typeof row.description ===
+          "string" &&
+        typeof row.amount ===
+          "number"
+    );
+
+  if (!validRows.length) {
+    return {
+      imported: 0,
+    };
+  }
+
+  const result =
+    await prisma.transaction.createMany({
+      data:
+        validRows.map(
+          (row) => ({
+            accountId:
+              row.accountId || null,
+            description:
+              row.description!,
+            amount:
+              row.amount!,
+            type:
+              row.type || "debit",
+            category:
+              row.category || null,
+            status:
+              row.status || "posted",
+          })
+        ),
+    });
+
+  return {
+    imported:
+      result.count,
+  };
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/transactions/[id]/route.ts",
+    title:
+      "Finance Transaction Detail API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  deleteTransaction,
+  getTransaction,
+  updateTransaction,
+} from "../../../../lib/finance-service";
+
+type RouteContext = {
+  params:
+    Promise<{
+      id: string;
+    }>;
+};
+
+export async function GET(
+  _request: Request,
+  context: RouteContext
+) {
+  const {
+    id,
+  } = await context.params;
+
+  const transaction =
+    await getTransaction(id);
+
+  if (!transaction) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Transaction not found.",
+      },
+      {
+        status: 404,
+      }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    transaction,
+  });
+}
+
+export async function PATCH(
+  request: Request,
+  context: RouteContext
+) {
+  const {
+    id,
+  } = await context.params;
+
+  const input =
+    await request.json();
+
+  const transaction =
+    await updateTransaction(
+      id,
+      input
+    );
+
+  return NextResponse.json({
+    ok: true,
+    transaction,
+  });
+}
+
+export async function DELETE(
+  _request: Request,
+  context: RouteContext
+) {
+  const {
+    id,
+  } = await context.params;
+
+  await deleteTransaction(id);
+
+  return NextResponse.json({
+    ok: true,
+    deleted: id,
+  });
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/settings/route.ts",
+    title:
+      "Finance Settings API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  getSettings,
+  updateSettings,
+} from "../../../lib/finance-service";
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    settings:
+      await getSettings(),
+  });
+}
+
+export async function PATCH(
+  request: Request
+) {
+  const input =
+    await request.json();
+
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A JSON object is required.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const settings =
+    await updateSettings(input);
+
+  return NextResponse.json({
+    ok: true,
+    settings,
+  });
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/import/route.ts",
+    title:
+      "Finance Import API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  importTransactions,
+} from "../../../lib/finance-service";
+
+export async function POST(
+  request: Request
+) {
+  const input =
+    await request.json();
+
+  const transactions =
+    Array.isArray(input)
+      ? input
+      : input?.transactions;
+
+  if (
+    !Array.isArray(
+      transactions
+    )
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "transactions must be an array.",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+
+  const result =
+    await importTransactions(
+      transactions
+    );
+
+  return NextResponse.json({
+    ok: true,
+    ...result,
+  });
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/export/route.ts",
+    title:
+      "Finance Export API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+import {
+  listTransactions,
+} from "../../../lib/finance-service";
+
+function csvCell(
+  value: unknown
+) {
+  const text =
+    String(value ?? "");
+
+  return (
+    '"' +
+    text.replace(
+      /"/g,
+      '""'
+    ) +
+    '"'
+  );
+}
+
+export async function GET(
+  request: Request
+) {
+  const transactions =
+    await listTransactions();
+
+  const url =
+    new URL(request.url);
+
+  const format =
+    (
+      url.searchParams.get(
+        "format"
+      ) || "json"
+    ).toLowerCase();
+
+  if (format === "csv") {
+    const header = [
+      "id",
+      "accountId",
+      "description",
+      "amount",
+      "type",
+      "category",
+      "status",
+      "createdAt",
+    ];
+
+    const rows =
+      transactions.map(
+        (transaction) =>
+          header
+            .map(
+              (key) =>
+                csvCell(
+                  (
+                    transaction as
+                      Record<
+                        string,
+                        unknown
+                      >
+                  )[key]
+                )
+            )
+            .join(",")
+      );
+
+    return new Response(
+      [
+        header.join(","),
+        ...rows,
+      ].join("\\n"),
+      {
+        headers: {
+          "content-type":
+            "text/csv; charset=utf-8",
+          "content-disposition":
+            'attachment; filename="transactions.csv"',
+        },
+      }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    transactions,
+  });
+}
+`,
+  });
+
+  files.push({
+    file: "prisma/seed.ts",
+    title: "Finance Database Seed",
+    type: "typescript",
+    content: `import {
+  prisma,
+} from "../lib/db";
+
+async function main() {
+  await prisma.setting.upsert({
+    where: {
+      key:
+        "baseCurrency",
+    },
+    update: {},
+    create: {
+      key:
+        "baseCurrency",
+      value:
+        JSON.stringify(
+          "USD"
+        ),
+    },
+  });
+
+  const category =
+    await prisma.category.upsert({
+      where: {
+        name:
+          "Operations",
+      },
+      update: {},
+      create: {
+        name:
+          "Operations",
+      },
+    });
+
+  const account =
+    await prisma.account.findFirst({
+      orderBy: {
+        createdAt: "asc",
+      },
+    }) ??
+    await prisma.account.create({
+      data: {
+        name:
+          "Primary Operating Account",
+        type:
+          "checking",
+        currency:
+          "USD",
+        balance:
+          25000,
+        availableBalance:
+          25000,
+        status:
+          "active",
+      },
+    });
+
+  if (
+    await prisma.transaction.count()
+      === 0
+  ) {
+    await prisma.transaction.create({
+      data: {
+        account: {
+          connect: {
+            id: account.id,
+          },
+        },
+        description:
+          "Opening operating balance",
+        amount: 25000,
+        type:
+          "credit",
+        category:
+          category.name,
+        status:
+          "posted",
+      },
+    });
+  }
+
+  if (
+    await prisma.budget.count()
+      === 0
+  ) {
+    await prisma.budget.create({
+      data: {
+        accountId:
+          account.id,
+        category:
+          category.name,
+        limit:
+          10000,
+        spent:
+          0,
+        period:
+          "monthly",
+      },
+    });
+  }
+
+  if (
+    await prisma.savingsGoal.count()
+      === 0
+  ) {
+    await prisma.savingsGoal.create({
+      data: {
+        name:
+          "Reserve Fund",
+        targetAmount:
+          50000,
+        currentAmount:
+          25000,
+      },
+    });
+  }
+}
+
+main()
+  .then(
+    async () => {
+      await prisma.$disconnect();
+    }
+  )
+  .catch(
+    async (error) => {
+      console.error(error);
+      await prisma.$disconnect();
+      process.exit(1);
+    }
+  );
+`,
+  });
+
+  files.push({
+    file:
+      "scripts/fullstack-smoke.mjs",
+    title:
+      "Finance Full Stack Smoke Test",
+    type: "javascript",
+    content: `import fs from "node:fs";
+import path from "node:path";
+
+const requiredFiles = [
+  "app/api/transactions/route.ts",
+  "app/api/transactions/[id]/route.ts",
+  "app/api/settings/route.ts",
+  "app/api/import/route.ts",
+  "app/api/export/route.ts",
+  "lib/db.ts",
+  "lib/finance-service.ts",
+  "prisma/schema.prisma",
+  "prisma/seed.ts",
+];
+
+for (
+  const file of requiredFiles
+) {
+  if (
+    !fs.existsSync(
+      path.join(
+        process.cwd(),
+        file
+      )
+    )
+  ) {
+    throw new Error(
+      "Missing Finance full-stack file: " +
+        file
+    );
+  }
+}
+
+const schema =
+  fs.readFileSync(
+    path.join(
+      process.cwd(),
+      "prisma/schema.prisma"
+    ),
+    "utf8"
+  );
+
+for (
+  const model of [
+    "Transaction",
+    "Setting",
+    "Category",
+    "Budget",
+    "SavingsGoal",
+  ]
+) {
+  if (
+    !schema.includes(
+      "model " + model
+    )
+  ) {
+    throw new Error(
+      "Missing Prisma model: " +
+        model
+    );
+  }
+}
+
+console.log(
+  "Finance full-stack smoke test passed"
+);
+`,
+  });
+
   const apiRoutes = [
     "accounts",
     "transactions",
@@ -1480,6 +2310,34 @@ model AuditLog {
   resourceId  String?
   metadata    Json?
   createdAt   DateTime @default(now())
+}
+
+
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model SavingsGoal {
+  id            String   @id @default(cuid())
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 `,
   });
@@ -1929,6 +2787,194 @@ p:not(.eyebrow) {
       column;
   }
 }
+
+/* FINANCE_PRODUCTION_VISUAL_STORY_CSS */
+
+.finance-hero-visual {
+  overflow: hidden;
+  margin: -8px -8px 24px;
+  border-radius: 22px;
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+  background:
+    rgba(255,255,255,.035);
+  box-shadow:
+    0 24px 70px
+    rgba(0,0,0,.18);
+}
+
+.finance-hero-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.finance-story-section {
+  display: grid;
+  grid-template-columns:
+    minmax(0, .92fr)
+    minmax(420px, 1.08fr);
+  align-items: center;
+  gap:
+    clamp(38px, 6vw, 88px);
+  padding:
+    clamp(72px, 9vw, 132px)
+    6vw;
+  background:
+    var(--surface);
+}
+
+.finance-story-copy {
+  max-width: 680px;
+}
+
+.finance-story-copy h2 {
+  max-width: 720px;
+  margin:
+    10px 0 20px;
+  font-size:
+    clamp(36px, 4.8vw, 68px);
+  line-height: .99;
+  letter-spacing: -.045em;
+}
+
+.finance-story-copy > p {
+  max-width: 640px;
+  color:
+    var(--muted);
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.finance-story-points {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.finance-story-points article {
+  display: grid;
+  gap: 6px;
+  padding:
+    18px 20px;
+  border:
+    1px solid var(--line);
+  border-radius: 16px;
+  background:
+    #f8fafc;
+}
+
+.finance-story-points strong {
+  color:
+    var(--navy);
+}
+
+.finance-story-points span {
+  color:
+    var(--muted);
+  line-height: 1.55;
+}
+
+.finance-story-visual {
+  position: relative;
+  min-width: 0;
+}
+
+.finance-story-visual > img:first-child {
+  display: block;
+  width: 100%;
+  height: auto;
+  border:
+    1px solid var(--line);
+  border-radius: 26px;
+  background:
+    #fff;
+  box-shadow:
+    var(--shadow);
+}
+
+.finance-story-thumbnail {
+  position: absolute;
+  right: -24px;
+  bottom: -34px;
+  width:
+    min(42%, 250px);
+  overflow: hidden;
+  border:
+    7px solid #fff;
+  border-radius: 18px;
+  background:
+    #fff;
+  box-shadow:
+    0 22px 55px
+    rgba(7,21,37,.22);
+}
+
+.finance-story-thumbnail img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.finance-story-thumbnail span {
+  display: block;
+  padding:
+    10px 12px;
+  color:
+    var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* FINANCE_PRODUCTION_VISUAL_STORY_MOBILE */
+
+@media (max-width: 980px) {
+  .finance-story-section {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-story-copy {
+    max-width: none;
+  }
+
+  .finance-story-visual {
+    padding-bottom: 36px;
+  }
+
+  .finance-story-thumbnail {
+    right: 18px;
+    bottom: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-hero-visual {
+    margin:
+      0 0 20px;
+    border-radius: 16px;
+  }
+
+  .finance-story-section {
+    padding:
+      64px 5vw;
+  }
+
+  .finance-story-copy h2 {
+    font-size:
+      clamp(34px, 11vw, 48px);
+  }
+
+  .finance-story-thumbnail {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 62%;
+    margin:
+      -24px 18px 0 auto;
+  }
+}
+
 `,
   });
 

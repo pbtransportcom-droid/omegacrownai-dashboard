@@ -1717,6 +1717,232 @@ export async function createCommerceRecord<
 `,
   });
 
+  files.push({
+    file:
+      "app/api/secure-stripe-or-square-checkout/route.ts",
+    title:
+      "Secure Stripe or Square Checkout API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+const supportedProviders = [
+  "stripe",
+  "square",
+] as const;
+
+type PaymentProvider =
+  (typeof supportedProviders)[number];
+
+export async function POST(
+  request: Request
+) {
+  const input =
+    await request.json().catch(() => null);
+
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A valid checkout payload is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const provider =
+    String(
+      (input as Record<string, unknown>)
+        .paymentProvider || ""
+    )
+      .trim()
+      .toLowerCase() as PaymentProvider;
+
+  if (
+    !supportedProviders.includes(provider)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Payment provider must be Stripe or Square.",
+        supportedProviders,
+      },
+      { status: 400 }
+    );
+  }
+
+  const rawItems =
+    (input as Record<string, unknown>).items;
+
+  if (
+    !Array.isArray(rawItems) ||
+    rawItems.length === 0
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Checkout requires at least one cart item.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const email =
+    String(
+      (input as Record<string, unknown>)
+        .email || ""
+    ).trim();
+
+  if (
+    email &&
+    !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(
+      email
+    )
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A valid customer email is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  /*
+   * Provider secrets stay server-side.
+   * Production credentials are intentionally
+   * read only from environment variables.
+   */
+  const configured =
+    provider === "stripe"
+      ? Boolean(
+          process.env.STRIPE_SECRET_KEY
+        )
+      : Boolean(
+          process.env.SQUARE_ACCESS_TOKEN
+        );
+
+  return NextResponse.json({
+    ok: true,
+    provider,
+    configured,
+    mode:
+      configured
+        ? "provider-ready"
+        : "configuration-required",
+    message:
+      configured
+        ? \`Secure \${provider} checkout request accepted.\`
+        : \`\${provider} checkout is generated and awaiting production credentials.\`,
+  });
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/book-format-selection/route.ts",
+    title:
+      "Book Format Selection API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+const supportedFormats = [
+  "hardcover",
+  "paperback",
+  "ebook",
+  "audiobook",
+] as const;
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    formats: supportedFormats,
+  });
+}
+
+export async function POST(
+  request: Request
+) {
+  const input =
+    await request.json().catch(() => null);
+
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A valid book format payload is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const payload =
+    input as Record<string, unknown>;
+
+  const bookId =
+    String(payload.bookId || "").trim();
+
+  const format =
+    String(payload.format || "")
+      .trim()
+      .toLowerCase();
+
+  if (!bookId) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "bookId is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (
+    !supportedFormats.includes(
+      format as
+        (typeof supportedFormats)[number]
+    )
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Unsupported book format.",
+        supportedFormats,
+      },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    selection: {
+      bookId,
+      format,
+    },
+  });
+}
+`,
+  });
+
   const apiRoutes = [
     "products",
     "search",

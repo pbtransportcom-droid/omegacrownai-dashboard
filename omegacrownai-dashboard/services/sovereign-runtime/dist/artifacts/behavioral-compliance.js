@@ -191,14 +191,33 @@ function saasRequirements(artifacts) {
         }),
     ];
 }
+// FINANCE_PRODUCTION_BEHAVIORAL_CONTRACT
 function financeRequirements(artifacts) {
     return [
+        requirement(artifacts, {
+            id: "finance-account-operations",
+            label: "Financial account and transaction operations",
+            files: [
+                "app/dashboard/page.tsx",
+                "app/api/accounts/route.ts",
+                "app/api/transactions/route.ts",
+                "lib/finance-store.ts",
+            ],
+            terms: [
+                "account",
+                "transaction",
+                "listfinancerecords",
+                "createfinancerecord",
+            ],
+        }),
         requirement(artifacts, {
             id: "finance-transfer",
             label: "Secure transfer workflow",
             files: [
                 "components/TransferForm.tsx",
+                "app/transfers/page.tsx",
                 "app/api/transfers/route.ts",
+                "app/api/beneficiaries/route.ts",
             ],
             terms: [
                 "fromaccount",
@@ -212,12 +231,64 @@ function financeRequirements(artifacts) {
             label: "Budget workflow",
             files: [
                 "components/BudgetManager.tsx",
+                "app/budgets/page.tsx",
                 "app/api/budgets/route.ts",
             ],
             terms: [
                 "budgets",
                 "/api/budgets",
                 "savebudgets",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "finance-reporting-payments",
+            label: "Financial statements, reporting, and payment operations",
+            files: [
+                "app/api/statements/route.ts",
+                "app/api/reports/route.ts",
+                "app/api/payments/route.ts",
+                "prisma/schema.prisma",
+            ],
+            terms: [
+                "statements",
+                "reports",
+                "payments",
+                "listfinancerecords",
+                "createfinancerecord",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "finance-risk-compliance-audit",
+            label: "Financial risk, compliance, and audit operations",
+            files: [
+                "app/admin/risk/page.tsx",
+                "app/admin/compliance/page.tsx",
+                "app/admin/audit-logs/page.tsx",
+                "app/api/risk/route.ts",
+                "app/api/compliance/route.ts",
+                "app/api/audit-logs/route.ts",
+                "prisma/schema.prisma",
+            ],
+            terms: [
+                "risk",
+                "compliance",
+                "audit",
+                "listfinancerecords",
+                "createfinancerecord",
+            ],
+        }),
+        requirement(artifacts, {
+            id: "finance-persistence",
+            label: "Persistent financial operating records",
+            files: [
+                "lib/finance-store.ts",
+                "data/accounts.json",
+                "data/transactions.json",
+                "prisma/schema.prisma",
+            ],
+            terms: [
+                "account",
+                "transaction",
             ],
         }),
     ];

@@ -239,6 +239,12 @@ function buildAuthoritativeBlueprint(input) {
     if (input.industry === "transportation") {
         apiRoutes.splice(0, apiRoutes.length, "/api/bookings", "/api/dispatch", "/api/fleet", "/api/drivers", "/api/customers", "/api/availability", "/api/pricing", "/api/invoices", "/api/payments", "/api/notifications");
     }
+    // FINANCE_AUTHORITATIVE_API_CONTRACT
+    // Align the authoritative Finance blueprint with the exact API
+    // endpoints emitted by finance-renderer.
+    if (input.industry === "finance") {
+        apiRoutes.splice(0, apiRoutes.length, "/api/accounts", "/api/transactions", "/api/transfers", "/api/beneficiaries", "/api/budgets", "/api/statements", "/api/payments", "/api/reports", "/api/risk", "/api/compliance", "/api/audit-logs");
+    }
     // SAAS_AUTHORITATIVE_API_CONTRACT
     // Align the authoritative SaaS blueprint with the operational
     // endpoints emitted by saas-renderer.
@@ -1499,6 +1505,121 @@ export function createBuildSpec(input) {
             "Receive updates",
         ];
     }
+    // FINANCE_CANONICAL_PRODUCT_FAMILY
+    // Finance is a first-class Living OS product family. Reconcile
+    // finance intent after broad website/business heuristics so a
+    // financial operating application cannot fall back to the generic
+    // business website family.
+    const financeIntent = /\b(finance|financial|fintech|banking|bank|wealth|wealth management|portfolio|portfolios|ledger|accounting|accounts|transactions|transfers|budgeting|budgets|reconciliation)\b/i.test(originalPrompt) ||
+        /\b(finance|financial|fintech|banking|wealth|ledger|accounting)\b/i.test(String(input.productId || ""));
+    if (financeIntent) {
+        industry = "finance";
+        const requestedFinanceBrand = typeof input.productName === "string"
+            ? input.productName.trim()
+            : "";
+        if (requestedFinanceBrand) {
+            brandName =
+                requestedFinanceBrand;
+        }
+        targetCustomer =
+            "financial operations teams, businesses, account holders, and finance administrators";
+        if (/\bwealth|portfolio|portfolios|holdings|advisor|advisors\b/i.test(originalPrompt)) {
+            productType =
+                "wealth management and financial operations platform";
+        }
+        else {
+            productType =
+                "financial operations and account management platform";
+        }
+    }
+    // FINANCE_AUTHORITATIVE_OPERATING_CONTRACT
+    // Finance is reconciled to the exact operational surface emitted
+    // by finance-renderer. Authentication remains a separate phase
+    // until real authentication artifacts are generated.
+    if (industry === "finance") {
+        services = [
+            "Financial dashboard and account overview",
+            "Account management",
+            "Transaction monitoring",
+            "Secure transfers and beneficiaries",
+            "Budget management",
+            "Statements and financial reporting",
+            "Payment operations",
+            "Risk monitoring",
+            "Compliance review",
+            "Financial audit logs",
+        ];
+        pages = [
+            "Home",
+            "Dashboard",
+            "Transfers",
+            "Budgets",
+            "Admin Dashboard",
+            "Account Administration",
+            "Transaction Monitoring",
+            "Transfer Administration",
+            "Risk Management",
+            "Compliance Management",
+            "Financial Audit Logs",
+        ];
+        features = [
+            "Financial dashboard",
+            "Account balances and controls",
+            "Transaction monitoring",
+            "Secure transfers",
+            "Beneficiary management",
+            "Budget planning and tracking",
+            "Financial statements",
+            "Payment operations",
+            "Financial reporting",
+            "Risk monitoring",
+            "Compliance reviews",
+            "Audit logging",
+            "Persistent financial records",
+        ];
+        customerWorkflow = [
+            "Review financial dashboard",
+            "Review accounts and balances",
+            "Review transaction history",
+            "Prepare secure transfer",
+            "Choose destination account or beneficiary",
+            "Submit transfer",
+            "Review transfer status",
+            "Manage budgets",
+            "Review statements and reports",
+        ];
+        adminWorkflow = [
+            "Monitor accounts",
+            "Review transactions",
+            "Review and manage transfers",
+            "Review risk events",
+            "Perform compliance reviews",
+            "Review financial audit logs",
+            "Monitor payments and financial reporting",
+        ];
+        visualDirection =
+            "premium financial operations platform with account visibility, transaction monitoring, secure transfers, budget management, payments, statements, reporting, risk controls, compliance review, financial audit trails, and executive administration";
+        designPreset = {
+            id: "finance_operations",
+            name: "Financial Operations Platform",
+            mood: "secure, precise, trustworthy, executive, data-focused",
+            palette: {
+                background: "#f8fafc",
+                surface: "#ffffff",
+                primary: "#0f172a",
+                secondary: "#1d4ed8",
+                accent: "#059669",
+                text: "#0f172a",
+                muted: "#475569",
+            },
+            typography: "highly readable financial headings, precise numeric presentation, and clear account, transaction, transfer, risk, and compliance labels",
+            layout: "financial dashboard, account overview, transaction operations, secure transfer workspace, budgeting, reporting, risk, compliance, audit, and administration",
+            heroStyle: "secure finance operating-platform hero focused on account visibility, transaction control, transfer safety, governance, and measurable oversight",
+            sectionStyle: "structured financial operations sections with account summaries, transaction tables, transfer controls, budget panels, reporting, risk queues, compliance review, audit history, and executive oversight",
+            imageDirection: "professional financial operations imagery emphasizing secure account management, transaction oversight, trusted transfer workflows, reporting, risk controls, compliance, and financial governance",
+            motionDirection: "restrained professional transitions with subtle dashboard feedback, transaction and transfer status changes, validation states, and low-distraction financial workflow motion",
+        };
+    }
     // PROFESSIONAL_SERVICES_CANONICAL_BRAND
     // An explicitly supplied productName is authoritative for the
     // professional-services product identity. Earlier family detection
@@ -1574,6 +1695,30 @@ export function createBuildSpec(input) {
         `Delivery standard: full-function package with preview, source files, README.md, DELIVERY.md, LAUNCH_CHECKLIST.md, metadata, validation, and downloadable ZIP.`
     ].join(" ");
     const suggestedPrompt = `Create a full-function ${productType} for ${brandName}. Include ${services.join(", ")}. Build pages for ${pages.join(", ")}. Add features for ${features.join(", ")}. Include customer workflow: ${customerWorkflow.join(" -> ")}. Include admin workflow: ${adminWorkflow.join(" -> ")}. Use ${visualDirection}. Deliver preview, source package, README.md, DELIVERY.md, LAUNCH_CHECKLIST.md, validation, and download ZIP.`;
+    // BOOKSTORE_FINAL_CLASSIFICATION_PRECEDENCE
+    // Strong bookstore identity must win over generic payment/finance
+    // vocabulary such as checkout, payments, Stripe, Square or accounts.
+    // Those terms describe bookstore commerce capabilities; they do not
+    // redefine the product industry as finance.
+    const bookstoreIdentitySource = [
+        input.prompt,
+        normalizedPrompt,
+        typeof input.productName === "string"
+            ? input.productName
+            : "",
+        brandName,
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+    const explicitBookstoreIdentity = /\b(bookhaven|bookstore|book store|book shop|bookseller|ebook|ebooks|audiobook|audiobooks|book catalog|book lover|book lovers)\b/i.test(bookstoreIdentitySource);
+    if (explicitBookstoreIdentity) {
+        industry = "bookstore";
+        productType =
+            "premium ecommerce bookstore and digital reading platform";
+        targetCustomer =
+            "book lovers, students, gift buyers, audiobook listeners, and digital readers";
+    }
     const authoritativeBlueprint = buildAuthoritativeBlueprint({
         originalPrompt,
         industry,
@@ -1588,6 +1733,279 @@ export function createBuildSpec(input) {
         customerWorkflow,
         designPreset,
     });
+    // BOOKSTORE_AUTHORITATIVE_BLUEPRINT_NORMALIZATION
+    //
+    // The final industry classification is authoritative.
+    // A bookstore must never inherit finance pages, workflows,
+    // models or API requirements merely because its prompt
+    // includes payment, account, Stripe or Square terminology.
+    if (industry === "bookstore") {
+        const bookstorePages = [
+            "Home",
+            "Books",
+            "Book Details",
+            "Categories",
+            "Authors",
+            "Search",
+            "Wishlist",
+            "Cart",
+            "Checkout",
+            "Digital Library",
+            "Subscriptions",
+            "Account",
+            "Admin Dashboard",
+        ];
+        const bookstoreRoutes = [
+            "/",
+            "/books",
+            "/books/[bookId]",
+            "/categories",
+            "/authors",
+            "/search",
+            "/wishlist",
+            "/cart",
+            "/checkout",
+            "/digital-library",
+            "/subscriptions",
+            "/account",
+            "/admin",
+        ];
+        const bookstoreApiRoutes = [
+            "/api/books",
+            "/api/search",
+            "/api/cart",
+            "/api/wishlist",
+            "/api/orders",
+            "/api/shipping",
+            "/api/reviews",
+            "/api/subscriptions",
+            "/api/digital-delivery",
+            "/api/secure-stripe-or-square-checkout",
+            "/api/book-format-selection",
+        ];
+        const bookstoreFeatures = [
+            "Book catalog and browsing",
+            "Genre and category filtering",
+            "Author discovery",
+            "Powerful book search",
+            "Hardcover, paperback, ebook and audiobook formats",
+            "Shopping cart",
+            "Wishlist and save for later",
+            "Secure Stripe or Square checkout",
+            "Customer accounts and order history",
+            "Digital ebook and audiobook delivery",
+            "Physical shipping and tracking",
+            "Book subscriptions and curated reads",
+            "Customer reviews and ratings",
+            "Related-book recommendations",
+            "Inventory management",
+            "Order management",
+            "Customer management",
+            "Discounts and promotions",
+            "Abandoned cart recovery",
+            "Order confirmation communications",
+        ];
+        const bookstoreDataModels = [
+            "Customer",
+            "Book",
+            "Author",
+            "Category",
+            "BookFormat",
+            "InventoryRecord",
+            "Cart",
+            "CartItem",
+            "Wishlist",
+            "Order",
+            "OrderItem",
+            "Review",
+            "Subscription",
+            "DigitalEntitlement",
+            "Shipment",
+            "Promotion",
+        ];
+        const bookstoreCustomerWorkflow = [
+            "Browse or search books",
+            "Review book details",
+            "Choose hardcover, paperback, ebook, or audiobook",
+            "Add book to cart or wishlist",
+            "Review cart",
+            "Choose Stripe or Square checkout",
+            "Complete order",
+            "Receive order confirmation",
+            "Track physical shipment or access digital delivery",
+            "Review purchased books",
+        ];
+        const bookstoreAdminWorkflow = [
+            "Manage books and authors",
+            "Manage categories and formats",
+            "Manage inventory",
+            "Review and fulfill orders",
+            "Manage customers",
+            "Manage subscriptions",
+            "Manage reviews",
+            "Manage discounts and promotions",
+            "Review shipping and digital delivery status",
+            "Review bookstore analytics",
+        ];
+        const bookstorePageObjects = bookstorePages.map((name, index) => ({
+            name,
+            purpose: `Support the bookstore customer journey through ${name}.`,
+            requiredSections: [
+                `${name} introduction`,
+                `${name} primary content`,
+                `${name} customer action`,
+            ],
+            requiredActions: [
+                "Navigate",
+                "Review information",
+                "Complete next action",
+            ],
+            route: bookstoreRoutes[index] || "/",
+        }));
+        const bookstoreFeatureObjects = bookstoreFeatures.map((name) => ({
+            name,
+            category: /admin|inventory|customer|order|promotion/i.test(name)
+                ? "admin"
+                : /checkout|stripe|square/i.test(name)
+                    ? "payments"
+                    : /digital|shipping/i.test(name)
+                        ? "integration"
+                        : "customer",
+            required: true,
+            acceptanceCriteria: [
+                `${name} is represented in the generated source.`,
+                `${name} has an accessible customer or admin interaction path.`,
+                `${name} is documented in metadata or delivery documentation.`,
+            ],
+        }));
+        const bookstoreBlueprint = authoritativeBlueprint;
+        bookstoreBlueprint.industry =
+            "bookstore";
+        bookstoreBlueprint.productType =
+            "premium ecommerce bookstore and digital reading platform";
+        if (bookstoreBlueprint.product &&
+            typeof bookstoreBlueprint.product === "object") {
+            bookstoreBlueprint.product.industry =
+                "bookstore";
+            bookstoreBlueprint.product.type =
+                "premium ecommerce bookstore and digital reading platform";
+        }
+        bookstoreBlueprint.pages =
+            bookstorePageObjects;
+        bookstoreBlueprint.features =
+            bookstoreFeatureObjects;
+        bookstoreBlueprint.workflows = [
+            {
+                id: "customer-bookstore-workflow",
+                actor: "customer",
+                name: "Bookstore customer workflow",
+                steps: bookstoreCustomerWorkflow,
+                statuses: [
+                    "browsing",
+                    "cart",
+                    "checkout",
+                    "ordered",
+                    "fulfilled",
+                ],
+                requiredInterfaces: [
+                    "/",
+                    "/books",
+                    "/cart",
+                    "/checkout",
+                    "/account",
+                ],
+            },
+            {
+                id: "admin-bookstore-workflow",
+                actor: "admin",
+                name: "Bookstore admin workflow",
+                steps: bookstoreAdminWorkflow,
+                statuses: [
+                    "new",
+                    "reviewing",
+                    "processing",
+                    "completed",
+                ],
+                requiredInterfaces: [
+                    "/admin",
+                ],
+            },
+        ];
+        bookstoreBlueprint.architecture = {
+            ...(bookstoreBlueprint.architecture || {}),
+            routes: bookstoreRoutes,
+            apiRoutes: bookstoreApiRoutes,
+            dataModels: bookstoreDataModels,
+            integrations: [
+                "Stripe",
+                "Square",
+                "Shipping tracking",
+                "Digital ebook delivery",
+                "Digital audiobook delivery",
+                "Order confirmation email",
+            ],
+            adminModules: [
+                "Books",
+                "Authors",
+                "Categories",
+                "Inventory",
+                "Orders",
+                "Customers",
+                "Subscriptions",
+                "Reviews",
+                "Discounts and Promotions",
+            ],
+            authentication: true,
+            persistence: true,
+        };
+        bookstoreBlueprint.operatingSystem = {
+            ...(bookstoreBlueprint.operatingSystem || {}),
+            executiveDashboard: true,
+            customerPortal: true,
+            adminPortal: true,
+            operationsCenter: true,
+            notificationCenter: true,
+            analyticsCenter: true,
+            contentManager: true,
+            aiCopilot: true,
+        };
+        bookstoreBlueprint.compliance = {
+            ...(bookstoreBlueprint.compliance || {}),
+            requiredPromptTerms: [
+                "bookstore",
+                "Books",
+                "Book Details",
+                "Categories",
+                "Authors",
+                "Search",
+                "Wishlist",
+                "Cart",
+                "Checkout",
+                "Digital Library",
+                "Subscriptions",
+                "Hardcover",
+                "Paperback",
+                "Ebook",
+                "Audiobook",
+                "Stripe",
+                "Square",
+                "Book format selection",
+                "Digital book delivery",
+                "Shipping and tracking",
+                "Customer reviews",
+                "Admin Dashboard",
+            ],
+            prohibitedGenericTerms: [
+                "Lorem ipsum",
+                "Your company",
+                "Example business",
+                "Generic service",
+                "Placeholder content",
+            ],
+            minimumQualityScore: 92,
+            blockDeliveryOnFailure: true,
+        };
+    }
     return {
         productId: clean(input.productId) || undefined,
         productName: clean(input.productName) || undefined,
