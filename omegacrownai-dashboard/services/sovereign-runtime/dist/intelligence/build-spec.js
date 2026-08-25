@@ -322,17 +322,36 @@ function buildAuthoritativeBlueprint(input) {
             routes: pages.map((page) => routeFromPageName(page.name)),
             // DIGITAL_INTELLIGENCE_AUTOMATION_API_CONTRACT
             //
-            // The automation renderer exposes workflow intake and workflow
-            // management through /api/workflows. Keep the authoritative blueprint
-            // aligned with that executable renderer contract instead of requiring
-            // a mechanically inferred /api/workflow-request-intake endpoint.
+            // Dedicated renderers can expose canonical API contracts that differ
+            // from mechanically slugged semantic feature labels. Normalize those
+            // contracts here, at the authoritative blueprint boundary, while
+            // keeping exact-artifact compliance strict.
+            //
+            // Automation:
+            //   Workflow request intake -> /api/workflows
+            //
+            // Restaurant:
+            //   Menu data           -> /api/menu
+            //   Order request       -> /api/orders
+            //   Reservation request -> /api/reservations
             apiRoutes: Array.from(new Set(input.industry === "automation"
                 ? [
                     ...apiRoutes.filter((route) => route !==
                         "/api/workflow-request-intake"),
                     "/api/workflows",
                 ]
-                : apiRoutes)),
+                : input.industry === "restaurant"
+                    ? [
+                        ...apiRoutes.filter((route) => ![
+                            "/api/menu-data",
+                            "/api/order-request",
+                            "/api/reservation-request",
+                        ].includes(route)),
+                        "/api/menu",
+                        "/api/orders",
+                        "/api/reservations",
+                    ]
+                    : apiRoutes)),
             dataModels,
             adminModules: input.pages.filter((page) => /admin|dashboard|management|review/i.test(page)),
             integrations: input.features.filter((feature) => /payment|stripe|email|sms|map|calendar|crm|webhook|integration/i.test(feature)),
@@ -635,6 +654,118 @@ export function createBuildSpec(input) {
         adminWorkflow = ["Manage products", "Review orders", "Manage customers", "Update content"];
         customerWorkflow = ["Browse products", "Add to cart", "Submit checkout", "Receive confirmation"];
     }
+    // DIGITAL_INTELLIGENCE_DOMAIN_PRECEDENCE
+    //
+    // Strong domain identity must win before generic workflow/finance
+    // interpretation. Payment, billing, reporting, accounts, dashboards,
+    // subscriptions, tracking, or operational vocabulary are capabilities;
+    // they must not replace a clearly expressed business domain.
+    const domainPrecedenceSource = originalPrompt.toLowerCase();
+    const transportationDomainIntent = /\b(transportation|transport service|transport services|limo|limousine|chauffeur|fleet|dispatch|vehicle dispatch|ride booking|passenger transportation|airport transportation|car service)\b/i.test(domainPrecedenceSource);
+    const saasDomainIntent = /\b(saas|software as a service|multi[- ]tenant saas|subscription software|subscription software platform|cloud software platform|web application platform)\b/i.test(domainPrecedenceSource);
+    if (transportationDomainIntent) {
+        industry = "transportation";
+        productType = "transportation booking and dispatch platform";
+        brandFallback = "Transportation Operations Platform";
+        targetCustomer =
+            "passengers, transportation customers, dispatchers, drivers, and fleet operators";
+        services = [
+            "Ride and trip requests",
+            "Transportation booking",
+            "Dispatch operations",
+            "Fleet coordination",
+            "Driver assignment",
+            "Customer trip updates",
+        ];
+        pages = [
+            "Home",
+            "Book a Ride",
+            "Trips",
+            "Fleet",
+            "Dispatch",
+            "Drivers",
+            "Customer Portal",
+            "Admin Dashboard",
+        ];
+        features = [
+            "Trip request intake",
+            "Pickup and dropoff details",
+            "Vehicle and fleet management",
+            "Driver assignment",
+            "Dispatch status tracking",
+            "Customer trip updates",
+            "Admin transportation operations",
+        ];
+        adminWorkflow = [
+            "Review trip requests",
+            "Assign vehicle and driver",
+            "Dispatch trip",
+            "Track trip status",
+            "Review fleet operations",
+            "Complete customer follow-up",
+        ];
+        customerWorkflow = [
+            "Request transportation",
+            "Enter pickup and dropoff details",
+            "Receive trip acknowledgement",
+            "Track trip status",
+            "Receive completion follow-up",
+        ];
+        visualDirection =
+            "premium transportation operations design with booking, dispatch, fleet, driver, trip status, and customer service interfaces";
+    }
+    else if (saasDomainIntent) {
+        industry = "saas";
+        productType = "multi-tenant software as a service platform";
+        brandFallback = "SaaS Operations Platform";
+        targetCustomer =
+            "organizations, administrators, team members, and subscription software customers";
+        services = [
+            "Workspace management",
+            "User and team administration",
+            "Subscription access",
+            "Dashboard operations",
+            "Integrations",
+            "Reporting and analytics",
+        ];
+        pages = [
+            "Home",
+            "Dashboard",
+            "Workspace",
+            "Team",
+            "Integrations",
+            "Analytics",
+            "Billing",
+            "Admin Dashboard",
+        ];
+        features = [
+            "Multi-tenant workspaces",
+            "User accounts",
+            "Role-based administration",
+            "Subscription management",
+            "Operational dashboard",
+            "Integrations",
+            "Analytics and reporting",
+            "Admin configuration",
+        ];
+        adminWorkflow = [
+            "Review tenant accounts",
+            "Manage users and permissions",
+            "Configure subscriptions",
+            "Review integrations",
+            "Monitor platform activity",
+            "Review analytics",
+        ];
+        customerWorkflow = [
+            "Create or access workspace",
+            "Configure account",
+            "Invite team members",
+            "Use software features",
+            "Review account status",
+        ];
+        visualDirection =
+            "premium SaaS product design with workspace navigation, application dashboards, account controls, integrations, analytics, and administration";
+    }
     // DIGITAL_INTELLIGENCE_EARLY_WORKFLOW_CLASSIFICATION
     //
     // Detect operational workflow intent before explicit industry/product
@@ -664,7 +795,9 @@ export function createBuildSpec(input) {
     const semanticWorkflowAutomationIntent = explicitWorkflowAutomationIntent ||
         (hasWorkflowOperatingContext &&
             operationalWorkflowSignals >= 3);
-    if (semanticWorkflowAutomationIntent) {
+    if (semanticWorkflowAutomationIntent &&
+        !transportationDomainIntent &&
+        !saasDomainIntent) {
         industry = "automation";
         productType = "workflow automation and operations platform";
         brandFallback = "Workflow Automation Platform";
@@ -1611,7 +1744,14 @@ export function createBuildSpec(input) {
     const financeIntent = /\b(finance|financial|fintech|banking|bank|wealth|wealth management|portfolio|portfolios|ledger|accounting|accounts|transactions|transfers|budgeting|budgets|reconciliation)\b/i.test(originalPrompt) ||
         /\b(finance|financial|fintech|banking|wealth|ledger|accounting)\b/i.test(String(input.productId || ""));
     if (financeIntent) {
-        industry = "finance";
+        // DIGITAL_INTELLIGENCE_PRESERVE_TRANSPORTATION_OVER_FINANCE_CAPABILITIES
+        // Finance vocabulary may describe payments, billing, reporting,
+        // accounts, subscriptions, or operational metrics inside a
+        // transportation platform. Do not let those capabilities replace
+        // an already-established transportation business identity.
+        if (!transportationDomainIntent && industry !== "transportation") {
+            industry = "finance";
+        }
         const requestedFinanceBrand = typeof input.productName === "string"
             ? input.productName.trim()
             : "";

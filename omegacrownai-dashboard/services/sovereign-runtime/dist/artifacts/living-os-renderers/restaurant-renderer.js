@@ -172,7 +172,7 @@ export function RestaurantHero() {
         <div className="restaurant-proof">
           <span>Real-time table reservations</span>
           <span>Pickup and delivery</span>
-          <span>Secure checkout</span>
+          <span>Order confirmation</span>
           <span>Catering requests</span>
         </div>
       </div>
@@ -1060,6 +1060,32 @@ model Promotion {
   startsAt    DateTime?
   endsAt      DateTime?
   createdAt   DateTime @default(now())
+}
+`,
+    });
+    files.push({
+        file: "app/layout.tsx",
+        title: "Restaurant Root Layout",
+        type: "typescript",
+        content: `import "./globals.css";
+import type { ReactNode } from "react";
+
+export const metadata = {
+  title: "Restaurant Operations Platform",
+  description:
+    "Restaurant ordering, reservations, menu, and operations platform.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }
 `,
     });
