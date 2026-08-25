@@ -127,48 +127,204 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const designPalette: Record<string, string> = designPreset?.palette || {};
   const buildSpecReportVisible = Boolean(buildSpec || summary?.originalPrompt || summary?.normalizedPrompt);
 
-  async function startApp(path = "") {
-    setStatus("Starting active generated app...");
-    try {
-      const response = await fetch(`/api/runtime-proxy/runs/${projectId}/start-app`, {
-        method: "POST",
-      });
-      const data = await response.json().catch(() => ({}));
+  // RUNTIME_PREVIEW_ACTIVE_APP_READINESS
+  // Generated apps run npm install -> production build -> next start.
+  // start-app therefore returns before the application is necessarily
+  // listening. Poll the authoritative app-status endpoint and only
+  // place the active application in the preview after it is reachable.
+  async function waitForActiveApp(
+    path = "",
+    timeoutMs = 120000
+  ) {
+    const deadline =
+      Date.now() + timeoutMs;
 
-      if (!response.ok || data?.ok === false) {
-        setStatus(data?.error || "Active app could not be started. Static preview remains available.");
+    let lastState = "starting";
+
+    while (Date.now() < deadline) {
+      const response = await fetch(
+        `/api/runtime-proxy/runs/${projectId}/app-status`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (response.ok) {
+        lastState =
+          String(
+            data?.status ||
+            "starting"
+          );
+
+        if (
+          data?.status === "running" &&
+          data?.processAlive === true &&
+          data?.portReachable === true
+        ) {
+          const nextUrl =
+            `${activeApp}${path}`;
+
+          setFrameSrc(nextUrl);
+
+          setStatus(
+            `Active app ready: ${path || "/"}`
+          );
+
+          return true;
+        }
+
+        if (
+          data?.status === "stopped" ||
+          data?.status === "failed" ||
+          data?.status === "error"
+        ) {
+          setStatus(
+            data?.error ||
+            "Generated application stopped before becoming ready."
+          );
+
+          return false;
+        }
+
+        setStatus(
+          data?.status === "starting"
+            ? "Generated application is building and starting..."
+            : `Waiting for generated application (${lastState})...`
+        );
+      } else {
+        setStatus(
+          "Waiting for generated application status..."
+        );
+      }
+
+      await new Promise<void>(
+        (resolve) => {
+          window.setTimeout(
+            resolve,
+            1500
+          );
+        }
+      );
+    }
+
+    setStatus(
+      `Generated application did not become ready within ${Math.round(
+        timeoutMs / 1000
+      )} seconds. Static preview remains available.`
+    );
+
+    return false;
+  }
+
+  async function startApp(path = "") {
+    setStatus(
+      "Starting active generated app..."
+    );
+
+    try {
+      const response = await fetch(
+        `/api/runtime-proxy/runs/${projectId}/start-app`,
+        {
+          method: "POST",
+        }
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (
+        !response.ok ||
+        data?.ok === false
+      ) {
+        setStatus(
+          data?.error ||
+          "Active app could not be started. Static preview remains available."
+        );
+
         return false;
       }
 
-      const nextUrl = `${activeApp}${path}`;
-      setFrameSrc(nextUrl);
-      setStatus(`Active app opened: ${path || "/"}`);
-      return true;
+      if (
+        data?.status === "running" &&
+        data?.portReachable === true
+      ) {
+        const nextUrl =
+          `${activeApp}${path}`;
+
+        setFrameSrc(nextUrl);
+
+        setStatus(
+          `Active app ready: ${path || "/"}`
+        );
+
+        return true;
+      }
+
+      setStatus(
+        "Generated application accepted. Waiting for production build and startup..."
+      );
+
+      return await waitForActiveApp(
+        path
+      );
     } catch {
-      setStatus("Active app start failed. Static preview remains available.");
+      setStatus(
+        "Active app start failed. Static preview remains available."
+      );
+
       return false;
     }
   }
 
   async function restartActiveApp(path = "") {
-    setStatus("Restarting active generated app...");
-    try {
-      const response = await fetch(`/api/runtime-proxy/runs/${projectId}/restart-app`, {
-        method: "POST",
-      });
-      const data = await response.json().catch(() => ({}));
+    setStatus(
+      "Restarting active generated app..."
+    );
 
-      if (!response.ok || data?.ok === false) {
-        setStatus(data?.error || "Active app restart failed.");
+    try {
+      const response = await fetch(
+        `/api/runtime-proxy/runs/${projectId}/restart-app`,
+        {
+          method: "POST",
+        }
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (
+        !response.ok ||
+        data?.ok === false
+      ) {
+        setStatus(
+          data?.error ||
+          "Active app restart failed."
+        );
+
         return false;
       }
 
-      const nextUrl = `${activeApp}${path}`;
-      setFrameSrc(nextUrl);
-      setStatus("Active app restarted with latest saved files.");
-      return true;
+      setStatus(
+        "Generated application is rebuilding. Waiting for restart..."
+      );
+
+      return await waitForActiveApp(
+        path
+      );
     } catch {
-      setStatus("Active app restart request failed.");
+      setStatus(
+        "Active app restart request failed."
+      );
+
       return false;
     }
   }
