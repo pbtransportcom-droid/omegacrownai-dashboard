@@ -2090,6 +2090,145 @@ export default function SubscriptionsPage() {
 `,
   });
 
+  // BOOKSTORE_DYNAMIC_CATEGORY_ROUTE
+  files.push({
+    file: "app/categories/[slug]/page.tsx",
+    title: "Functional Book Category",
+    type: "typescript",
+    content: `import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import books from "../../../data/books.json";
+import { BookCard } from "../../../components/BookCard";
+import { BookstoreHeader } from "../../../components/BookstoreHeader";
+
+const categories = {
+  biography: {
+    label: "Biography",
+    match: "Biography",
+    description:
+      "Discover remarkable lives, memoirs, personal histories, and inspiring true stories.",
+  },
+  "children-s-books": {
+    label: "Children's Books",
+    match: "Children's Books",
+    description:
+      "Explore stories, adventures, learning, and imagination for young readers and families.",
+  },
+  fiction: {
+    label: "Fiction",
+    match: "Fiction",
+    description:
+      "Discover imaginative stories, memorable characters, and compelling fictional worlds.",
+  },
+  mystery: {
+    label: "Mystery",
+    match: "Mystery",
+    description:
+      "Follow clues, investigations, secrets, and suspenseful discoveries.",
+  },
+  romance: {
+    label: "Romance",
+    match: "Romance",
+    description:
+      "Explore heartfelt stories of relationships, connection, and love.",
+  },
+  "sci-fi": {
+    label: "Science Fiction",
+    match: "Sci-Fi",
+    description:
+      "Travel through future worlds, advanced technology, and adventures beyond the stars.",
+  },
+} as const;
+
+type CategorySlug = keyof typeof categories;
+
+export function generateStaticParams() {
+  return Object.keys(categories).map((slug) => ({
+    slug,
+  }));
+}
+
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  if (!(slug in categories)) {
+    notFound();
+  }
+
+  const category =
+    categories[slug as CategorySlug];
+
+  const categoryBooks = books.filter(
+    (book) =>
+      book.category.toLowerCase() ===
+      category.match.toLowerCase()
+  );
+
+  return (
+    <main>
+      <BookstoreHeader />
+
+      <section className="standard-page">
+        <p className="eyebrow">
+          ${brand} categories
+        </p>
+
+        <h1>{category.label}</h1>
+        <p>{category.description}</p>
+
+        <p>
+          <Link href="/categories">
+            Browse all categories
+          </Link>
+        </p>
+      </section>
+
+      <section className="catalog-shell">
+        <section>
+          <div className="catalog-heading">
+            <strong>
+              {categoryBooks.length} books
+            </strong>
+
+            <span>
+              Browse {category.label.toLowerCase()}
+            </span>
+          </div>
+
+          {categoryBooks.length > 0 ? (
+            <div className="book-grid">
+              {categoryBooks.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="standard-page">
+              <h2>
+                More {category.label} titles are coming soon.
+              </h2>
+
+              <p>
+                This category is active and ready
+                for additional catalog titles.
+              </p>
+            </div>
+          )}
+        </section>
+      </section>
+    </main>
+  );
+}
+`,
+  });
+
   const simplePages = [
     [
       "app/account/page.tsx",
