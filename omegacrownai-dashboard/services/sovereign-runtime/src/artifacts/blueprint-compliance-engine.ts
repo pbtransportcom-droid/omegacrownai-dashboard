@@ -331,18 +331,17 @@ export function applyBlueprintCompliance(
         Boolean(expectedFile) &&
         hasFile(artifacts, expectedFile);
 
-      const semanticFiles = evidenceFiles(
-        artifacts,
-        route.replace(/^\/api\//, "")
-      ).filter((file) => file.includes("/api/"));
-
+      // AUTHORITATIVE_API_EXACT_ARTIFACT_CONTRACT
+      // API routes are executable architecture contracts. Semantic
+      // resemblance elsewhere in /api cannot satisfy a required route.
+      // The exact generated route artifact must exist.
       return {
         name: route,
-        implemented:
-          exactMatch || semanticFiles.length > 0,
-        evidenceFiles: exactMatch
-          ? [expectedFile]
-          : semanticFiles,
+        implemented: exactMatch,
+        evidenceFiles:
+          exactMatch && expectedFile
+            ? [expectedFile]
+            : [],
       };
     }
   );

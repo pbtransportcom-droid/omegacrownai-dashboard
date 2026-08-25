@@ -365,6 +365,10 @@ export async function executeRun(projectId: string, input: any) {
       delivery: run.delivery?.status || "unknown"
     };
 
+    // SUCCESSFUL_RUN_ERROR_NORMALIZATION
+    // A run that reaches the canonical completed state must not retain
+    // an obsolete validation/compliance error from an earlier gate.
+    run.error = undefined;
     run.status = "completed";
     run.completedAt = new Date().toISOString();
     appendRunEvent(run, "Execution completed");

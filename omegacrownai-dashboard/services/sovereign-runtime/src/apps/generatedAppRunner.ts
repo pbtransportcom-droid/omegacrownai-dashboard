@@ -246,7 +246,27 @@ export async function startGeneratedApp(projectId: string) {
     }
   }
 
-  const manifest = await prepareGeneratedApp(projectId);
+  // GENERATED_APP_WARM_RESTART
+  // If a previously prepared runnable application still has its
+  // production build and installed dependencies, reuse that runnable
+  // copy instead of deleting it, reinstalling packages, and rebuilding.
+  // prepareGeneratedApp remains the cold-start path when the runnable
+  // copy is missing or incomplete.
+  const reusableAppDir =
+    existing?.appDir &&
+    fs.existsSync(path.join(existing.appDir, "package.json")) &&
+    fs.existsSync(path.join(existing.appDir, ".next", "BUILD_ID")) &&
+    fs.existsSync(path.join(existing.appDir, "node_modules"));
+
+  const manifest = reusableAppDir
+    ? {
+        ...existing,
+        ok: true,
+        projectId,
+        status: "prepared",
+        warmRestart: true,
+      }
+    : await prepareGeneratedApp(projectId);
 
   const logDir = path.join(RUNTIME_ROOT, "logs", "generated-apps");
   fs.mkdirSync(logDir, { recursive: true });
@@ -258,7 +278,9 @@ export async function startGeneratedApp(projectId: string) {
     "bash",
     [
       "-lc",
-      `cd "${manifest.appDir}" && npm install && npm run build && PORT=${manifest.port} npm run start`,
+      reusableAppDir
+        ? `cd "${manifest.appDir}" && PORT=${manifest.port} npm run start`
+        : `cd "${manifest.appDir}" && npm install && npm run build && PORT=${manifest.port} npm run start`,
     ],
     {
       detached: true,

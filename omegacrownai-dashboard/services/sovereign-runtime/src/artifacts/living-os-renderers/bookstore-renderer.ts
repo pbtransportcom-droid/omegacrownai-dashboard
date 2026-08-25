@@ -2114,11 +2114,20 @@ export default function SubscriptionsPage() {
   ];
 
   for (const [file, title, description] of simplePages) {
+    // BOOKSTORE_SIMPLE_PAGE_RELATIVE_IMPORT_FIX
+    // Calculate imports from the generated page directory instead of
+    // assuming every page is at the same nesting depth.
+    const relativeToRoot = file
+      .split("/")
+      .slice(0, -1)
+      .map(() => "..")
+      .join("/");
+
     files.push({
       file,
       title,
       type: "typescript",
-      content: `import { BookstoreHeader } from "../../components/BookstoreHeader";
+      content: `import { BookstoreHeader } from "${relativeToRoot}/components/BookstoreHeader";
 
 export default function Page() {
   return (
@@ -2233,6 +2242,201 @@ export default function AdminPage() {
 
     void relative;
   }
+
+  // BOOKSTORE_AUTHORITATIVE_API_CONTRACTS
+
+  files.push({
+    file:
+      "app/api/secure-stripe-or-square-checkout/route.ts",
+    title:
+      "Secure Stripe or Square Checkout API",
+    type: "typescript",
+    content: `import { NextResponse } from "next/server";
+
+const supportedProviders = [
+  "stripe",
+  "square",
+] as const;
+
+export async function POST(
+  request: Request
+) {
+  const payload =
+    await request.json().catch(() => null);
+
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A valid checkout payload is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const body =
+    payload as Record<string, unknown>;
+
+  const paymentProvider =
+    String(
+      body.paymentProvider ||
+      body.provider ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    !supportedProviders.includes(
+      paymentProvider as
+        (typeof supportedProviders)[number]
+    )
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Payment provider must be Stripe or Square.",
+        supportedProviders,
+      },
+      { status: 400 }
+    );
+  }
+
+  const items = body.items;
+
+  if (
+    !Array.isArray(items) ||
+    items.length === 0
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Checkout requires at least one item.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const configured =
+    paymentProvider === "stripe"
+      ? Boolean(
+          process.env.STRIPE_SECRET_KEY
+        )
+      : Boolean(
+          process.env.SQUARE_ACCESS_TOKEN
+        );
+
+  return NextResponse.json({
+    ok: true,
+    paymentProvider,
+    configured,
+    mode:
+      configured
+        ? "provider-ready"
+        : "configuration-required",
+  });
+}
+`,
+  });
+
+  files.push({
+    file:
+      "app/api/book-format-selection/route.ts",
+    title:
+      "Book Format Selection API",
+    type: "typescript",
+    content: `import { NextResponse } from "next/server";
+
+const supportedFormats = [
+  "hardcover",
+  "paperback",
+  "ebook",
+  "audiobook",
+] as const;
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    formats: supportedFormats,
+  });
+}
+
+export async function POST(
+  request: Request
+) {
+  const payload =
+    await request.json().catch(() => null);
+
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "A valid book format payload is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const body =
+    payload as Record<string, unknown>;
+
+  const bookId =
+    String(body.bookId || "").trim();
+
+  const format =
+    String(body.format || "")
+      .trim()
+      .toLowerCase();
+
+  if (!bookId) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "bookId is required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (
+    !supportedFormats.includes(
+      format as
+        (typeof supportedFormats)[number]
+    )
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Unsupported book format.",
+        supportedFormats,
+      },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    selection: {
+      bookId,
+      format,
+    },
+  });
+}
+`,
+  });
 
   files.push({
     file: "prisma/schema.prisma",
@@ -3265,6 +3469,238 @@ select {
   .admin-content {
     padding: 32px 20px;
   }
+}
+`,
+  });
+
+  // BOOKSTORE_BLUEPRINT_ROUTE_COMPLETION
+  //
+  // These routes are explicit authoritative-blueprint interfaces.
+  // Keep the richer account library and shipping-quote endpoints,
+  // while also shipping the canonical public contracts.
+
+  files.push({
+    file: "app/search/page.tsx",
+    title: "Book Search Experience",
+    type: "typescript",
+    content: `import Link from "next/link";
+
+import {
+  BookstoreHeader,
+} from "../../components/BookstoreHeader";
+
+import books from "../../data/books.json";
+
+type SearchParams = {
+  q?: string;
+};
+
+export default function SearchPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams;
+}) {
+  const query =
+    String(searchParams?.q || "")
+      .trim()
+      .toLowerCase();
+
+  const results =
+    query.length === 0
+      ? books
+      : books.filter((book: any) => {
+          const haystack = [
+            book.title,
+            book.author,
+            book.genre,
+            book.category,
+            ...(Array.isArray(book.formats)
+              ? book.formats
+              : []),
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          return haystack.includes(query);
+        });
+
+  return (
+    <>
+      <BookstoreHeader />
+
+      <main className="content-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">
+              Find your next great read
+            </p>
+            <h1>Search BookHaven</h1>
+            <p>
+              Search titles, authors, genres, ebooks,
+              audiobooks, hardcover and paperback books.
+            </p>
+          </div>
+        </div>
+
+        <form
+          action="/search"
+          method="get"
+          className="header-search"
+          style={{
+            display: "flex",
+            maxWidth: 720,
+            marginBottom: 32,
+          }}
+        >
+          <input
+            type="search"
+            name="q"
+            defaultValue={searchParams?.q || ""}
+            placeholder="Search books, authors, genres..."
+            aria-label="Search BookHaven"
+          />
+
+          <button type="submit">
+            Search
+          </button>
+        </form>
+
+        <section className="content-panel">
+          <h2>
+            {query
+              ? \`\${results.length} result(s) for “\${searchParams?.q || ""}”\`
+              : "Explore the catalog"}
+          </h2>
+
+          {results.length === 0 ? (
+            <div className="empty-state">
+              <h3>No books matched that search.</h3>
+              <p>
+                Try another title, author, genre,
+                or format.
+              </p>
+              <Link href="/books">
+                Browse all books
+              </Link>
+            </div>
+          ) : (
+            <div className="book-grid">
+              {results.map((book: any) => (
+                <article
+                  key={book.id}
+                  className="library-card"
+                >
+                  <p className="eyebrow">
+                    {book.genre ||
+                      book.category ||
+                      "Book"}
+                  </p>
+
+                  <h3>{book.title}</h3>
+
+                  <p>
+                    {book.author
+                      ? \`by \${book.author}\`
+                      : "BookHaven selection"}
+                  </p>
+
+                  <Link
+                    href={\`/books/\${book.id}\`}
+                  >
+                    View book
+                  </Link>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </>
+  );
+}
+`,
+  });
+
+  files.push({
+    file: "app/digital-library/page.tsx",
+    title: "Digital Library Route",
+    type: "typescript",
+    content: `export {
+  default,
+} from "../account/library/page";
+`,
+  });
+
+  files.push({
+    file: "app/api/shipping/route.ts",
+    title: "Bookstore Shipping API",
+    type: "typescript",
+    content: `import {
+  NextResponse,
+} from "next/server";
+
+const shippingMethods = [
+  {
+    id: "standard",
+    label: "Standard",
+    amount: 4.99,
+    estimatedDays: "3-7 business days",
+  },
+  {
+    id: "expedited",
+    label: "Expedited",
+    amount: 9.99,
+    estimatedDays: "2-3 business days",
+  },
+  {
+    id: "priority",
+    label: "Priority",
+    amount: 16.99,
+    estimatedDays: "1-2 business days",
+  },
+];
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    currency: "USD",
+    methods: shippingMethods,
+    trackingSupported: true,
+  });
+}
+
+export async function POST(
+  request: Request
+) {
+  const body =
+    await request.json().catch(() => ({}));
+
+  const subtotal =
+    Number(
+      (body as Record<string, unknown>)
+        ?.subtotal || 0
+    );
+
+  const destination =
+    (body as Record<string, unknown>)
+      ?.destination || null;
+
+  return NextResponse.json({
+    ok: true,
+    currency: "USD",
+    destination,
+    trackingSupported: true,
+    methods:
+      shippingMethods.map((method) => ({
+        ...method,
+        amount:
+          subtotal >= 50 &&
+          method.id === "standard"
+            ? 0
+            : method.amount,
+      })),
+  });
 }
 `,
   });
