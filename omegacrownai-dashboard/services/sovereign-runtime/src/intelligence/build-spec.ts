@@ -465,6 +465,25 @@ function buildAuthoritativeBlueprint(input: {
     );
   }
 
+  // LEGAL_AUTHORITATIVE_API_CONTRACT
+  // Align the authoritative Legal blueprint with the exact intake
+  // endpoint emitted by legal-renderer instead of the mechanically
+  // inferred /api/consultation-request route.
+  if (input.industry === "legal") {
+    apiRoutes.splice(
+      0,
+      apiRoutes.length,
+      ...Array.from(
+        new Set([
+          ...apiRoutes.filter(
+            (route) => route !== "/api/consultation-request"
+          ),
+          "/api/cases",
+        ])
+      )
+    );
+  }
+
   // FINANCE_AUTHORITATIVE_API_CONTRACT
 
   // Align the authoritative Finance blueprint with the exact API
@@ -1035,6 +1054,23 @@ export function createBuildSpec(input: {
       domainPrecedenceSource
     );
 
+  const commerceDomainIntent =
+    /\b(ecommerce|e-commerce|online store|commerce platform|shopping cart|product catalog|product catalogue|checkout platform|retail marketplace|online marketplace)\b/i.test(
+      domainPrecedenceSource
+    );
+
+
+
+  const legalDomainIntent =
+    /\b(law firm|legal practice|legal services?|attorney|attorneys|lawyer|lawyers|legal matter|legal matters|case intake|legal case|legal cases|practice areas?)\b/i.test(
+      domainPrecedenceSource
+    );
+
+  const healthcareDomainIntent =
+    /\b(healthcare|health care|medical clinic|health clinic|medical practice|clinical practice|patient care|patient intake|care provider|healthcare provider|medical provider)\b/i.test(
+      domainPrecedenceSource
+    );
+
   if (transportationDomainIntent) {
     industry = "transportation";
     productType = "transportation booking and dispatch platform";
@@ -1199,7 +1235,9 @@ export function createBuildSpec(input: {
   if (
     semanticWorkflowAutomationIntent &&
     !transportationDomainIntent &&
-    !saasDomainIntent
+    !saasDomainIntent &&
+    !legalDomainIntent &&
+    !healthcareDomainIntent
   ) {
     industry = "automation";
     productType = "workflow automation and operations platform";
@@ -2419,7 +2457,14 @@ export function createBuildSpec(input: {
     // accounts, subscriptions, or operational metrics inside a
     // transportation platform. Do not let those capabilities replace
     // an already-established transportation business identity.
-    if (!transportationDomainIntent && industry !== "transportation") {
+    if (
+      !transportationDomainIntent &&
+      !saasDomainIntent &&
+      !commerceDomainIntent &&
+      industry !== "transportation" &&
+      industry !== "saas" &&
+      industry !== "commerce"
+    ) {
       industry = "finance";
     }
 

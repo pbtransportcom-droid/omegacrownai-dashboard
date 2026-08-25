@@ -815,12 +815,17 @@ function legalRequirements(
         id: "legal-intake",
         label: "Legal client intake workflow",
         files: [
+          "components/ConsultationForm.tsx",
           "components/ClientIntakeForm.tsx",
           "components/CaseIntakeForm.tsx",
           "app/api/intake/route.ts",
           "app/api/cases/route.ts",
         ],
         terms: [
+          "listLegalRecords",
+          "createLegalRecord",
+          "consultation",
+          "intake",
           "client",
           "matter",
         ],

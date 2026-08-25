@@ -178,9 +178,89 @@ export async function executeRun(projectId: string, input: any) {
       blueprintCompliance.report;
 
     // BEHAVIORAL_BLUEPRINT_COMPLIANCE_GATE
+    // BEHAVIORAL_FINAL_GENERATED_INDUSTRY_CONTRACT
+    //
+    // Behavioral compliance must use the final semantic domain emitted by
+    // the Living OS pipeline. RuntimeArtifact intentionally has a narrow
+    // public type, so inspect the richer generated-artifact shape only at
+    // this local runtime boundary.
+    const behavioralIndustry = (() => {
+      const semanticArtifact =
+        run.artifacts.find(
+          (artifact) =>
+            path.basename(
+              String(
+                artifact.path || ""
+              )
+            ) ===
+            "living-os-traceability.json"
+        ) ||
+        run.artifacts.find(
+          (artifact) =>
+            path.basename(
+              String(
+                artifact.path || ""
+              )
+            ) ===
+            "living-os-plan.json"
+        );
+
+      if (semanticArtifact) {
+        try {
+          const artifactRecord =
+            semanticArtifact as any;
+
+          let rawSemanticArtifact =
+            artifactRecord.content;
+
+          const artifactPath =
+            String(
+              artifactRecord.path || ""
+            ).trim();
+
+          if (
+            (
+              rawSemanticArtifact === undefined ||
+              rawSemanticArtifact === null ||
+              rawSemanticArtifact === ""
+            ) &&
+            artifactPath &&
+            fs.existsSync(artifactPath)
+          ) {
+            rawSemanticArtifact =
+              fs.readFileSync(
+                artifactPath,
+                "utf8"
+              );
+          }
+
+          const parsed =
+            typeof rawSemanticArtifact === "string"
+              ? JSON.parse(
+                  rawSemanticArtifact
+                )
+              : rawSemanticArtifact;
+
+          const finalIndustry =
+            String(
+              parsed?.industry || ""
+            ).trim();
+
+          if (finalIndustry) {
+            return finalIndustry;
+          }
+        } catch {
+          // Preserve runtime execution. The original pre-render
+          // classification remains the safe fallback.
+        }
+      }
+
+      return buildSpec.industry;
+    })();
+
     const behavioralCompliance =
       evaluateBehavioralCompliance(
-        buildSpec.industry,
+        behavioralIndustry,
         run.artifacts
       );
 
