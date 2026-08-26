@@ -467,6 +467,334 @@ export function getGeneratedAppManifest(projectId) {
         return null;
     return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 }
+function readLinuxProcessIdentity(pid) {
+    const dead = {
+        alive: false,
+        pid,
+    };
+    if (!Number.isInteger(pid) ||
+        pid <= 1) {
+        return dead;
+    }
+    const procDir = `/proc/${pid}`;
+    if (!fs.existsSync(procDir)) {
+        return dead;
+    }
+    let stat;
+    try {
+        stat = fs.readFileSync(path.join(procDir, "stat"), "utf8");
+    }
+    catch {
+        return dead;
+    }
+    // Field 2 in /proc/<pid>/stat is "(comm)" and may contain spaces.
+    // Everything following its final ")" begins with field 3 (state).
+    const closeParen = stat.lastIndexOf(")");
+    if (closeParen < 0) {
+        return dead;
+    }
+    const fields = stat
+        .slice(closeParen + 1)
+        .trim()
+        .split(/\s+/);
+    // fields[0] = state  (field 3)
+    // fields[1] = ppid   (field 4)
+    // fields[2] = pgrp   (field 5)
+    const parsedPpid = Number(fields[1]);
+    const parsedPgid = Number(fields[2]);
+    if (!Number.isInteger(parsedPpid) ||
+        parsedPpid < 0 ||
+        !Number.isInteger(parsedPgid) ||
+        parsedPgid <= 0) {
+        return dead;
+    }
+    let cwd;
+    try {
+        cwd = fs.readlinkSync(path.join(procDir, "cwd"));
+    }
+    catch {
+        cwd = undefined;
+    }
+    let command;
+    try {
+        command =
+            fs.readFileSync(path.join(procDir, "cmdline"))
+                .toString("utf8")
+                .split("\0")
+                .filter(Boolean)
+                .join(" ");
+    }
+    catch {
+        command = undefined;
+    }
+    return {
+        alive: true,
+        pid,
+        ppid: parsedPpid,
+        pgid: parsedPgid,
+        cwd,
+        command,
+    };
+}
+function readLinuxProcessAncestry(pid, maxDepth = 64) {
+    const ancestry = [];
+    const visited = new Set();
+    let currentPid = pid;
+    for (let depth = 0; depth < maxDepth; depth += 1) {
+        if (!Number.isInteger(currentPid) ||
+            currentPid <= 1 ||
+            visited.has(currentPid)) {
+            break;
+        }
+        visited.add(currentPid);
+        const identity = readLinuxProcessIdentity(currentPid);
+        if (!identity.alive ||
+            !Number.isInteger(identity.ppid)) {
+            break;
+        }
+        const parentPid = Number(identity.ppid);
+        ancestry.push(parentPid);
+        if (parentPid <= 1) {
+            break;
+        }
+        currentPid = parentPid;
+    }
+    return ancestry;
+}
+function localAddressMatchesPort(localAddress, port) {
+    const match = localAddress.match(/:(\d+)$/);
+    return Boolean(match &&
+        Number(match[1]) === port);
+}
+function findTcpListenerPids(port) {
+    if (!Number.isInteger(port) ||
+        port <= 0 ||
+        port > 65535) {
+        return [];
+    }
+    let output = "";
+    try {
+        output = String(execFileSync("ss", ["-ltnpH"], {
+            encoding: "utf8",
+            stdio: [
+                "ignore",
+                "pipe",
+                "ignore",
+            ],
+        }));
+    }
+    catch {
+        return [];
+    }
+    const pids = new Set();
+    for (const line of output.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+            continue;
+        }
+        const columns = trimmed.split(/\s+/);
+        // ss -ltnpH:
+        // State Recv-Q Send-Q Local Peer Process
+        const localAddress = columns[3] || "";
+        if (!localAddressMatchesPort(localAddress, port)) {
+            continue;
+        }
+        const pidPattern = /pid=(\d+)/g;
+        let match;
+        while ((match =
+            pidPattern.exec(trimmed)) !== null) {
+            const listenerPid = Number(match[1]);
+            if (Number.isInteger(listenerPid) &&
+                listenerPid > 1) {
+                pids.add(listenerPid);
+            }
+        }
+    }
+    return Array.from(pids);
+}
+function commandReferencesNumber(command, value) {
+    if (!command ||
+        !Number.isInteger(value) ||
+        value <= 0) {
+        return false;
+    }
+    // value is already constrained to an integer, so no regex escaping is
+    // required. Numeric boundaries prevent partial PID/port matches.
+    const pattern = new RegExp("(^|\\D)" +
+        String(value) +
+        "(?!\\d)");
+    return pattern.test(command);
+}
+export function classifyGeneratedAppOwnership(projectId) {
+    const manifest = getGeneratedAppManifest(projectId);
+    const manifestPid = Number(manifest?.pid ||
+        0);
+    const manifestPort = Number(manifest?.port ||
+        0);
+    const manifestAppDir = typeof manifest?.appDir ===
+        "string"
+        ? manifest.appDir
+        : undefined;
+    const watchdogPid = Number(manifest?.watchdogPid ||
+        0);
+    const processIdentity = readLinuxProcessIdentity(manifestPid);
+    const listenerPids = findTcpListenerPids(manifestPort);
+    const listenerCandidates = listenerPids.map((listenerPid) => {
+        const identity = readLinuxProcessIdentity(listenerPid);
+        const ancestry = readLinuxProcessAncestry(listenerPid);
+        const cwdMatch = Boolean(identity.alive &&
+            manifestAppDir &&
+            identity.cwd ===
+                manifestAppDir);
+        const pgidMatch = Boolean(identity.alive &&
+            Number.isInteger(identity.pgid) &&
+            identity.pgid ===
+                manifestPid);
+        const ancestorMatch = ancestry.includes(manifestPid);
+        return {
+            pid: listenerPid,
+            cwd: identity.cwd,
+            pgid: identity.pgid,
+            ancestry,
+            cwdMatch,
+            pgidMatch,
+            ancestorMatch,
+            ownsProcess: cwdMatch &&
+                (pgidMatch ||
+                    ancestorMatch),
+        };
+    });
+    // If multiple PIDs are reported for the socket, prefer one satisfying
+    // the ownership quorum. Otherwise preserve the first listener solely as
+    // diagnostic evidence.
+    const selectedListener = listenerCandidates.find((candidate) => candidate.ownsProcess) ||
+        listenerCandidates[0];
+    const listenerExists = listenerPids.length > 0;
+    const listenerCwdMatch = selectedListener?.cwdMatch ===
+        true;
+    const listenerPgidMatch = selectedListener?.pgidMatch ===
+        true;
+    const listenerAncestorMatch = selectedListener?.ancestorMatch ===
+        true;
+    const processOwnership = Boolean(processIdentity.alive &&
+        listenerExists &&
+        listenerCwdMatch &&
+        (listenerPgidMatch ||
+            listenerAncestorMatch));
+    const processOwnershipReasons = [];
+    if (!manifest) {
+        processOwnershipReasons.push("manifest-missing");
+    }
+    if (!Number.isInteger(manifestPid) ||
+        manifestPid <= 1) {
+        processOwnershipReasons.push("manifest-pid-invalid");
+    }
+    else if (!processIdentity.alive) {
+        processOwnershipReasons.push("manifest-pid-not-alive");
+    }
+    if (!Number.isInteger(manifestPort) ||
+        manifestPort <= 0 ||
+        manifestPort > 65535) {
+        processOwnershipReasons.push("manifest-port-invalid");
+    }
+    else if (!listenerExists) {
+        processOwnershipReasons.push("port-listener-missing");
+    }
+    if (!manifestAppDir) {
+        processOwnershipReasons.push("manifest-app-dir-missing");
+    }
+    else if (listenerExists &&
+        !listenerCwdMatch) {
+        processOwnershipReasons.push("listener-cwd-mismatch");
+    }
+    if (listenerExists &&
+        listenerCwdMatch &&
+        !listenerPgidMatch &&
+        !listenerAncestorMatch) {
+        processOwnershipReasons.push("listener-structural-relationship-unproven");
+    }
+    if (processOwnership &&
+        processOwnershipReasons.length === 0) {
+        processOwnershipReasons.push("process-ownership-proven");
+    }
+    const watchdogIdentity = readLinuxProcessIdentity(watchdogPid);
+    const watchdogCommand = watchdogIdentity.command;
+    const expectedManifestPath = generatedAppManifestPath(projectId);
+    const watchdogProjectMatch = Boolean(watchdogIdentity.alive &&
+        watchdogCommand &&
+        watchdogCommand.includes(expectedManifestPath));
+    const watchdogPidMatch = Boolean(watchdogIdentity.alive &&
+        commandReferencesNumber(watchdogCommand, manifestPid));
+    const watchdogPortMatch = Boolean(watchdogIdentity.alive &&
+        commandReferencesNumber(watchdogCommand, manifestPort));
+    const watchdogOwnership = Boolean(watchdogIdentity.alive &&
+        watchdogProjectMatch &&
+        watchdogPidMatch &&
+        watchdogPortMatch);
+    const watchdogOwnershipReasons = [];
+    if (!Number.isInteger(watchdogPid) ||
+        watchdogPid <= 1) {
+        watchdogOwnershipReasons.push("watchdog-pid-invalid");
+    }
+    else if (!watchdogIdentity.alive) {
+        watchdogOwnershipReasons.push("watchdog-not-alive");
+    }
+    if (watchdogIdentity.alive &&
+        !watchdogProjectMatch) {
+        watchdogOwnershipReasons.push("watchdog-project-mismatch");
+    }
+    if (watchdogIdentity.alive &&
+        !watchdogPidMatch) {
+        watchdogOwnershipReasons.push("watchdog-generated-pid-mismatch");
+    }
+    if (watchdogIdentity.alive &&
+        !watchdogPortMatch) {
+        watchdogOwnershipReasons.push("watchdog-port-mismatch");
+    }
+    if (watchdogOwnership &&
+        watchdogOwnershipReasons.length === 0) {
+        watchdogOwnershipReasons.push("watchdog-ownership-proven");
+    }
+    return {
+        ok: manifest !== null,
+        projectId,
+        manifestPid: Number.isInteger(manifestPid) &&
+            manifestPid > 1
+            ? manifestPid
+            : undefined,
+        manifestPort: Number.isInteger(manifestPort) &&
+            manifestPort > 0 &&
+            manifestPort <= 65535
+            ? manifestPort
+            : undefined,
+        manifestAppDir,
+        pidAlive: processIdentity.alive,
+        listenerExists,
+        listenerPids,
+        listenerPid: selectedListener?.pid,
+        listenerCwd: selectedListener?.cwd,
+        listenerCwdMatch,
+        listenerPgid: selectedListener?.pgid,
+        listenerPgidMatch,
+        listenerAncestry: selectedListener
+            ?.ancestry ||
+            [],
+        listenerAncestorMatch,
+        processOwnership,
+        processOwnershipReasons,
+        watchdogPid: Number.isInteger(watchdogPid) &&
+            watchdogPid > 1
+            ? watchdogPid
+            : undefined,
+        watchdogAlive: watchdogIdentity.alive,
+        watchdogCommand,
+        watchdogProjectMatch,
+        watchdogPidMatch,
+        watchdogPortMatch,
+        watchdogOwnership,
+        watchdogOwnershipReasons,
+    };
+}
 // GENERATED_APP_STARTUP_RECONCILIATION
 //
 // Persisted generated-app manifests survive Sovereign Runtime restarts.
@@ -557,15 +885,36 @@ export async function reconcileGeneratedAppsOnStartup() {
         }
         if (expired &&
             processAlive) {
-            // Keep the persisted state visible, but do not kill from historical
-            // PID data until process/port ownership cleanup is separately proven.
+            // GENERATED_APP_STARTUP_OWNERSHIP_EVIDENCE
+            //
+            // Classify current Linux ownership before any future destructive
+            // expiration cleanup is considered. This stage remains observational:
+            // ownership evidence is persisted, but cleanup remains deferred.
+            const ownership = classifyGeneratedAppOwnership(projectId);
+            const ownershipCheckedAt = new Date().toISOString();
             persistGeneratedAppLifecycle(projectId, pid, {
                 processAlive: true,
                 expired: true,
                 expiredAt: manifest?.expiredAt ||
-                    new Date().toISOString(),
-                checkedAt: new Date().toISOString(),
+                    ownershipCheckedAt,
+                checkedAt: ownershipCheckedAt,
                 reconciledAtStartup: true,
+                processOwnership: ownership.processOwnership,
+                processOwnershipReasons: ownership.processOwnershipReasons,
+                ownershipListenerPid: ownership.listenerPid,
+                ownershipListenerCwd: ownership.listenerCwd,
+                ownershipListenerCwdMatch: ownership.listenerCwdMatch,
+                ownershipListenerPgid: ownership.listenerPgid,
+                ownershipListenerPgidMatch: ownership.listenerPgidMatch,
+                ownershipListenerAncestry: ownership.listenerAncestry,
+                ownershipListenerAncestorMatch: ownership.listenerAncestorMatch,
+                watchdogOwnership: ownership.watchdogOwnership,
+                watchdogOwnershipReasons: ownership.watchdogOwnershipReasons,
+                watchdogOwnershipProjectMatch: ownership.watchdogProjectMatch,
+                watchdogOwnershipPidMatch: ownership.watchdogPidMatch,
+                watchdogOwnershipPortMatch: ownership.watchdogPortMatch,
+                ownershipCheckedAt,
+                // Stage 4.2D is intentionally non-destructive.
                 expirationCleanupDeferred: true,
             });
             summary.liveExpiredDeferred += 1;
