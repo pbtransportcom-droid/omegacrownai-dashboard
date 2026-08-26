@@ -3,6 +3,7 @@ import cors from "cors";
 import { createRun, getRun } from "./engine/runtime.js";
 import { queueRunExecution, startExecutionWorker } from "./engine/executeQueued.js";
 import { executeRun } from "./engine/runtime.js";
+import { reconcileGeneratedAppsOnStartup } from "./apps/generatedAppRunner.js";
 
 const app = express();
 
@@ -61,5 +62,20 @@ const port = Number(process.env.SOVEREIGN_RUNTIME_PORT || 4101);
 app.listen(port, () => {
   console.log(`Sovereign Runtime online on ${port}`);
 });
+
+// GENERATED_APP_STARTUP_RECONCILIATION_HOOK
+void reconcileGeneratedAppsOnStartup()
+  .then((summary) => {
+    console.log(
+      "Generated app startup reconciliation",
+      summary
+    );
+  })
+  .catch((error) => {
+    console.error(
+      "Generated app startup reconciliation failed",
+      error
+    );
+  });
 
 startExecutionWorker();

@@ -4,7 +4,26 @@ import { execFileSync, spawn } from "child_process";
 import http from "http";
 
 const ROOT = process.cwd();
-const RUNTIME_ROOT = path.join(ROOT, "services", "sovereign-runtime");
+
+// GENERATED_APP_CWD_SAFE_RUNTIME_ROOT
+//
+// Sovereign Runtime may be launched either from the application repository
+// root or directly from services/sovereign-runtime. Resolve both execution
+// contexts to one canonical runtime root instead of appending the service
+// path twice when cwd already points at the runtime package.
+const RUNTIME_ROOT =
+  ROOT.endsWith(
+    path.join(
+      "services",
+      "sovereign-runtime"
+    )
+  )
+    ? ROOT
+    : path.resolve(
+        ROOT,
+        "services",
+        "sovereign-runtime"
+      );
 const GENERATED_PREVIEW_TTL_MS = 30 * 60 * 1000;
 
 function copyDir(src: string, dest: string) {
@@ -750,6 +769,228 @@ export function getGeneratedAppManifest(projectId: string) {
 
   if (!fs.existsSync(manifestPath)) return null;
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+}
+
+// GENERATED_APP_STARTUP_RECONCILIATION
+//
+// Persisted generated-app manifests survive Sovereign Runtime restarts.
+// Reconcile non-terminal manifests at boot so stale "starting"/"running"
+// state does not remain indefinitely until an individual status request.
+//
+// This stage intentionally does not terminate a still-live expired PID.
+// Destructive expired-process ownership cleanup is handled separately after
+// PID/port ownership can be proven safely.
+export async function reconcileGeneratedAppsOnStartup() {
+  const manifestDir = path.join(
+    RUNTIME_ROOT,
+    "data",
+    "generated-apps"
+  );
+
+  fs.mkdirSync(
+    manifestDir,
+    {
+      recursive: true,
+    }
+  );
+
+  const files =
+    fs.readdirSync(manifestDir)
+      .filter(
+        (name) =>
+          /^OC-[A-Z0-9]+\.json$/i.test(name)
+      );
+
+  const summary = {
+    scanned: 0,
+    reconciled: 0,
+    expiredDead: 0,
+    staleActive: 0,
+    skippedTerminal: 0,
+    invalid: 0,
+    liveExpiredDeferred: 0,
+  };
+
+  for (const file of files) {
+    summary.scanned += 1;
+
+    const manifestPath =
+      path.join(
+        manifestDir,
+        file
+      );
+
+    let manifest: any;
+
+    try {
+      manifest =
+        JSON.parse(
+          fs.readFileSync(
+            manifestPath,
+            "utf8"
+          )
+        );
+    } catch {
+      summary.invalid += 1;
+      continue;
+    }
+
+    const projectId =
+      String(
+        manifest?.projectId ||
+        file.replace(/\.json$/i, "")
+      );
+
+    const status =
+      String(
+        manifest?.status ||
+        ""
+      );
+
+    if (
+      status === "stopped" ||
+      status === "failed" ||
+      status === "stopping-timeout"
+    ) {
+      summary.skippedTerminal += 1;
+      continue;
+    }
+
+    const pid =
+      Number(
+        manifest?.pid ||
+        0
+      );
+
+    let processAlive = false;
+
+    if (
+      Number.isInteger(pid) &&
+      pid > 1
+    ) {
+      try {
+        process.kill(
+          pid,
+          0
+        );
+
+        processAlive = true;
+      } catch {
+        processAlive = false;
+      }
+    }
+
+    const expiresAtMs =
+      Date.parse(
+        String(
+          manifest?.expiresAt ||
+          ""
+        )
+      );
+
+    const expired =
+      Number.isFinite(expiresAtMs) &&
+      expiresAtMs <= Date.now();
+
+    if (
+      expired &&
+      !processAlive
+    ) {
+      const checkedAt =
+        new Date().toISOString();
+
+      persistGeneratedAppLifecycle(
+        projectId,
+        pid,
+        {
+          status: "stopped",
+          processAlive: false,
+          portReachable: false,
+          portStatus: undefined,
+          autoStopped: true,
+          expired: true,
+          expiredAt:
+            manifest?.expiredAt ||
+            checkedAt,
+          stoppedAt:
+            manifest?.stoppedAt ||
+            checkedAt,
+          checkedAt,
+          reconciledAtStartup: true,
+        }
+      );
+
+      if (manifest?.port) {
+        releaseGeneratedAppPort(
+          projectId,
+          Number(manifest.port)
+        );
+      }
+
+      summary.expiredDead += 1;
+      summary.reconciled += 1;
+      continue;
+    }
+
+    if (
+      expired &&
+      processAlive
+    ) {
+      // Keep the persisted state visible, but do not kill from historical
+      // PID data until process/port ownership cleanup is separately proven.
+      persistGeneratedAppLifecycle(
+        projectId,
+        pid,
+        {
+          processAlive: true,
+          expired: true,
+          expiredAt:
+            manifest?.expiredAt ||
+            new Date().toISOString(),
+          checkedAt:
+            new Date().toISOString(),
+          reconciledAtStartup: true,
+          expirationCleanupDeferred: true,
+        }
+      );
+
+      summary.liveExpiredDeferred += 1;
+      summary.reconciled += 1;
+      continue;
+    }
+
+    if (
+      status === "starting" ||
+      status === "running" ||
+      status === "prepared"
+    ) {
+      const reconciled =
+        await getGeneratedAppStatus(
+          projectId
+        );
+
+      if (
+        reconciled?.ok === true
+      ) {
+        persistGeneratedAppLifecycle(
+          projectId,
+          pid,
+          {
+            reconciledAtStartup: true,
+            startupReconciledStatus:
+              reconciled.status,
+            checkedAt:
+              new Date().toISOString(),
+          }
+        );
+      }
+
+      summary.staleActive += 1;
+      summary.reconciled += 1;
+    }
+  }
+
+  return summary;
 }
 
 export async function getGeneratedAppStatus(projectId: string) {
