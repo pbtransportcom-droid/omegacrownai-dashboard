@@ -18,9 +18,57 @@ function copyDir(src, dest) {
 }
 function portForProject(projectId) {
     let hash = 0;
-    for (const char of projectId)
-        hash = (hash + char.charCodeAt(0)) % 500;
+    for (const char of projectId) {
+        hash =
+            (hash + char.charCodeAt(0)) %
+                500;
+    }
     return 5200 + hash;
+}
+// GENERATED_APP_ATOMIC_PORT_RESERVATION
+//
+// Port availability checks contain an await boundary. Two concurrent
+// generated-app starts can therefore observe the same port as free before
+// either child binds it. Keep an in-process ownership reservation from
+// allocation until the child either owns the listening socket or reaches
+// a terminal state.
+const generatedAppPortReservations = new Map();
+function releaseGeneratedAppPort(projectId, port) {
+    if (generatedAppPortReservations.get(port) ===
+        projectId) {
+        generatedAppPortReservations.delete(port);
+    }
+}
+// GENERATED_APP_COLLISION_SAFE_PORT_ALLOCATION
+//
+// Preserve the deterministic project port as the preferred starting point,
+// but never assign a port that is already listening. Search the bounded
+// generated-app range exactly once and fail safely if every slot is occupied.
+async function allocateGeneratedAppPort(projectId) {
+    const preferredPort = portForProject(projectId);
+    const minimumPort = 5200;
+    const maximumPort = 5699;
+    const rangeSize = maximumPort - minimumPort + 1;
+    for (let offset = 0; offset < rangeSize; offset += 1) {
+        const port = minimumPort +
+            (preferredPort -
+                minimumPort +
+                offset) %
+                rangeSize;
+        if (generatedAppPortReservations.has(port)) {
+            continue;
+        }
+        const portCheck = await checkPort(port, "/");
+        // The availability probe above is asynchronous. Another allocator may
+        // have claimed this port while this request was awaiting checkPort().
+        // Recheck reservation ownership before synchronously claiming it.
+        if (!portCheck.reachable &&
+            !generatedAppPortReservations.has(port)) {
+            generatedAppPortReservations.set(port, projectId);
+            return port;
+        }
+    }
+    throw new Error("No generated application ports are available.");
 }
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -114,6 +162,7 @@ async function monitorGeneratedAppReadiness(projectId, pid, port) {
             processAlive = false;
         }
         if (!processAlive) {
+            releaseGeneratedAppPort(projectId, port);
             persistGeneratedAppLifecycle(projectId, pid, {
                 status: "failed",
                 processAlive: false,
@@ -125,6 +174,7 @@ async function monitorGeneratedAppReadiness(projectId, pid, port) {
         }
         const portCheck = await checkPort(port, "/");
         if (portCheck.reachable) {
+            releaseGeneratedAppPort(projectId, port);
             persistGeneratedAppLifecycle(projectId, pid, {
                 status: "running",
                 processAlive: true,
@@ -148,6 +198,9 @@ async function monitorGeneratedAppReadiness(projectId, pid, port) {
     }
     catch {
         processAlive = false;
+    }
+    if (!processAlive) {
+        releaseGeneratedAppPort(projectId, port);
     }
     persistGeneratedAppLifecycle(projectId, pid, processAlive
         ? {
@@ -223,7 +276,7 @@ export async function prepareGeneratedApp(projectId) {
         };
         fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + "\n");
     }
-    const port = portForProject(projectId);
+    const port = await allocateGeneratedAppPort(projectId);
     const manifestDir = path.join(RUNTIME_ROOT, "data", "generated-apps");
     fs.mkdirSync(manifestDir, { recursive: true });
     const manifest = {
@@ -312,6 +365,7 @@ export async function startGeneratedApp(projectId) {
     // remains online. Ownership checks prevent stale children from changing
     // the state of a newer restart.
     child.once("error", (error) => {
+        releaseGeneratedAppPort(projectId, Number(manifest.port));
         persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
             status: "failed",
             processAlive: false,
@@ -332,6 +386,7 @@ export async function startGeneratedApp(projectId) {
             current?.autoStopped === true) {
             return;
         }
+        releaseGeneratedAppPort(projectId, Number(manifest.port));
         persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
             status: code === 0
                 ? "stopped"
@@ -387,6 +442,7 @@ export async function startGeneratedApp(projectId) {
     // while this monitor persists the authoritative transition to "running"
     // as soon as the generated server actually answers on its assigned port.
     void monitorGeneratedAppReadiness(projectId, Number(child.pid), Number(manifest.port)).catch(() => {
+        releaseGeneratedAppPort(projectId, Number(manifest.port));
         persistGeneratedAppLifecycle(projectId, Number(child.pid), {
             status: "failed",
             processAlive: false,
@@ -459,6 +515,9 @@ export async function getGeneratedAppStatus(projectId) {
 }
 export async function stopGeneratedApp(projectId) {
     const manifest = getGeneratedAppManifest(projectId);
+    if (manifest?.port) {
+        releaseGeneratedAppPort(projectId, Number(manifest.port));
+    }
     if (!manifest?.pid) {
         return { ok: false, projectId, status: "not-running" };
     }
