@@ -305,6 +305,18 @@ async function proxyGeneratedApp(
   }
 
   const responseHeaders = new Headers(response.headers);
+
+  // GENERATED_APP_DECOMPRESSED_RESPONSE_HEADERS
+  //
+  // Node fetch/undici may transparently decompress an upstream
+  // response body while retaining the original transport headers.
+  // Forwarding Content-Encoding or the compressed Content-Length
+  // would make browsers attempt to decode an already-decoded body,
+  // producing ERR_CONTENT_DECODING_FAILED and a blank preview.
+  responseHeaders.delete("content-encoding");
+  responseHeaders.delete("content-length");
+  responseHeaders.delete("transfer-encoding");
+
   responseHeaders.set("Cache-Control", "no-store");
 
   const location = responseHeaders.get("location");
