@@ -69,6 +69,103 @@ async function waitForPortDown(port, timeoutMs = 20000) {
     }
     return { down: false, waitedMs: Date.now() - started };
 }
+// GENERATED_APP_PERSISTED_LIFECYCLE_STATE
+//
+// Persist lifecycle transitions only when the manifest still belongs to the
+// same generated-app process. This prevents an old child, monitor, or exit
+// callback from overwriting state for a newer restart.
+function persistGeneratedAppLifecycle(projectId, expectedPid, patch) {
+    const manifestPath = generatedAppManifestPath(projectId);
+    if (!fs.existsSync(manifestPath)) {
+        return null;
+    }
+    let current;
+    try {
+        current =
+            JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    }
+    catch {
+        return null;
+    }
+    if (Number(current?.pid || 0) !==
+        Number(expectedPid)) {
+        return null;
+    }
+    const updated = {
+        ...current,
+        ...patch,
+    };
+    fs.writeFileSync(manifestPath, JSON.stringify(updated, null, 2));
+    return updated;
+}
+const GENERATED_APP_READINESS_TIMEOUT_MS = Number(process.env
+    .GENERATED_APP_READINESS_TIMEOUT_MS ||
+    10 * 60 * 1000);
+async function monitorGeneratedAppReadiness(projectId, pid, port) {
+    const started = Date.now();
+    while (Date.now() - started <
+        GENERATED_APP_READINESS_TIMEOUT_MS) {
+        let processAlive = false;
+        try {
+            process.kill(pid, 0);
+            processAlive = true;
+        }
+        catch {
+            processAlive = false;
+        }
+        if (!processAlive) {
+            persistGeneratedAppLifecycle(projectId, pid, {
+                status: "failed",
+                processAlive: false,
+                portReachable: false,
+                failedAt: new Date().toISOString(),
+                checkedAt: new Date().toISOString(),
+            });
+            return;
+        }
+        const portCheck = await checkPort(port, "/");
+        if (portCheck.reachable) {
+            persistGeneratedAppLifecycle(projectId, pid, {
+                status: "running",
+                processAlive: true,
+                portReachable: true,
+                portStatus: portCheck.status,
+                portError: undefined,
+                readyAt: new Date().toISOString(),
+                checkedAt: new Date().toISOString(),
+            });
+            return;
+        }
+        await sleep(1000);
+    }
+    // A cold generated application may still be installing/building when the
+    // readiness window ends. Preserve "starting" when the child is alive;
+    // do not incorrectly convert a slow build into a failed deployment.
+    let processAlive = false;
+    try {
+        process.kill(pid, 0);
+        processAlive = true;
+    }
+    catch {
+        processAlive = false;
+    }
+    persistGeneratedAppLifecycle(projectId, pid, processAlive
+        ? {
+            status: "starting",
+            processAlive: true,
+            portReachable: false,
+            readinessTimedOut: true,
+            checkedAt: new Date().toISOString(),
+        }
+        : {
+            status: "failed",
+            processAlive: false,
+            portReachable: false,
+            readinessTimedOut: true,
+            failedAt: new Date().toISOString(),
+            checkedAt: new Date().toISOString(),
+        });
+}
 export async function prepareGeneratedApp(projectId) {
     const artifactDir = path.join(RUNTIME_ROOT, "data", "artifacts", projectId);
     const appDir = path.join(RUNTIME_ROOT, "generated-apps", projectId);
@@ -209,6 +306,51 @@ export async function startGeneratedApp(projectId) {
             OMEGACROWN_RUNTIME_DATA_DIR: manifest.runtimeDataDir,
         },
     });
+    // GENERATED_APP_CHILD_TERMINAL_STATE
+    //
+    // Persist unexpected process termination while the sovereign runtime
+    // remains online. Ownership checks prevent stale children from changing
+    // the state of a newer restart.
+    child.once("error", (error) => {
+        persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
+            status: "failed",
+            processAlive: false,
+            portReachable: false,
+            portStatus: undefined,
+            failedAt: new Date().toISOString(),
+            processError: String(error),
+            checkedAt: new Date().toISOString(),
+        });
+    });
+    child.once("exit", (code, signal) => {
+        const current = getGeneratedAppManifest(projectId);
+        if (Number(current?.pid || 0) !==
+            Number(child.pid || 0)) {
+            return;
+        }
+        if (current?.status === "stopped" ||
+            current?.autoStopped === true) {
+            return;
+        }
+        persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
+            status: code === 0
+                ? "stopped"
+                : "failed",
+            processAlive: false,
+            portReachable: false,
+            portStatus: undefined,
+            exitCode: code,
+            exitSignal: signal,
+            ...(code === 0
+                ? {
+                    stoppedAt: new Date().toISOString(),
+                }
+                : {
+                    failedAt: new Date().toISOString(),
+                }),
+            checkedAt: new Date().toISOString(),
+        });
+    });
     child.unref();
     const now = Date.now();
     const expiresAt = new Date(now + GENERATED_PREVIEW_TTL_MS).toISOString();
@@ -238,6 +380,21 @@ export async function startGeneratedApp(projectId) {
         watchdogPid: watchdog.pid,
     };
     fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(runningWithWatchdog, null, 2));
+    // GENERATED_APP_ASYNC_READINESS_RECONCILIATION
+    //
+    // Do not hold the deploy request open for a potentially long npm install
+    // and production build. The API may return the explicit "starting" state,
+    // while this monitor persists the authoritative transition to "running"
+    // as soon as the generated server actually answers on its assigned port.
+    void monitorGeneratedAppReadiness(projectId, Number(child.pid), Number(manifest.port)).catch(() => {
+        persistGeneratedAppLifecycle(projectId, Number(child.pid), {
+            status: "failed",
+            processAlive: false,
+            portReachable: false,
+            failedAt: new Date().toISOString(),
+            checkedAt: new Date().toISOString(),
+        });
+    });
     return runningWithWatchdog;
 }
 export function getGeneratedAppManifest(projectId) {
@@ -262,15 +419,42 @@ export async function getGeneratedAppStatus(projectId) {
     const portCheck = manifest.port
         ? await checkPort(Number(manifest.port), "/")
         : { reachable: false, error: "Missing port" };
-    return {
-        ok: true,
+    const reconciledStatus = portCheck.reachable
+        ? "running"
+        : processAlive
+            ? "starting"
+            : "stopped";
+    const checkedAt = new Date().toISOString();
+    const reconciled = {
         ...manifest,
-        status: portCheck.reachable ? "running" : processAlive ? "starting" : "stopped",
+        status: reconciledStatus,
         processAlive,
         portReachable: portCheck.reachable,
         portStatus: portCheck.status,
         portError: portCheck.error,
-        checkedAt: new Date().toISOString(),
+        checkedAt,
+        ...(reconciledStatus === "running" &&
+            !manifest.readyAt
+            ? {
+                readyAt: checkedAt,
+            }
+            : {}),
+        ...(reconciledStatus === "stopped" &&
+            !manifest.stoppedAt
+            ? {
+                stoppedAt: checkedAt,
+            }
+            : {}),
+    };
+    // GENERATED_APP_STATUS_PERSISTENCE
+    //
+    // Status checks are also reconciliation points. Persist the observed
+    // process/port truth so deployment manifests do not remain permanently
+    // "starting" after the generated server becomes reachable.
+    persistGeneratedAppLifecycle(projectId, Number(manifest.pid), reconciled);
+    return {
+        ok: true,
+        ...reconciled,
     };
 }
 export async function stopGeneratedApp(projectId) {
