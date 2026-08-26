@@ -702,11 +702,29 @@ export async function startGeneratedApp(projectId: string) {
     JSON.stringify(running, null, 2)
   );
 
+  // GENERATED_APP_OWNERSHIP_GATED_TTL_WATCHDOG
+  //
+  // The TTL watchdog no longer performs its own port kill, PID kill,
+  // or manifest mutation. After sleeping, it invokes the runtime-owned
+  // cleanup helper in ttl-watchdog mode. The helper proves current
+  // watchdog identity and application ownership before signaling.
   const watchdog = spawn(
     "bash",
     [
       "-lc",
-      `sleep ${Math.ceil(GENERATED_PREVIEW_TTL_MS / 1000)}; node -e 'const fs=require("fs"); const p=${JSON.stringify(generatedAppManifestPath(projectId))}; if(!fs.existsSync(p)) process.exit(0); const m=JSON.parse(fs.readFileSync(p,"utf8")); if(String(m.pid)!=="${child.pid}") process.exit(0); require("child_process").spawnSync("fuser",["-k","${manifest.port}/tcp"],{stdio:"ignore"}); try{process.kill(-Number(m.pid),"SIGTERM")}catch(e){try{process.kill(Number(m.pid),"SIGTERM")}catch(e2){}} m.status="stopped"; m.autoStopped=true; m.stoppedAt=new Date().toISOString(); fs.writeFileSync(p,JSON.stringify(m,null,2));'`,
+      [
+        `sleep ${Math.ceil(GENERATED_PREVIEW_TTL_MS / 1000)}`,
+        `cd ${JSON.stringify(RUNTIME_ROOT)}`,
+        `node --input-type=module -e ${JSON.stringify(
+          [
+            'import { cleanupExpiredGeneratedAppIfOwned } from "./dist/apps/generatedAppRunner.js";',
+            `const projectId=${JSON.stringify(projectId)};`,
+            'const invokingWatchdogPid=process.ppid;',
+            'const result=await cleanupExpiredGeneratedAppIfOwned(projectId,{source:"ttl-watchdog",invokingWatchdogPid});',
+            'if(!result || result.ok!==true) process.exit(1);'
+          ].join("")
+        )}`,
+      ].join("; "),
     ],
     {
       detached: true,
@@ -1522,6 +1540,11 @@ export function classifyGeneratedAppOwnership(
 // - no SIGKILL
 // - listener shutdown must be observed before terminalizing the manifest
 
+export type GeneratedAppExpiredCleanupOptions = {
+  source?: "runtime" | "ttl-watchdog";
+  invokingWatchdogPid?: number;
+};
+
 export type GeneratedAppExpiredCleanupResult = {
   ok: boolean;
   projectId: string;
@@ -1576,7 +1599,8 @@ function signalOwnedProcessTerm(
 }
 
 export async function cleanupExpiredGeneratedAppIfOwned(
-  projectId: string
+  projectId: string,
+  options: GeneratedAppExpiredCleanupOptions = {}
 ): Promise<GeneratedAppExpiredCleanupResult> {
   const reasons: string[] = [];
 
@@ -1655,6 +1679,96 @@ export async function cleanupExpiredGeneratedAppIfOwned(
     classifyGeneratedAppOwnership(
       projectId
     );
+
+  const invokedByTtlWatchdog =
+    options.source === "ttl-watchdog";
+
+  const invokingWatchdogPid =
+    Number(
+      options.invokingWatchdogPid ||
+      0
+    );
+
+  if (invokedByTtlWatchdog) {
+    if (
+      !Number.isInteger(
+        invokingWatchdogPid
+      ) ||
+      invokingWatchdogPid <= 1
+    ) {
+      reasons.push(
+        "ttl-watchdog-invoking-pid-invalid"
+      );
+
+      return {
+        ok: true,
+        projectId,
+        attempted: false,
+        completed: false,
+        deferred: true,
+        processOwnership:
+          initialOwnership.processOwnership,
+        watchdogOwnership:
+          initialOwnership.watchdogOwnership,
+        watchdogSignalAttempted: false,
+        processSignalAttempted: false,
+        reasons,
+      };
+    }
+
+    if (
+      !initialOwnership.watchdogAlive ||
+      !initialOwnership.watchdogOwnership ||
+      Number(
+        initialOwnership.watchdogPid ||
+        0
+      ) !== invokingWatchdogPid
+    ) {
+      reasons.push(
+        "ttl-watchdog-self-identity-unproven"
+      );
+
+      persistGeneratedAppLifecycle(
+        projectId,
+        pid,
+        {
+          expirationCleanupDeferred: true,
+          expirationCleanupAttemptedAt:
+            new Date().toISOString(),
+
+          processOwnership:
+            initialOwnership.processOwnership,
+
+          processOwnershipReasons:
+            initialOwnership.processOwnershipReasons,
+
+          watchdogOwnership:
+            initialOwnership.watchdogOwnership,
+
+          watchdogOwnershipReasons:
+            initialOwnership.watchdogOwnershipReasons,
+
+          expirationCleanupReasons:
+            reasons,
+        }
+      );
+
+      return {
+        ok: true,
+        projectId,
+        attempted: false,
+        completed: false,
+        deferred: true,
+        processOwnership:
+          initialOwnership.processOwnership,
+        watchdogOwnership:
+          initialOwnership.watchdogOwnership,
+        watchdogSignalAttempted: false,
+        processSignalAttempted: false,
+        reasons,
+      };
+    }
+  }
 
   if (
     initialOwnership.watchdogAlive &&
@@ -1757,6 +1871,7 @@ export async function cleanupExpiredGeneratedAppIfOwned(
     false;
 
   if (
+    !invokedByTtlWatchdog &&
     initialOwnership.watchdogAlive &&
     initialOwnership.watchdogOwnership
   ) {

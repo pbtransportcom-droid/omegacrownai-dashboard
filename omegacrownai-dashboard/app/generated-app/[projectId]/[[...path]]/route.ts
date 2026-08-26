@@ -22,15 +22,58 @@ function getManifest(projectId: string) {
   return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 }
 
+function rewriteGeneratedNavigationTarget(
+  value: string,
+  base: string
+) {
+  if (!value.startsWith("/")) {
+    return value;
+  }
+
+  if (
+    value === base ||
+    value.startsWith(`${base}/`) ||
+    value.startsWith("/_next/") ||
+    value.startsWith("/api/") ||
+    value.startsWith("/generated-app/") ||
+    value.startsWith("/runtime-preview/")
+  ) {
+    return value;
+  }
+
+  if (value === "/") {
+    return base;
+  }
+
+  return `${base}${value}`;
+}
+
 function rewriteHtml(html: string, projectId: string) {
   const base = `/generated-app/${projectId}`;
 
-  return html
+  const rewrittenAssets = html
     .replaceAll('href="/_next/', `href="${base}/_next/`)
     .replaceAll('src="/_next/', `src="${base}/_next/`)
     .replaceAll('url(/_next/', `url(${base}/_next/`)
     .replaceAll('href="/favicon', `href="${base}/favicon`)
     .replaceAll('src="/favicon', `src="${base}/favicon`);
+
+  return rewrittenAssets.replace(
+    /href=(["'])(\/[^"'<>]*)\1/g,
+    (match, quote: string, value: string) => {
+      const rewritten =
+        rewriteGeneratedNavigationTarget(
+          value,
+          base
+        );
+
+      if (rewritten === value) {
+        return match;
+      }
+
+      return `href=${quote}${rewritten}${quote}`;
+    }
+  );
 }
 
 function generatedAppFallbackHtml(input: {

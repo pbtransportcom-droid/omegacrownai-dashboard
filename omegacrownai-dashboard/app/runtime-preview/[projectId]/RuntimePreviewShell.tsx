@@ -127,6 +127,174 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
   const designPalette: Record<string, string> = designPreset?.palette || {};
   const buildSpecReportVisible = Boolean(buildSpec || summary?.originalPrompt || summary?.normalizedPrompt);
 
+  // RUNTIME_PREVIEW_AUTOSTART_ACTIVE_APP
+  //
+  // Opening Runtime Preview should restore the real generated application
+  // automatically. Keep the static preview visible while the generated app
+  // is stopped, expired, building, or starting. Only switch the iframe after
+  // the authoritative status endpoint proves the server is reachable.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function ensureActivePreview() {
+      setStatus(
+        "Checking active generated app..."
+      );
+
+      try {
+        const response = await fetch(
+          `/api/runtime-proxy/runs/${projectId}/app-status`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        const data =
+          await response
+            .json()
+            .catch(() => ({}));
+
+        if (cancelled) {
+          return;
+        }
+
+        const alreadyReady =
+          response.ok &&
+          data?.ok === true &&
+          data?.status === "running" &&
+          data?.processAlive === true &&
+          data?.portReachable === true;
+
+        if (alreadyReady) {
+          setFrameSrc(
+            `/generated-app/${projectId}`
+          );
+
+          setStatus(
+            "Active generated app ready."
+          );
+
+          return;
+        }
+
+        setStatus(
+          "Starting active generated app..."
+        );
+
+        const startResponse = await fetch(
+          `/api/runtime-proxy/runs/${projectId}/start-app`,
+          {
+            method: "POST",
+          }
+        );
+
+        const startData =
+          await startResponse
+            .json()
+            .catch(() => ({}));
+
+        if (cancelled) {
+          return;
+        }
+
+        if (
+          !startResponse.ok ||
+          startData?.ok === false
+        ) {
+          setStatus(
+            startData?.error ||
+            "Unable to start active generated app."
+          );
+
+          return;
+        }
+
+        const deadline =
+          Date.now() + 120000;
+
+        while (
+          !cancelled &&
+          Date.now() < deadline
+        ) {
+          const statusResponse =
+            await fetch(
+              `/api/runtime-proxy/runs/${projectId}/app-status`,
+              {
+                cache: "no-store",
+              }
+            );
+
+          const statusData =
+            await statusResponse
+              .json()
+              .catch(() => ({}));
+
+          if (cancelled) {
+            return;
+          }
+
+          const ready =
+            statusResponse.ok &&
+            statusData?.ok === true &&
+            statusData?.status === "running" &&
+            statusData?.processAlive === true &&
+            statusData?.portReachable === true;
+
+          if (ready) {
+            setFrameSrc(
+              `/generated-app/${projectId}`
+            );
+
+            setStatus(
+              "Active generated app ready."
+            );
+
+            return;
+          }
+
+          if (
+            statusData?.status === "failed" ||
+            statusData?.status === "error"
+          ) {
+            setStatus(
+              statusData?.error ||
+              "Generated application failed to start."
+            );
+
+            return;
+          }
+
+          setStatus(
+            "Generated application accepted. Waiting for production build and startup..."
+          );
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(resolve, 1500)
+          );
+        }
+
+        if (!cancelled) {
+          setStatus(
+            "The active application is taking longer than expected. Static preview remains available."
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setStatus(
+            `Active preview startup failed: ${String(error)}`
+          );
+        }
+      }
+    }
+
+    void ensureActivePreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   // RUNTIME_PREVIEW_ACTIVE_APP_READINESS
   // Generated apps run npm install -> production build -> next start.
   // start-app therefore returns before the application is necessarily
@@ -490,8 +658,16 @@ export function RuntimePreviewShell({ projectId }: { projectId: string }) {
                 onClick={() => startApp("")}
                 className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-black hover:bg-cyan-200"
               >
-                Open Active App
+                Live Preview
               </button>
+              <a
+                href={`/deployed/${projectId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-4 py-2 text-sm font-black text-emerald-200 hover:bg-emerald-400/20"
+              >
+                Production
+              </a>
               <button
                 type="button"
                 onClick={() => openActivePath("/customer")}
