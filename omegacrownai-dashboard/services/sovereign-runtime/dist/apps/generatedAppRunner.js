@@ -795,6 +795,296 @@ export function classifyGeneratedAppOwnership(projectId) {
         watchdogOwnershipReasons,
     };
 }
+function signalOwnedProcessTerm(pid) {
+    if (!Number.isInteger(pid) ||
+        pid <= 1 ||
+        pid === process.pid) {
+        return false;
+    }
+    try {
+        process.kill(-pid, "SIGTERM");
+        return true;
+    }
+    catch {
+        try {
+            process.kill(pid, "SIGTERM");
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+}
+export async function cleanupExpiredGeneratedAppIfOwned(projectId) {
+    const reasons = [];
+    const manifest = getGeneratedAppManifest(projectId);
+    if (!manifest) {
+        return {
+            ok: false,
+            projectId,
+            attempted: false,
+            completed: false,
+            deferred: true,
+            processOwnership: false,
+            watchdogOwnership: false,
+            watchdogSignalAttempted: false,
+            processSignalAttempted: false,
+            reasons: [
+                "manifest-missing",
+            ],
+        };
+    }
+    const pid = Number(manifest?.pid ||
+        0);
+    const port = Number(manifest?.port ||
+        0);
+    const watchdogPid = Number(manifest?.watchdogPid ||
+        0);
+    const expiresAtMs = Date.parse(String(manifest?.expiresAt ||
+        ""));
+    const expired = Number.isFinite(expiresAtMs) &&
+        expiresAtMs <= Date.now();
+    if (!expired) {
+        return {
+            ok: false,
+            projectId,
+            attempted: false,
+            completed: false,
+            deferred: true,
+            processOwnership: false,
+            watchdogOwnership: false,
+            watchdogSignalAttempted: false,
+            processSignalAttempted: false,
+            reasons: [
+                "manifest-not-expired",
+            ],
+        };
+    }
+    const initialOwnership = classifyGeneratedAppOwnership(projectId);
+    if (initialOwnership.watchdogAlive &&
+        !initialOwnership.watchdogOwnership) {
+        reasons.push("live-watchdog-ownership-unproven");
+        persistGeneratedAppLifecycle(projectId, pid, {
+            expirationCleanupDeferred: true,
+            expirationCleanupAttemptedAt: new Date().toISOString(),
+            processOwnership: initialOwnership.processOwnership,
+            processOwnershipReasons: initialOwnership.processOwnershipReasons,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogOwnershipReasons: initialOwnership.watchdogOwnershipReasons,
+            expirationCleanupReasons: reasons,
+        });
+        return {
+            ok: true,
+            projectId,
+            attempted: false,
+            completed: false,
+            deferred: true,
+            processOwnership: initialOwnership.processOwnership,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogSignalAttempted: false,
+            processSignalAttempted: false,
+            reasons,
+        };
+    }
+    if (!initialOwnership.processOwnership) {
+        reasons.push(...initialOwnership
+            .processOwnershipReasons);
+        persistGeneratedAppLifecycle(projectId, pid, {
+            expirationCleanupDeferred: true,
+            expirationCleanupAttemptedAt: new Date().toISOString(),
+            processOwnership: initialOwnership.processOwnership,
+            processOwnershipReasons: initialOwnership.processOwnershipReasons,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogOwnershipReasons: initialOwnership.watchdogOwnershipReasons,
+            expirationCleanupReasons: reasons,
+        });
+        return {
+            ok: true,
+            projectId,
+            attempted: false,
+            completed: false,
+            deferred: true,
+            processOwnership: false,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogSignalAttempted: false,
+            processSignalAttempted: false,
+            reasons,
+        };
+    }
+    let watchdogSignalAttempted = false;
+    if (initialOwnership.watchdogAlive &&
+        initialOwnership.watchdogOwnership) {
+        // Reclassify immediately before signaling the watchdog.
+        const watchdogRecheck = classifyGeneratedAppOwnership(projectId);
+        if (!watchdogRecheck.watchdogAlive ||
+            !watchdogRecheck.watchdogOwnership ||
+            Number(watchdogRecheck.watchdogPid ||
+                0) !== watchdogPid) {
+            reasons.push("watchdog-revalidation-failed");
+            persistGeneratedAppLifecycle(projectId, pid, {
+                expirationCleanupDeferred: true,
+                expirationCleanupAttemptedAt: new Date().toISOString(),
+                expirationCleanupReasons: reasons,
+            });
+            return {
+                ok: true,
+                projectId,
+                attempted: false,
+                completed: false,
+                deferred: true,
+                processOwnership: watchdogRecheck.processOwnership,
+                watchdogOwnership: watchdogRecheck.watchdogOwnership,
+                watchdogSignalAttempted: false,
+                processSignalAttempted: false,
+                reasons,
+            };
+        }
+        watchdogSignalAttempted =
+            signalOwnedProcessTerm(watchdogPid);
+        if (!watchdogSignalAttempted) {
+            reasons.push("watchdog-sigterm-failed");
+            persistGeneratedAppLifecycle(projectId, pid, {
+                expirationCleanupDeferred: true,
+                expirationCleanupAttemptedAt: new Date().toISOString(),
+                expirationCleanupReasons: reasons,
+            });
+            return {
+                ok: true,
+                projectId,
+                attempted: true,
+                completed: false,
+                deferred: true,
+                processOwnership: true,
+                watchdogOwnership: true,
+                watchdogSignalAttempted: true,
+                processSignalAttempted: false,
+                reasons,
+            };
+        }
+    }
+    // Reclassify current application ownership immediately before SIGTERM.
+    // Persisted ownership evidence from startup is never authorization.
+    const processRecheck = classifyGeneratedAppOwnership(projectId);
+    if (!processRecheck.processOwnership ||
+        Number(processRecheck.manifestPid ||
+            0) !== pid) {
+        reasons.push("process-revalidation-failed");
+        reasons.push(...processRecheck
+            .processOwnershipReasons);
+        persistGeneratedAppLifecycle(projectId, pid, {
+            expirationCleanupDeferred: true,
+            expirationCleanupAttemptedAt: new Date().toISOString(),
+            processOwnership: processRecheck.processOwnership,
+            processOwnershipReasons: processRecheck.processOwnershipReasons,
+            expirationCleanupReasons: reasons,
+        });
+        return {
+            ok: true,
+            projectId,
+            attempted: watchdogSignalAttempted,
+            completed: false,
+            deferred: true,
+            processOwnership: processRecheck.processOwnership,
+            watchdogOwnership: processRecheck.watchdogOwnership,
+            watchdogSignalAttempted,
+            processSignalAttempted: false,
+            reasons,
+        };
+    }
+    const processSignalAttempted = signalOwnedProcessTerm(pid);
+    if (!processSignalAttempted) {
+        reasons.push("process-sigterm-failed");
+        persistGeneratedAppLifecycle(projectId, pid, {
+            expirationCleanupDeferred: true,
+            expirationCleanupAttemptedAt: new Date().toISOString(),
+            expirationCleanupReasons: reasons,
+        });
+        return {
+            ok: true,
+            projectId,
+            attempted: true,
+            completed: false,
+            deferred: true,
+            processOwnership: true,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogSignalAttempted,
+            processSignalAttempted: true,
+            reasons,
+        };
+    }
+    let portDown = {
+        down: true,
+        waitedMs: 0,
+    };
+    if (Number.isInteger(port) &&
+        port > 0) {
+        portDown =
+            await waitForPortDown(port, 20000);
+    }
+    if (!portDown.down) {
+        reasons.push("listener-still-up-after-sigterm");
+        persistGeneratedAppLifecycle(projectId, pid, {
+            expirationCleanupDeferred: true,
+            expirationCleanupAttemptedAt: new Date().toISOString(),
+            expirationCleanupReasons: reasons,
+            portDown,
+        });
+        return {
+            ok: true,
+            projectId,
+            attempted: true,
+            completed: false,
+            deferred: true,
+            processOwnership: true,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogSignalAttempted,
+            processSignalAttempted: true,
+            portDown,
+            reasons,
+        };
+    }
+    if (Number.isInteger(port) &&
+        port > 0) {
+        releaseGeneratedAppPort(projectId, port);
+    }
+    const stoppedAt = new Date().toISOString();
+    persistGeneratedAppLifecycle(projectId, pid, {
+        status: "stopped",
+        processAlive: false,
+        portReachable: false,
+        portStatus: undefined,
+        expired: true,
+        expiredAt: manifest?.expiredAt ||
+            stoppedAt,
+        autoStopped: true,
+        stoppedAt,
+        expirationCleanupDeferred: false,
+        expirationCleanupCompleted: true,
+        expirationCleanupCompletedAt: stoppedAt,
+        expirationCleanupMethod: "ownership-gated-sigterm",
+        expirationCleanupReasons: [
+            "ownership-proven",
+            "sigterm-complete",
+        ],
+        portDown,
+    });
+    return {
+        ok: true,
+        projectId,
+        attempted: true,
+        completed: true,
+        deferred: false,
+        processOwnership: true,
+        watchdogOwnership: initialOwnership.watchdogOwnership,
+        watchdogSignalAttempted,
+        processSignalAttempted: true,
+        portDown,
+        reasons: [
+            "ownership-proven",
+            "sigterm-complete",
+        ],
+    };
+}
 // GENERATED_APP_STARTUP_RECONCILIATION
 //
 // Persisted generated-app manifests survive Sovereign Runtime restarts.
@@ -885,39 +1175,28 @@ export async function reconcileGeneratedAppsOnStartup() {
         }
         if (expired &&
             processAlive) {
-            // GENERATED_APP_STARTUP_OWNERSHIP_EVIDENCE
+            // GENERATED_APP_STARTUP_OWNERSHIP_GATED_CLEANUP
             //
-            // Classify current Linux ownership before any future destructive
-            // expiration cleanup is considered. This stage remains observational:
-            // ownership evidence is persisted, but cleanup remains deferred.
-            const ownership = classifyGeneratedAppOwnership(projectId);
-            const ownershipCheckedAt = new Date().toISOString();
+            // Stage 4.2E2 delegates destructive expiration cleanup to the
+            // independently accepted helper. The helper reclassifies current
+            // Linux ownership immediately before signaling and fails closed.
+            const cleanup = await cleanupExpiredGeneratedAppIfOwned(projectId);
             persistGeneratedAppLifecycle(projectId, pid, {
-                processAlive: true,
-                expired: true,
-                expiredAt: manifest?.expiredAt ||
-                    ownershipCheckedAt,
-                checkedAt: ownershipCheckedAt,
                 reconciledAtStartup: true,
-                processOwnership: ownership.processOwnership,
-                processOwnershipReasons: ownership.processOwnershipReasons,
-                ownershipListenerPid: ownership.listenerPid,
-                ownershipListenerCwd: ownership.listenerCwd,
-                ownershipListenerCwdMatch: ownership.listenerCwdMatch,
-                ownershipListenerPgid: ownership.listenerPgid,
-                ownershipListenerPgidMatch: ownership.listenerPgidMatch,
-                ownershipListenerAncestry: ownership.listenerAncestry,
-                ownershipListenerAncestorMatch: ownership.listenerAncestorMatch,
-                watchdogOwnership: ownership.watchdogOwnership,
-                watchdogOwnershipReasons: ownership.watchdogOwnershipReasons,
-                watchdogOwnershipProjectMatch: ownership.watchdogProjectMatch,
-                watchdogOwnershipPidMatch: ownership.watchdogPidMatch,
-                watchdogOwnershipPortMatch: ownership.watchdogPortMatch,
-                ownershipCheckedAt,
-                // Stage 4.2D is intentionally non-destructive.
-                expirationCleanupDeferred: true,
+                startupExpirationCleanupAttempted: cleanup.attempted,
+                startupExpirationCleanupCompleted: cleanup.completed,
+                startupExpirationCleanupDeferred: cleanup.deferred,
+                startupExpirationCleanupReasons: cleanup.reasons,
+                startupProcessOwnership: cleanup.processOwnership,
+                startupWatchdogOwnership: cleanup.watchdogOwnership,
+                checkedAt: new Date().toISOString(),
             });
-            summary.liveExpiredDeferred += 1;
+            if (cleanup.completed) {
+                summary.expiredDead += 1;
+            }
+            else {
+                summary.liveExpiredDeferred += 1;
+            }
             summary.reconciled += 1;
             continue;
         }
