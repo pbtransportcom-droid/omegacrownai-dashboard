@@ -324,6 +324,63 @@ async function proxyGeneratedApp(
     responseHeaders.set("location", `/generated-app/${projectId}${location}`);
   }
 
+
+  // GENERATED_APP_ROOT_RELATIVE_ASSET_REWRITE
+  //
+  // Generated Next.js applications are hosted below
+  // /generated-app/<projectId>. Their HTML and RSC payloads may still
+  // contain root-relative /_next references or root navigation URLs.
+  // Rewrite only textual payloads so the browser keeps generated-app
+  // requests inside the project proxy namespace.
+  const proxiedContentType =
+    responseHeaders.get("content-type") || "";
+
+  const shouldRewriteText =
+    proxiedContentType.includes("text/html") ||
+    proxiedContentType.includes("text/x-component") ||
+    proxiedContentType.includes("application/json");
+
+  if (
+    method !== "HEAD" &&
+    shouldRewriteText
+  ) {
+    const rawBody =
+      await response.text();
+
+    const projectBase =
+      `/generated-app/${projectId}`;
+
+    const rewrittenBody =
+      rawBody
+        // Root-relative Next static assets.
+        .replace(
+          /(["'(=])\/_next\//g,
+          `$1${projectBase}/_next/`
+        )
+        // Escaped JSON/RSC Next paths.
+        .replace(
+          /\\\/_next\\\//g,
+          `\\${projectBase.replaceAll("/", "\\/")}\\/_next\\/`
+        )
+        // Root navigation in generated RSC/client payloads.
+        .replace(
+          /(["'])\/(["'])/g,
+          `$1${projectBase}$2`
+        );
+
+    responseHeaders.delete("content-length");
+    responseHeaders.delete("content-encoding");
+    responseHeaders.delete("transfer-encoding");
+
+    return new Response(
+      rewrittenBody,
+      {
+        status: response.status,
+        headers: responseHeaders,
+      }
+    );
+  }
+
   if (method === "HEAD") {
     return new NextResponse(null, {
       status: response.status,
