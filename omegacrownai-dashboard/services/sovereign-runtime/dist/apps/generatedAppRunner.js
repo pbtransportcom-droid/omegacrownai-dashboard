@@ -1273,71 +1273,135 @@ export async function getGeneratedAppStatus(projectId) {
 }
 export async function stopGeneratedApp(projectId) {
     const manifest = getGeneratedAppManifest(projectId);
-    if (manifest?.port) {
-        releaseGeneratedAppPort(projectId, Number(manifest.port));
-    }
     if (!manifest?.pid) {
-        return { ok: false, projectId, status: "not-running" };
+        return {
+            ok: false,
+            projectId,
+            status: "not-running",
+        };
     }
     const pid = Number(manifest.pid);
-    // GENERATED_APP_WATCHDOG_OWNERSHIP
-    // Every generated-app process owns exactly one TTL watchdog.
-    // Stop that watchdog when the application is explicitly stopped
-    // or restarted so obsolete sleep processes do not accumulate.
-    const watchdogPid = Number(manifest.watchdogPid || 0);
-    if (Number.isInteger(watchdogPid) &&
-        watchdogPid > 1 &&
-        watchdogPid !== process.pid) {
-        try {
-            process.kill(-watchdogPid, "SIGTERM");
+    const port = Number(manifest.port || 0);
+    // GENERATED_APP_OWNERSHIP_GATED_EXPLICIT_STOP
+    //
+    // Persisted PID, port, processAlive, and earlier ownership evidence are
+    // diagnostic claims only. Current Linux ownership is authoritative.
+    //
+    // Application and watchdog ownership are independent quorums.
+    // No generic port kill and no SIGKILL escalation are permitted here.
+    const initialOwnership = classifyGeneratedAppOwnership(projectId);
+    const stopAttemptedAt = new Date().toISOString();
+    if (!initialOwnership.processOwnership) {
+        const deferred = {
+            ...manifest,
+            status: "stop-deferred",
+            explicitStopAttempted: true,
+            explicitStopCompleted: false,
+            explicitStopDeferred: true,
+            explicitStopAttemptedAt: stopAttemptedAt,
+            processOwnership: false,
+            processOwnershipReasons: initialOwnership.processOwnershipReasons,
+            watchdogOwnership: initialOwnership.watchdogOwnership,
+            watchdogOwnershipReasons: initialOwnership.watchdogOwnershipReasons,
+            explicitStopReasons: initialOwnership.processOwnershipReasons,
+            checkedAt: new Date().toISOString(),
+        };
+        fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(deferred, null, 2));
+        return deferred;
+    }
+    // Watchdog authorization is independent from application authorization.
+    if (initialOwnership.watchdogOwnership &&
+        Number.isInteger(initialOwnership.watchdogPid) &&
+        Number(initialOwnership.watchdogPid) > 1 &&
+        Number(initialOwnership.watchdogPid) !== process.pid) {
+        const watchdogRevalidation = classifyGeneratedAppOwnership(projectId);
+        if (watchdogRevalidation
+            .watchdogOwnership &&
+            Number(watchdogRevalidation.watchdogPid) ===
+                Number(initialOwnership.watchdogPid)) {
+            signalOwnedProcessTerm(Number(watchdogRevalidation.watchdogPid));
         }
-        catch {
-            try {
-                process.kill(watchdogPid, "SIGTERM");
-            }
-            catch { }
-        }
     }
-    if (manifest.port) {
-        killPort(Number(manifest.port));
+    // Revalidate immediately before the destructive application signal.
+    const processRevalidation = classifyGeneratedAppOwnership(projectId);
+    if (!processRevalidation.processOwnership ||
+        Number(processRevalidation.manifestPid ||
+            0) !== pid) {
+        const deferred = {
+            ...manifest,
+            status: "stop-deferred",
+            explicitStopAttempted: true,
+            explicitStopCompleted: false,
+            explicitStopDeferred: true,
+            explicitStopAttemptedAt: stopAttemptedAt,
+            processOwnership: processRevalidation.processOwnership,
+            processOwnershipReasons: processRevalidation.processOwnershipReasons,
+            watchdogOwnership: processRevalidation.watchdogOwnership,
+            watchdogOwnershipReasons: processRevalidation.watchdogOwnershipReasons,
+            explicitStopReasons: [
+                "process-ownership-revalidation-failed",
+                ...processRevalidation
+                    .processOwnershipReasons,
+            ],
+            checkedAt: new Date().toISOString(),
+        };
+        fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(deferred, null, 2));
+        return deferred;
     }
-    try {
-        process.kill(-pid, "SIGTERM");
-    }
-    catch {
-        try {
-            process.kill(pid, "SIGTERM");
-        }
-        catch { }
-    }
-    let portDown = { down: true, waitedMs: 0 };
-    if (manifest.port) {
-        portDown = await waitForPortDown(Number(manifest.port), 20000);
+    signalOwnedProcessTerm(pid);
+    let portDown = {
+        down: true,
+        waitedMs: 0,
+    };
+    if (Number.isInteger(port) &&
+        port > 0) {
+        portDown =
+            await waitForPortDown(port, 20000);
     }
     if (!portDown.down) {
-        if (manifest.port) {
-            killPort(Number(manifest.port));
-        }
-        try {
-            process.kill(-pid, "SIGKILL");
-        }
-        catch {
-            try {
-                process.kill(pid, "SIGKILL");
-            }
-            catch { }
-        }
-        if (manifest.port) {
-            portDown = await waitForPortDown(Number(manifest.port), 10000);
-        }
+        const timeoutOwnership = classifyGeneratedAppOwnership(projectId);
+        const stoppingTimeout = {
+            ...manifest,
+            status: "stopping-timeout",
+            explicitStopAttempted: true,
+            explicitStopCompleted: false,
+            explicitStopDeferred: true,
+            explicitStopAttemptedAt: stopAttemptedAt,
+            processOwnership: timeoutOwnership.processOwnership,
+            processOwnershipReasons: timeoutOwnership.processOwnershipReasons,
+            watchdogOwnership: timeoutOwnership.watchdogOwnership,
+            watchdogOwnershipReasons: timeoutOwnership.watchdogOwnershipReasons,
+            explicitStopReasons: [
+                "sigterm-timeout",
+                "automatic-sigkill-disabled",
+                "generic-port-kill-disabled",
+            ],
+            portDown,
+            checkedAt: new Date().toISOString(),
+        };
+        fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(stoppingTimeout, null, 2));
+        return stoppingTimeout;
     }
+    releaseGeneratedAppPort(projectId, port);
     const stopped = {
         ...manifest,
-        status: portDown.down ? "stopped" : "stopping-timeout",
+        status: "stopped",
+        processAlive: false,
+        portReachable: false,
+        explicitStopAttempted: true,
+        explicitStopCompleted: true,
+        explicitStopDeferred: false,
+        explicitStopAttemptedAt: stopAttemptedAt,
+        explicitStopCompletedAt: new Date().toISOString(),
+        explicitStopMethod: "ownership-gated-sigterm",
+        explicitStopReasons: [
+            "process-ownership-proven",
+            "sigterm-complete",
+        ],
         portDown,
         stoppedAt: new Date().toISOString(),
     };
-    fs.writeFileSync(path.join(RUNTIME_ROOT, "data", "generated-apps", `${projectId}.json`), JSON.stringify(stopped, null, 2));
+    fs.writeFileSync(generatedAppManifestPath(projectId), JSON.stringify(stopped, null, 2));
     return stopped;
 }
 export async function restartGeneratedApp(projectId) {
