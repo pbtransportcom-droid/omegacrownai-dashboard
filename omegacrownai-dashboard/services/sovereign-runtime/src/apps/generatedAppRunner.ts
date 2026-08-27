@@ -660,6 +660,40 @@ export async function startGeneratedApp(projectId: string) {
       const failedDuringBuild =
         current?.status === "building";
 
+      // GENERATED_APP_BUILD_FAILURE_DIAGNOSTIC_WIRING
+      //
+      // A real cold-build failure must immediately enter the universal
+      // diagnosis/repair ledger. This creates one authoritative repair
+      // record per failed build process rather than leaving diagnosis
+      // disconnected from the application lifecycle.
+      let buildFailureRepair:
+        ReturnType<
+          typeof recordGeneratedAppBuildFailure
+        > | null = null;
+
+      if (
+        code !== 0 &&
+        failedDuringBuild
+      ) {
+        const logs =
+          getGeneratedAppLogs(
+            projectId
+          );
+
+        const rawBuildLog = [
+          logs.out,
+          logs.err,
+        ]
+          .filter(Boolean)
+          .join("\n");
+
+        buildFailureRepair =
+          recordGeneratedAppBuildFailure(
+            projectId,
+            rawBuildLog
+          );
+      }
+
       releaseGeneratedAppPort(
         projectId,
         Number(manifest.port)
@@ -688,6 +722,29 @@ export async function startGeneratedApp(projectId: string) {
                   failedDuringBuild
                     ? "generated-production-build-failed"
                     : "generated-application-process-failed",
+
+                ...(failedDuringBuild &&
+                buildFailureRepair
+                  ? {
+                      repairAttempt:
+                        buildFailureRepair
+                          .record
+                          .attempt,
+
+                      repairEligible:
+                        buildFailureRepair
+                          .repairEligible,
+
+                      repairAttemptsRemaining:
+                        buildFailureRepair
+                          .attemptsRemaining,
+
+                      buildDiagnostic:
+                        buildFailureRepair
+                          .record
+                          .diagnosis,
+                    }
+                  : {}),
               }
             : {}),
           processAlive: false,
@@ -2844,6 +2901,765 @@ export async function stopGeneratedApp(projectId: string) {
 export async function restartGeneratedApp(projectId: string) {
   await stopGeneratedApp(projectId);
   return startGeneratedApp(projectId);
+}
+
+
+// GENERATED_APP_UNIVERSAL_BUILD_DIAGNOSTICS
+//
+// Build diagnosis is deliberately industry-neutral. It consumes only
+// generated application build evidence and produces a bounded,
+// machine-readable repair record. No renderer, vertical, or prompt-specific
+// assumptions are permitted here.
+
+export type GeneratedAppBuildDiagnostic = {
+  category:
+    | "typescript"
+    | "module-resolution"
+    | "syntax"
+    | "prerender"
+    | "dependency"
+    | "configuration"
+    | "unknown";
+  message: string;
+  failingFile: string | null;
+  line: number | null;
+  column: number | null;
+  evidence: string[];
+  repairEligible: boolean;
+};
+
+export type GeneratedAppRepairRecord = {
+  attempt: number;
+  createdAt: string;
+  failurePhase: "build";
+  diagnosis: GeneratedAppBuildDiagnostic;
+  repairApplied: boolean;
+  repairResult:
+    | "pending"
+    | "applied"
+    | "skipped"
+    | "failed";
+};
+
+const GENERATED_APP_MAX_REPAIR_ATTEMPTS = 3;
+
+function normalizeGeneratedBuildLog(
+  value: unknown
+) {
+  return String(value || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+function extractGeneratedBuildEvidence(
+  raw: string
+) {
+  const text =
+    normalizeGeneratedBuildLog(raw);
+
+  const lines =
+    text
+      .split("\n")
+      .map((line) => line.trimEnd())
+      .filter(Boolean);
+
+  return lines.slice(-120);
+}
+
+export function diagnoseGeneratedAppBuildFailure(
+  rawLog: string
+): GeneratedAppBuildDiagnostic {
+  const normalized =
+    normalizeGeneratedBuildLog(rawLog);
+
+  const evidence =
+    extractGeneratedBuildEvidence(normalized);
+
+  let category:
+    GeneratedAppBuildDiagnostic["category"] =
+      "unknown";
+
+  if (
+    /Type error:|TS\d{4}:|Cannot find name|is not assignable to type|Property .* does not exist on type/i.test(
+      normalized
+    )
+  ) {
+    category = "typescript";
+  } else if (
+    /Module not found|Cannot find module|Can't resolve/i.test(
+      normalized
+    )
+  ) {
+    category = "module-resolution";
+  } else if (
+    /SyntaxError|Unexpected token|Parsing ecmascript source code failed|Expected .* got/i.test(
+      normalized
+    )
+  ) {
+    category = "syntax";
+  } else if (
+    /prerender|Error occurred prerendering|Generating static pages/i.test(
+      normalized
+    )
+  ) {
+    category = "prerender";
+  } else if (
+    /npm ERR!|ERESOLVE|peer dependency|dependency conflict/i.test(
+      normalized
+    )
+  ) {
+    category = "dependency";
+  } else if (
+    /next\.config|Invalid next\.config|environment variable|Missing environment/i.test(
+      normalized
+    )
+  ) {
+    category = "configuration";
+  }
+
+  let failingFile: string | null = null;
+  let line: number | null = null;
+  let column: number | null = null;
+
+  const locationPatterns = [
+    /(?:^|\n)\.\/([^:\n]+):(\d+):(\d+)/m,
+    /(?:^|\n)(app\/[^:\n]+|src\/[^:\n]+|pages\/[^:\n]+):(\d+):(\d+)/m,
+    /(?:^|\n)\.\/([^\n]+\.(?:tsx?|jsx?|mjs|cjs|css|json))(?::(\d+):(\d+))?/m,
+  ];
+
+  for (const pattern of locationPatterns) {
+    const match =
+      normalized.match(pattern);
+
+    if (!match) {
+      continue;
+    }
+
+    failingFile =
+      String(match[1] || "")
+        .replace(/^\.?\//, "")
+        .trim() || null;
+
+    if (match[2]) {
+      line = Number(match[2]);
+    }
+
+    if (match[3]) {
+      column = Number(match[3]);
+    }
+
+    break;
+  }
+
+  const messagePatterns = [
+    /Type error:\s*([^\n]+)/i,
+    /Module not found:\s*([^\n]+)/i,
+    /SyntaxError:\s*([^\n]+)/i,
+    /Failed to compile\.?\s*\n+([^\n]+)/i,
+  ];
+
+  let message =
+    "Generated application production build failed.";
+
+  for (const pattern of messagePatterns) {
+    const match =
+      normalized.match(pattern);
+
+    if (match?.[1]) {
+      message =
+        match[1].trim();
+      break;
+    }
+  }
+
+  const repairEligible =
+    category === "typescript" ||
+    category === "module-resolution" ||
+    category === "syntax" ||
+    category === "prerender" ||
+    category === "configuration";
+
+  return {
+    category,
+    message,
+    failingFile,
+    line,
+    column,
+    evidence,
+    repairEligible,
+  };
+}
+
+function generatedAppRepairLedgerPath(
+  projectId: string
+) {
+  return path.join(
+    RUNTIME_ROOT,
+    "data",
+    "runtime-apps",
+    projectId,
+    "repair-history.json"
+  );
+}
+
+export function getGeneratedAppRepairHistory(
+  projectId: string
+): GeneratedAppRepairRecord[] {
+  const ledger =
+    generatedAppRepairLedgerPath(projectId);
+
+  if (!fs.existsSync(ledger)) {
+    return [];
+  }
+
+  try {
+    const parsed =
+      JSON.parse(
+        fs.readFileSync(
+          ledger,
+          "utf8"
+        )
+      );
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistGeneratedAppRepairHistory(
+  projectId: string,
+  history: GeneratedAppRepairRecord[]
+) {
+  const ledger =
+    generatedAppRepairLedgerPath(projectId);
+
+  fs.mkdirSync(
+    path.dirname(ledger),
+    {
+      recursive: true,
+    }
+  );
+
+  fs.writeFileSync(
+    ledger,
+    JSON.stringify(
+      history,
+      null,
+      2
+    )
+  );
+}
+
+export function recordGeneratedAppBuildFailure(
+  projectId: string,
+  rawLog: string
+) {
+  const history =
+    getGeneratedAppRepairHistory(projectId);
+
+  const diagnosis =
+    diagnoseGeneratedAppBuildFailure(
+      rawLog
+    );
+
+  const attempt =
+    history.length + 1;
+
+  const record:
+    GeneratedAppRepairRecord = {
+      attempt,
+      createdAt:
+        new Date().toISOString(),
+      failurePhase: "build",
+      diagnosis,
+      repairApplied: false,
+      repairResult:
+        diagnosis.repairEligible &&
+        attempt <=
+          GENERATED_APP_MAX_REPAIR_ATTEMPTS
+          ? "pending"
+          : "skipped",
+    };
+
+  const nextHistory = [
+    ...history,
+    record,
+  ];
+
+  persistGeneratedAppRepairHistory(
+    projectId,
+    nextHistory
+  );
+
+  return {
+    record,
+    history: nextHistory,
+    maxAttempts:
+      GENERATED_APP_MAX_REPAIR_ATTEMPTS,
+    attemptsRemaining:
+      Math.max(
+        0,
+        GENERATED_APP_MAX_REPAIR_ATTEMPTS -
+          attempt
+      ),
+    repairEligible:
+      record.repairResult === "pending",
+  };
+}
+
+
+// GENERATED_APP_UNIVERSAL_REPAIR_EXECUTOR
+//
+// Repair execution is intentionally product-neutral. A repair provider
+// supplies replacement file contents; this executor validates path safety,
+// preserves pre-repair backups, writes the authoritative artifact package,
+// updates the disposable runnable copy when present, and records the audit
+// trail. It contains no industry, renderer, or prompt-specific rules.
+
+export type GeneratedAppRepairProposal = {
+  provider: string;
+  summary?: string;
+  files: Array<{
+    file: string;
+    content: string;
+  }>;
+};
+
+const GENERATED_APP_MAX_REPAIR_FILES = 12;
+const GENERATED_APP_MAX_REPAIR_FILE_BYTES =
+  2 * 1024 * 1024;
+
+function normalizeGeneratedRepairPath(
+  value: unknown
+) {
+  const normalized =
+    String(value || "")
+      .replace(/\\/g, "/")
+      .replace(/^\.\/+/, "")
+      .trim();
+
+  if (!normalized) {
+    throw new Error(
+      "Repair file path is empty."
+    );
+  }
+
+  if (
+    normalized.includes("\0") ||
+    path.isAbsolute(normalized) ||
+    normalized
+      .split("/")
+      .some(
+        (part) =>
+          part === ".." ||
+          part === ""
+      )
+  ) {
+    throw new Error(
+      `Unsafe repair file path: ${normalized}`
+    );
+  }
+
+  return normalized;
+}
+
+function resolveGeneratedRepairPath(
+  rootDir: string,
+  relativeFile: string
+) {
+  const normalized =
+    normalizeGeneratedRepairPath(
+      relativeFile
+    );
+
+  const root =
+    path.resolve(rootDir);
+
+  const target =
+    path.resolve(
+      root,
+      normalized
+    );
+
+  if (
+    target !== root &&
+    !target.startsWith(
+      root + path.sep
+    )
+  ) {
+    throw new Error(
+      `Repair path escaped generated project: ${normalized}`
+    );
+  }
+
+  return {
+    normalized,
+    target,
+  };
+}
+
+function atomicWriteGeneratedRepairFile(
+  target: string,
+  content: string
+) {
+  fs.mkdirSync(
+    path.dirname(target),
+    {
+      recursive: true,
+    }
+  );
+
+  const temporary =
+    `${target}.omegacrown-repair-${process.pid}-${Date.now()}`;
+
+  fs.writeFileSync(
+    temporary,
+    content,
+    "utf8"
+  );
+
+  fs.renameSync(
+    temporary,
+    target
+  );
+}
+
+export function applyGeneratedAppRepairProposal(
+  projectId: string,
+  proposal: GeneratedAppRepairProposal
+) {
+  const history =
+    getGeneratedAppRepairHistory(
+      projectId
+    );
+
+  const recordIndex =
+    [...history]
+      .map(
+        (record, index) => ({
+          record,
+          index,
+        })
+      )
+      .reverse()
+      .find(
+        ({ record }) =>
+          record.repairResult ===
+            "pending" &&
+          record.repairApplied === false
+      )
+      ?.index;
+
+  if (
+    typeof recordIndex !== "number"
+  ) {
+    throw new Error(
+      "No pending generated-app repair record exists."
+    );
+  }
+
+  const record =
+    history[recordIndex];
+
+  if (
+    !record.diagnosis
+      .repairEligible
+  ) {
+    throw new Error(
+      "Current build failure is not repair eligible."
+    );
+  }
+
+  if (
+    record.attempt >
+    GENERATED_APP_MAX_REPAIR_ATTEMPTS
+  ) {
+    throw new Error(
+      "Generated-app repair attempt limit exceeded."
+    );
+  }
+
+  const provider =
+    String(
+      proposal?.provider || ""
+    ).trim();
+
+  if (!provider) {
+    throw new Error(
+      "Repair proposal provider is required."
+    );
+  }
+
+  const files =
+    Array.isArray(
+      proposal?.files
+    )
+      ? proposal.files
+      : [];
+
+  if (
+    files.length < 1 ||
+    files.length >
+      GENERATED_APP_MAX_REPAIR_FILES
+  ) {
+    throw new Error(
+      `Repair proposal must contain 1-${GENERATED_APP_MAX_REPAIR_FILES} files.`
+    );
+  }
+
+  const artifactDir =
+    path.join(
+      RUNTIME_ROOT,
+      "data",
+      "artifacts",
+      projectId
+    );
+
+  if (
+    !fs.existsSync(
+      artifactDir
+    )
+  ) {
+    throw new Error(
+      `Artifact folder not found for ${projectId}`
+    );
+  }
+
+  const manifest =
+    getGeneratedAppManifest(
+      projectId
+    );
+
+  const appDir =
+    String(
+      manifest?.appDir ||
+      path.join(
+        RUNTIME_ROOT,
+        "generated-apps",
+        projectId
+      )
+    );
+
+  const runtimeDataDir =
+    String(
+      manifest?.runtimeDataDir ||
+      path.join(
+        RUNTIME_ROOT,
+        "data",
+        "runtime-apps",
+        projectId
+      )
+    );
+
+  const backupRoot =
+    path.join(
+      runtimeDataDir,
+      "repair-backups",
+      `attempt-${record.attempt}`
+    );
+
+  const seen =
+    new Set<string>();
+
+  const preparedFiles =
+    files.map((item) => {
+      const artifactTarget =
+        resolveGeneratedRepairPath(
+          artifactDir,
+          item?.file
+        );
+
+      if (
+        seen.has(
+          artifactTarget.normalized
+        )
+      ) {
+        throw new Error(
+          `Duplicate repair target: ${artifactTarget.normalized}`
+        );
+      }
+
+      seen.add(
+        artifactTarget.normalized
+      );
+
+      const content =
+        String(
+          item?.content ?? ""
+        );
+
+      const bytes =
+        Buffer.byteLength(
+          content,
+          "utf8"
+        );
+
+      if (
+        bytes >
+        GENERATED_APP_MAX_REPAIR_FILE_BYTES
+      ) {
+        throw new Error(
+          `Repair file exceeds maximum size: ${artifactTarget.normalized}`
+        );
+      }
+
+      const appTarget =
+        resolveGeneratedRepairPath(
+          appDir,
+          artifactTarget.normalized
+        );
+
+      // GENERATED_APP_REPAIR_BACKUP_BUILD_ISOLATION
+      //
+      // Runtime repair state may be reachable from a generated project's
+      // data/runtime path. Never preserve a source backup with a compilable
+      // .ts/.tsx/.js/.jsx extension because Next.js/TypeScript can discover
+      // and typecheck it during the repaired production build.
+      //
+      // Keep the original relative path for audit metadata while storing
+      // the backup itself with a non-source suffix.
+      const backupRelativeFile =
+        `${artifactTarget.normalized}.omegacrown-backup`;
+
+      const backupTarget =
+        resolveGeneratedRepairPath(
+          backupRoot,
+          backupRelativeFile
+        );
+
+      return {
+        relativeFile:
+          artifactTarget.normalized,
+        content,
+        artifactTarget:
+          artifactTarget.target,
+        appTarget:
+          appTarget.target,
+        backupTarget:
+          backupTarget.target,
+        backupRelativeFile,
+      };
+    });
+
+  // Complete all validation before mutating a project.
+  for (
+    const item
+    of preparedFiles
+  ) {
+    if (
+      fs.existsSync(
+        item.artifactTarget
+      )
+    ) {
+      atomicWriteGeneratedRepairFile(
+        item.backupTarget,
+        fs.readFileSync(
+          item.artifactTarget,
+          "utf8"
+        )
+      );
+    }
+  }
+
+  for (
+    const item
+    of preparedFiles
+  ) {
+    // Artifact source is authoritative so future cold preparation does
+    // not erase an accepted repair.
+    atomicWriteGeneratedRepairFile(
+      item.artifactTarget,
+      item.content
+    );
+
+    // Keep an already prepared runnable copy synchronized.
+    if (
+      fs.existsSync(
+        appDir
+      )
+    ) {
+      atomicWriteGeneratedRepairFile(
+        item.appTarget,
+        item.content
+      );
+    }
+  }
+
+  const updatedRecord = {
+    ...record,
+    repairApplied: true,
+    repairResult:
+      "applied" as const,
+    repairProvider:
+      provider,
+    repairSummary:
+      String(
+        proposal.summary || ""
+      ).trim() || undefined,
+    filesChanged:
+      preparedFiles.map(
+        (item) =>
+          item.relativeFile
+      ),
+    appliedAt:
+      new Date().toISOString(),
+  };
+
+  history[recordIndex] =
+    updatedRecord as any;
+
+  persistGeneratedAppRepairHistory(
+    projectId,
+    history
+  );
+
+  const changedAt =
+    new Date().toISOString();
+
+  persistGeneratedAppLifecycle(
+    projectId,
+    Number(
+      manifest?.pid || 0
+    ),
+    {
+      status: "repairing",
+      repairAttempt:
+        updatedRecord.attempt,
+      repairProvider:
+        provider,
+      repairFiles:
+        preparedFiles.map(
+          (item) =>
+            item.relativeFile
+        ),
+      repairApplied: true,
+      repairAppliedAt:
+        changedAt,
+      buildFailed: false,
+      failurePhase: undefined,
+      failureReason: undefined,
+      failedAt: undefined,
+      checkedAt: changedAt,
+    }
+  );
+
+  return {
+    ok: true,
+    projectId,
+    attempt:
+      updatedRecord.attempt,
+    provider,
+    filesChanged:
+      preparedFiles.map(
+        (item) =>
+          item.relativeFile
+      ),
+    backupRoot,
+    repairResult: "applied",
+  };
 }
 
 export function getGeneratedAppLogs(projectId: string) {
