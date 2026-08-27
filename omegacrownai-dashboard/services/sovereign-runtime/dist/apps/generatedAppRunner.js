@@ -197,7 +197,11 @@ async function monitorGeneratedAppReadiness(projectId, pid, port) {
         await sleep(1000);
     }
     // A cold generated application may still be installing/building when the
-    // readiness window ends. Preserve "starting" when the child is alive;
+    // GENERATED_APP_READINESS_PRESERVE_BUILD_PHASE
+    // When the readiness window ends, preserve the current build phase
+    // for a live child. A long build must not be mislabeled as application
+    // startup, and a dead child is handled as a failure below.
+    // readiness window ends. Preserve the active phase when the child is alive;
     // do not incorrectly convert a slow build into a failed deployment.
     let processAlive = false;
     try {
@@ -212,7 +216,9 @@ async function monitorGeneratedAppReadiness(projectId, pid, port) {
     }
     persistGeneratedAppLifecycle(projectId, pid, processAlive
         ? {
-            status: "starting",
+            status: getGeneratedAppManifest(projectId)?.status === "building"
+                ? "building"
+                : "starting",
             processAlive: true,
             portReachable: false,
             readinessTimedOut: true,
@@ -394,11 +400,28 @@ export async function startGeneratedApp(projectId) {
             current?.autoStopped === true) {
             return;
         }
+        // GENERATED_APP_BUILD_FAILURE_CLASSIFICATION
+        //
+        // The process state stored immediately before exit tells us whether
+        // a non-zero shell exit happened during the cold production build or
+        // after the application had advanced into startup/runtime.
+        const failedDuringBuild = current?.status === "building";
         releaseGeneratedAppPort(projectId, Number(manifest.port));
         persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
             status: code === 0
                 ? "stopped"
                 : "failed",
+            ...(code !== 0
+                ? {
+                    buildFailed: failedDuringBuild,
+                    failurePhase: failedDuringBuild
+                        ? "build"
+                        : "runtime",
+                    failureReason: failedDuringBuild
+                        ? "generated-production-build-failed"
+                        : "generated-application-process-failed",
+                }
+                : {}),
             processAlive: false,
             portReachable: false,
             portStatus: undefined,
@@ -417,10 +440,17 @@ export async function startGeneratedApp(projectId) {
     child.unref();
     const now = Date.now();
     const expiresAt = new Date(now + GENERATED_PREVIEW_TTL_MS).toISOString();
+    // GENERATED_APP_EXPLICIT_BUILD_PHASE
+    //
+    // Cold generated applications execute install -> build -> start.
+    // Until a reusable production build exists, the authoritative state
+    // is "building", not "starting".
     const running = {
         ...manifest,
         pid: child.pid,
-        status: "starting",
+        status: reusableAppDir
+            ? "starting"
+            : "building",
         watchdogPid: undefined,
         autoStopped: undefined,
         stoppedAt: undefined,
@@ -1265,7 +1295,12 @@ export async function reconcileGeneratedAppsOnStartup() {
             summary.reconciled += 1;
             continue;
         }
-        if (status === "starting" ||
+        // GENERATED_APP_STARTUP_BUILDING_RECONCILIATION
+        //
+        // Runtime restarts must reconcile children that were still installing
+        // or building just as they reconcile starting/running applications.
+        if (status === "building" ||
+            status === "starting" ||
             status === "running" ||
             status === "prepared") {
             const reconciled = await getGeneratedAppStatus(projectId);
@@ -1284,6 +1319,21 @@ export async function reconcileGeneratedAppsOnStartup() {
 }
 export async function getGeneratedAppStatus(projectId) {
     const manifest = getGeneratedAppManifest(projectId);
+    // GENERATED_APP_FAILED_STATUS_IS_TERMINAL
+    //
+    // A build/runtime failure is authoritative. Do not erase it merely
+    // because the failed child is now dead and its port is unreachable.
+    // This makes build failures visible to Preview and future repair logic.
+    if (manifest?.status === "failed") {
+        return {
+            ok: true,
+            ...manifest,
+            status: "failed",
+            processAlive: false,
+            portReachable: false,
+            checkedAt: new Date().toISOString(),
+        };
+    }
     if (!manifest?.pid) {
         return { ok: false, projectId, status: "not-running" };
     }
