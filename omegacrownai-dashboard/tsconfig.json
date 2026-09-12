@@ -43,6 +43,8 @@
     "services/sovereign-runtime/generated-apps",
     "services/sovereign-runtime/generated-apps/**/*",
     "services/sovereign-runtime/data/artifacts",
-    "services/sovereign-runtime/data/artifacts/**/*"
+    "services/sovereign-runtime/data/artifacts/**/*",
+    "services/sovereign-runtime",
+    "services/sovereign-runtime/**/*"
   ]
 }
