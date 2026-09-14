@@ -500,6 +500,42 @@ export async function startGeneratedApp(projectId) {
                 }),
             checkedAt: new Date().toISOString(),
         });
+        // GENERATED_APP_AUTOMATIC_REPAIR_TRIGGER
+        //
+        // A failed cold production build may enter the universal repair
+        // pipeline only after its authoritative failed lifecycle state and
+        // repair ledger entry have been persisted.
+        //
+        // The repair ledger owns retry accounting. Do not introduce another
+        // counter here. The exit callback fires once for this child, and the
+        // orchestrator consumes the pending record for this failed attempt.
+        if (failedDuringBuild &&
+            buildFailureRepair &&
+            buildFailureRepair.repairEligible === true &&
+            Number(buildFailureRepair.attemptsRemaining || 0) > 0) {
+            void (async () => {
+                try {
+                    const repairResult = await orchestrateGeneratedAppRepair(projectId);
+                    if (repairResult?.ok === true &&
+                        repairResult?.status ===
+                            "repair-applied" &&
+                        repairResult?.repair?.repairResult ===
+                            "applied") {
+                        await restartGeneratedApp(projectId);
+                    }
+                }
+                catch (error) {
+                    // Provider/executor failures are persisted by the repair
+                    // orchestration layer. The child exit callback must never
+                    // throw an unhandled rejection into the sovereign runtime.
+                    persistGeneratedAppLifecycle(projectId, Number(child.pid || 0), {
+                        automaticRepairTriggerFailed: true,
+                        automaticRepairTriggerError: String(error),
+                        checkedAt: new Date().toISOString(),
+                    });
+                }
+            })();
+        }
     });
     child.unref();
     const now = Date.now();
