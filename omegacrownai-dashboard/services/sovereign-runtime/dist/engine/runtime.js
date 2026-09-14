@@ -11,6 +11,8 @@ import { appendTranscript } from "../storage/transcript.js";
 import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
 import { runtimeDataPath } from "../storage/runtime-paths.js";
 import { createBuildSpec } from "../intelligence/build-spec.js";
+import { createPromptContract } from "../intelligence/prompt-contract.js";
+import { planPromptWithAI } from "../intelligence/ai-prompt-planner.js";
 function id(prefix) {
     return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
@@ -130,7 +132,75 @@ export async function executeRun(projectId, input) {
             productName: run.productName,
         });
         run.buildSpec = buildSpec;
-        run.originalPrompt = buildSpec.originalPrompt;
+        // BRAIN_V2_RUNTIME_PRODUCT_CONTRACT
+        // BRAIN_V2_ORIGINAL_PROMPT_AUTHORITY
+        //
+        // The exact customer prompt is the immutable requirement source.
+        // Normalized prompts may assist classification/routing, but they must
+        // never replace the original prompt when extracting explicit product
+        // requirements or when asking AI to reason about the requested product.
+        const authoritativeCustomerPrompt = String(buildSpec?.originalPrompt ||
+            run.prompt ||
+            "").trim();
+        if (!authoritativeCustomerPrompt) {
+            throw new Error("Authoritative customer prompt is empty.");
+        }
+        //
+        // Full customer prompt -> deterministic requirement floor
+        // -> AI semantic planning -> authoritative reconciled contract.
+        //
+        // The reconciled contract is persisted on the run and buildSpec so
+        // downstream artifact builders can consume exact requested pages,
+        // APIs, models, roles, features, workflows, integrations, and quality.
+        const deterministicPromptContract = createPromptContract(authoritativeCustomerPrompt, {
+            industry: String(buildSpec?.industry ||
+                ""),
+            productType: String(buildSpec?.productType ||
+                ""),
+            productName: String(buildSpec?.productName ||
+                run?.productName ||
+                ""),
+        });
+        let authoritativePromptContract = deterministicPromptContract;
+        let promptPlannerStatus = "deterministic-fallback";
+        try {
+            const planning = await planPromptWithAI({
+                prompt: authoritativeCustomerPrompt,
+                fallbackContract: deterministicPromptContract,
+            });
+            if (planning?.ok === true &&
+                planning?.contract) {
+                authoritativePromptContract =
+                    planning.contract;
+                promptPlannerStatus =
+                    "ai-reconciled";
+                run.promptPlanner = {
+                    status: promptPlannerStatus,
+                    provider: planning.provider,
+                    model: planning.model,
+                };
+                appendRunEvent(run, "AI product planning completed");
+                appendTranscript(projectId, "AI product planning completed and reconciled with explicit customer requirements.");
+            }
+        }
+        catch (error) {
+            run.promptPlanner = {
+                status: promptPlannerStatus,
+                error: String(error),
+            };
+            appendRunEvent(run, "AI product planning unavailable; deterministic contract retained");
+            appendTranscript(projectId, "AI product planning unavailable. Deterministic customer requirement contract retained.");
+        }
+        run.originalPrompt =
+            authoritativeCustomerPrompt;
+        run.promptContract =
+            authoritativePromptContract;
+        run.buildSpec = {
+            ...buildSpec,
+            promptContract: authoritativePromptContract,
+            promptPlannerStatus,
+        };
+        appendRunEvent(run, `Authoritative product contract ready: ${authoritativePromptContract.pages.length} pages, ${authoritativePromptContract.apiRoutes.length} APIs, ${authoritativePromptContract.models.length} models`);
         run.normalizedPrompt = buildSpec.normalizedPrompt;
         appendRunEvent(run, buildSpec.isIncomplete ? "Prompt normalized with smart defaults" : "Prompt normalized into build spec");
         appendTranscript(projectId, buildSpec.isIncomplete ? `Prompt was incomplete. Smart defaults applied: ${buildSpec.missingFields.join(", ")}` : "Prompt normalized into full build spec.");

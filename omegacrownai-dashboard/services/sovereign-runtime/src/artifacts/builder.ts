@@ -98,7 +98,8 @@ console.log("Generated artifact smoke test passed");`
 // infrastructure cannot be skipped by an early return.
 async function finalizeGeneratedArtifactRoot(
   artifacts: any,
-  outDir: string
+  outDir: string,
+  promptContract: any = null
 ) {
   const resolvedArtifacts =
     await Promise.resolve(artifacts);
@@ -107,6 +108,61 @@ async function finalizeGeneratedArtifactRoot(
     Array.isArray(resolvedArtifacts)
       ? resolvedArtifacts
       : [];
+
+  // BRAIN_V2_UNIVERSAL_CONTRACT_FINALIZATION
+  //
+  // Every generated application path — generic, specialized, Living OS,
+  // transport, SaaS, legal, trading, restaurant, finance, and universal —
+  // must satisfy the authoritative customer contract before returning.
+  //
+  // This is intentionally placed in the universal finalizer so specialized
+  // early returns cannot bypass explicit pages, APIs, or models.
+  if (
+    promptContract &&
+    typeof promptContract === "object"
+  ) {
+    enforcePromptContractArtifacts(
+      records,
+      promptContract
+    );
+
+    // Contract enforcement may append artifacts that were not written by
+    // the specialized builder. Persist every record that has a relative
+    // artifact file and in-memory content.
+    for (const record of records) {
+      const relativeFile =
+        String(
+          record?.file || ""
+        ).trim();
+
+      if (
+        !relativeFile ||
+        typeof record?.content !== "string"
+      ) {
+        continue;
+      }
+
+      const target =
+        path.join(
+          outDir,
+          relativeFile
+        );
+
+      write(
+        target,
+        record.content
+      );
+
+      record.path =
+        target;
+
+      if (!record.status) {
+        record.status =
+          "generated";
+      }
+    }
+  }
+
 
   const nextConfigPath =
     path.join(
@@ -143,6 +199,772 @@ export default nextConfig;
   }
 
   return records;
+}
+
+
+
+// BRAIN_V2_CONTRACT_ARTIFACT_ENFORCEMENT
+//
+// The renderer may provide specialized, high-quality implementation files,
+// but the authoritative customer contract establishes the minimum product
+// surface that MUST physically exist in the delivered application.
+//
+// This layer therefore preserves renderer output and adds only missing
+// explicitly-required pages, APIs, persistence support, and Prisma models.
+
+function contractRouteToPageFile(route: string) {
+  const normalized =
+    String(route || "")
+      .trim()
+      .replace(/[?#].*$/, "")
+      .replace(/^\/+|\/+$/g, "");
+
+  return normalized
+    ? `app/${normalized}/page.tsx`
+    : "app/page.tsx";
+}
+
+function contractApiToFile(route: string) {
+  const normalized =
+    String(route || "")
+      .trim()
+      .replace(/[?#].*$/, "")
+      .replace(/^\/+|\/+$/g, "");
+
+  if (!normalized.startsWith("api/")) {
+    return "";
+  }
+
+  return `app/${normalized}/route.ts`;
+}
+
+function contractTitle(value: string) {
+  return String(value || "")
+    .replace(/^\/+/, "")
+    .replace(/[-_/]+/g, " ")
+    .replace(/\b\w/g, (match) =>
+      match.toUpperCase()
+    )
+    .trim() || "Overview";
+}
+
+function contractResourceName(route: string) {
+  const normalized =
+    String(route || "")
+      .trim()
+      .replace(/[?#].*$/, "")
+      .replace(/^\/+|\/+$/g, "");
+
+  const parts =
+    normalized.split("/").filter(Boolean);
+
+  return (
+    parts[parts.length - 1] ||
+    "records"
+  )
+    .replace(/[^a-zA-Z0-9_-]/g, "")
+    .toLowerCase();
+}
+
+function ensureContractPersistenceSupport(
+  files: any[]
+) {
+  const file =
+    "lib/contract-store.ts";
+
+  if (
+    files.some(
+      (entry) =>
+        entry.file === file
+    )
+  ) {
+    return;
+  }
+
+  files.push({
+    type: "typescript",
+    title:
+      "Contract Persistence Store",
+    file,
+    content: `import fs from "node:fs";
+import path from "node:path";
+
+const dataDirectory =
+  path.join(
+    process.cwd(),
+    "data",
+    "contract-records"
+  );
+
+function safeResource(
+  resource: string
+) {
+  const value =
+    String(resource || "")
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9_-]/g,
+        ""
+      );
+
+  if (!value) {
+    throw new Error(
+      "Invalid contract resource"
+    );
+  }
+
+  return value;
+}
+
+function resourcePath(
+  resource: string
+) {
+  fs.mkdirSync(
+    dataDirectory,
+    {
+      recursive: true
+    }
+  );
+
+  return path.join(
+    dataDirectory,
+    safeResource(resource) +
+      ".json"
+  );
+}
+
+export function listContractRecords(
+  resource: string
+) {
+  const file =
+    resourcePath(resource);
+
+  if (!fs.existsSync(file)) {
+    return [];
+  }
+
+  try {
+    const parsed =
+      JSON.parse(
+        fs.readFileSync(
+          file,
+          "utf8"
+        )
+      );
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function createContractRecord(
+  resource: string,
+  input: Record<string, unknown>
+) {
+  const records =
+    listContractRecords(
+      resource
+    );
+
+  const record = {
+    ...input,
+    id:
+      String(resource || "REC")
+        .slice(0, 3)
+        .toUpperCase() +
+      "-" +
+      Math.random()
+        .toString(36)
+        .slice(2, 10)
+        .toUpperCase(),
+    createdAt:
+      new Date().toISOString(),
+    updatedAt:
+      new Date().toISOString()
+  };
+
+  records.push(record);
+
+  fs.writeFileSync(
+    resourcePath(resource),
+    JSON.stringify(
+      records,
+      null,
+      2
+    )
+  );
+
+  return record;
+}
+`,
+    status: "generated",
+  });
+}
+
+function ensureContractPage(
+  files: any[],
+  page: any,
+  productName: string,
+  workflows: any[],
+  features: string[]
+) {
+  const route =
+    String(
+      page?.route || ""
+    ).trim();
+
+  if (!route.startsWith("/")) {
+    return;
+  }
+
+  const file =
+    contractRouteToPageFile(
+      route
+    );
+
+  if (
+    files.some(
+      (entry) =>
+        entry.file === file
+    )
+  ) {
+    return;
+  }
+
+  const name =
+    String(
+      page?.name ||
+      contractTitle(route)
+    ).trim();
+
+  const relatedWorkflows =
+    workflows
+      .filter((workflow: any) => {
+        const haystack =
+          `${workflow?.name || ""} ${
+            Array.isArray(
+              workflow?.steps
+            )
+              ? workflow.steps.join(" ")
+              : ""
+          }`.toLowerCase();
+
+        const needles =
+          [
+            name,
+            route,
+            contractResourceName(route)
+          ]
+            .join(" ")
+            .toLowerCase()
+            .split(
+              /[^a-z0-9]+/
+            )
+            .filter(
+              (token) =>
+                token.length >= 4
+            );
+
+        return needles.some(
+          (token) =>
+            haystack.includes(
+              token
+            )
+        );
+      })
+      .slice(0, 3);
+
+  const relatedFeatures =
+    features
+      .filter((feature) => {
+        const source =
+          String(feature)
+            .toLowerCase();
+
+        const tokens =
+          `${name} ${route}`
+            .toLowerCase()
+            .split(
+              /[^a-z0-9]+/
+            )
+            .filter(
+              (token) =>
+                token.length >= 4
+            );
+
+        return tokens.some(
+          (token) =>
+            source.includes(token)
+        );
+      })
+      .slice(0, 6);
+
+  const workflowMarkup =
+    relatedWorkflows.length
+      ? relatedWorkflows
+          .map(
+            (workflow: any) =>
+              `<article className="contract-card">
+                <span>Workflow</span>
+                <h2>${String(
+                  workflow.name || ""
+                ).replace(/[<>]/g, "")}</h2>
+                <ol>
+                  ${
+                    Array.isArray(
+                      workflow.steps
+                    )
+                      ? workflow.steps
+                          .map(
+                            (step: any) =>
+                              `<li>${String(
+                                step || ""
+                              ).replace(/[<>]/g, "")}</li>`
+                          )
+                          .join("")
+                      : ""
+                  }
+                </ol>
+              </article>`
+          )
+          .join("\n")
+      : `<article className="contract-card">
+          <span>Operations</span>
+          <h2>${name}</h2>
+          <p>
+            This workspace is part of the requested
+            ${productName} operating system.
+          </p>
+        </article>`;
+
+  const featureMarkup =
+    relatedFeatures.length
+      ? relatedFeatures
+          .map(
+            (feature) =>
+              `<li>${String(
+                feature
+              ).replace(/[<>]/g, "")}</li>`
+          )
+          .join("")
+      : `<li>Production-ready ${name} workflow</li>`;
+
+  files.push({
+    type: "typescript",
+    title:
+      `${name} Page`,
+    file,
+    content: `export const metadata = {
+  title: ${JSON.stringify(
+    `${name} | ${productName}`
+  )},
+};
+
+export default function ContractDrivenPage() {
+  return (
+    <main className="contract-page">
+      <header className="contract-page-header">
+        <p className="eyebrow">
+          ${productName}
+        </p>
+
+        <h1>
+          ${name}
+        </h1>
+
+        <p>
+          Operational workspace generated directly
+          from the approved customer product contract.
+        </p>
+      </header>
+
+      <section className="contract-grid">
+        ${workflowMarkup}
+      </section>
+
+      <section className="contract-requirements">
+        <h2>
+          Required capabilities
+        </h2>
+
+        <ul>
+          ${featureMarkup}
+        </ul>
+      </section>
+    </main>
+  );
+}
+`,
+    status: "generated",
+  });
+}
+
+function ensureContractApi(
+  files: any[],
+  api: any
+) {
+  const route =
+    String(
+      api?.route || ""
+    ).trim();
+
+  const file =
+    contractApiToFile(
+      route
+    );
+
+  if (!file) {
+    return;
+  }
+
+  if (
+    files.some(
+      (entry) =>
+        entry.file === file
+    )
+  ) {
+    return;
+  }
+
+  ensureContractPersistenceSupport(
+    files
+  );
+
+  const resource =
+    contractResourceName(
+      route
+    );
+
+  const methods =
+    new Set(
+      Array.isArray(
+        api?.methods
+      )
+        ? api.methods.map(
+            (value: any) =>
+              String(value)
+                .toUpperCase()
+          )
+        : [
+            "GET",
+            "POST"
+          ]
+    );
+
+  const imports =
+    `import { NextResponse } from "next/server";
+import {
+  createContractRecord,
+  listContractRecords
+} from "../../../lib/contract-store";
+`;
+
+  const handlers: string[] = [];
+
+  if (methods.has("GET")) {
+    handlers.push(
+`export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    resource: ${JSON.stringify(resource)},
+    records:
+      listContractRecords(
+        ${JSON.stringify(resource)}
+      )
+  });
+}`
+    );
+  }
+
+  if (methods.has("POST")) {
+    handlers.push(
+`export async function POST(
+  request: Request
+) {
+  try {
+    const body =
+      await request.json();
+
+    const record =
+      createContractRecord(
+        ${JSON.stringify(resource)},
+        body &&
+        typeof body === "object"
+          ? body
+          : {}
+      );
+
+    return NextResponse.json(
+      {
+        ok: true,
+        resource:
+          ${JSON.stringify(resource)},
+        record
+      },
+      {
+        status: 201
+      }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          String(error)
+      },
+      {
+        status: 400
+      }
+    );
+  }
+}`
+    );
+  }
+
+  if (!handlers.length) {
+    handlers.push(
+`export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    resource: ${JSON.stringify(resource)}
+  });
+}`
+    );
+  }
+
+  files.push({
+    type: "typescript",
+    title:
+      `${contractTitle(resource)} API Route`,
+    file,
+    content:
+      imports +
+      "\n" +
+      handlers.join(
+        "\n\n"
+      ) +
+      "\n",
+    status: "generated",
+  });
+}
+
+function ensureContractPrismaModels(
+  files: any[],
+  models: any[]
+) {
+  if (!models.length) {
+    return;
+  }
+
+  let schema =
+    files.find(
+      (entry) =>
+        entry.file ===
+        "prisma/schema.prisma"
+    );
+
+  if (!schema) {
+    schema = {
+      type: "prisma",
+      title:
+        "Prisma Schema",
+      file:
+        "prisma/schema.prisma",
+      content:
+`generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+`,
+      status:
+        "generated",
+    };
+
+    files.push(schema);
+  }
+
+  let content =
+    String(
+      schema.content || ""
+    );
+
+  for (
+    const model of models
+  ) {
+    const name =
+      String(
+        model?.name || ""
+      ).trim();
+
+    if (
+      !/^[A-Z][A-Za-z0-9]*$/.test(
+        name
+      )
+    ) {
+      continue;
+    }
+
+    const exists =
+      new RegExp(
+        `\\bmodel\\s+${name}\\s*\\{`
+      ).test(
+        content
+      );
+
+    if (exists) {
+      continue;
+    }
+
+    content +=
+`
+
+model ${name} {
+  id        String   @id @default(cuid())
+  data      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+`;
+  }
+
+  schema.content =
+    content;
+}
+
+function enforcePromptContractArtifacts(
+  files: any[],
+  promptContract: any
+) {
+  if (
+    !promptContract ||
+    typeof promptContract !==
+      "object"
+  ) {
+    return;
+  }
+
+  const pages =
+    Array.isArray(
+      promptContract.pages
+    )
+      ? promptContract.pages
+      : [];
+
+  const apiRoutes =
+    Array.isArray(
+      promptContract.apiRoutes
+    )
+      ? promptContract.apiRoutes
+      : [];
+
+  const models =
+    Array.isArray(
+      promptContract.models
+    )
+      ? promptContract.models
+      : [];
+
+  const workflows =
+    Array.isArray(
+      promptContract.workflows
+    )
+      ? promptContract.workflows
+      : [];
+
+  const features =
+    Array.isArray(
+      promptContract.features
+    )
+      ? promptContract.features.map(
+          (value: any) =>
+            String(value)
+        )
+      : [];
+
+  const productName =
+    String(
+      promptContract.productName ||
+      "Generated Application"
+    ).trim();
+
+  for (const page of pages) {
+    ensureContractPage(
+      files,
+      page,
+      productName,
+      workflows,
+      features
+    );
+  }
+
+  for (
+    const api of apiRoutes
+  ) {
+    ensureContractApi(
+      files,
+      api
+    );
+  }
+
+  ensureContractPrismaModels(
+    files,
+    models
+  );
+
+  const metadata =
+    files.find(
+      (entry) =>
+        entry.file ===
+        "metadata.json"
+    );
+
+  if (metadata) {
+    try {
+      const parsed =
+        JSON.parse(
+          metadata.content
+        );
+
+      parsed.promptContract =
+        promptContract;
+
+      parsed.requiredRoutes =
+        pages.map(
+          (page: any) =>
+            contractRouteToPageFile(
+              page.route
+            )
+        );
+
+      parsed.requiredApiRoutes =
+        apiRoutes.map(
+          (api: any) =>
+            contractApiToFile(
+              api.route
+            )
+        );
+
+      parsed.requiredModels =
+        models.map(
+          (model: any) =>
+            model.name
+        );
+
+      metadata.content =
+        JSON.stringify(
+          parsed,
+          null,
+          2
+        );
+    } catch {}
+  }
 }
 
 
@@ -573,6 +1395,12 @@ export async function buildArtifacts(run: any) {
   fs.mkdirSync(outDir, { recursive: true });
 
   const buildSpec = (run as any).buildSpec || null;
+
+  // BRAIN_V2_AUTHORITATIVE_BUILDER_CONTRACT
+  const promptContract =
+    buildSpec?.promptContract ||
+    (run as any).promptContract ||
+    null;
   const specIndustry = String(buildSpec?.industry || "").toLowerCase();
   const specProductType = String(buildSpec?.productType || "").toLowerCase();
   const normalizedPrompt = String((run as any).normalizedPrompt || buildSpec?.normalizedPrompt || run.prompt || "");
@@ -1374,49 +2202,55 @@ No personal founder information or internal infrastructure credentials are requi
         });
       }
 
-      return finalizeGeneratedArtifactRoot(records, outDir);
+      return finalizeGeneratedArtifactRoot(records, outDir, promptContract);
     }
   }
 
   if (!automationFromSpec && saasFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildSaasLandingArtifacts(run, outDir),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
   if (legalFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildLegalFirmArtifacts(run, outDir),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
   if (tradingFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildTradingPlatformArtifacts(run, outDir),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
   if (restaurantFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildRestaurantPlatformArtifacts(run, outDir),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
   if (financeFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildFinancePlatformArtifacts(run),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
   if (isUniversalAnythingPrompt(run.prompt || "") && !transportFromSpec) {
     return finalizeGeneratedArtifactRoot(
       buildUniversalAnythingArtifacts(run, outDir),
-      outDir
+      outDir,
+      promptContract
     );
   }
 
@@ -4142,6 +4976,15 @@ export default nextConfig;
 `,
     });
   }
+
+  // BRAIN_V2_APPLY_AUTHORITATIVE_CONTRACT
+  //
+  // Generic builder path. Specialized early returns are enforced again by
+  // finalizeGeneratedArtifactRoot at the universal return boundary.
+  enforcePromptContractArtifacts(
+    files,
+    promptContract
+  );
 
   for (const file of files) {
     write(path.join(outDir, file.file), file.content);
