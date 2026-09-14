@@ -788,10 +788,28 @@ export async function startGeneratedApp(projectId: string) {
                         buildFailureRepair
                           .attemptsRemaining,
 
+                      repairExhausted:
+                        buildFailureRepair
+                          .repairExhausted === true,
+
+                      automaticRepairDisabled:
+                        buildFailureRepair
+                          .repairExhausted === true,
+
                       buildDiagnostic:
                         buildFailureRepair
                           .record
                           .diagnosis,
+
+                      ...(
+                        buildFailureRepair
+                          .repairExhausted === true
+                          ? {
+                              failureReason:
+                                "generated-repair-attempts-exhausted",
+                            }
+                          : {}
+                      ),
                     }
                   : {}),
               }
@@ -829,8 +847,9 @@ export async function startGeneratedApp(projectId: string) {
         buildFailureRepair &&
         buildFailureRepair.repairEligible === true &&
         Number(
-          buildFailureRepair.attemptsRemaining || 0
-        ) > 0
+          buildFailureRepair.record?.attempt || 0
+        ) <=
+          GENERATED_APP_MAX_REPAIR_ATTEMPTS
       ) {
         void (
           async () => {
@@ -3071,7 +3090,8 @@ export type GeneratedAppRepairRecord = {
     | "pending"
     | "applied"
     | "skipped"
-    | "failed";
+    | "failed"
+    | "exhausted";
 };
 
 const GENERATED_APP_MAX_REPAIR_ATTEMPTS = 3;
@@ -3310,10 +3330,13 @@ export function recordGeneratedAppBuildFailure(
       diagnosis,
       repairApplied: false,
       repairResult:
-        diagnosis.repairEligible &&
-        attempt <=
-          GENERATED_APP_MAX_REPAIR_ATTEMPTS
-          ? "pending"
+        diagnosis.repairEligible
+          ? (
+              attempt <=
+                GENERATED_APP_MAX_REPAIR_ATTEMPTS
+                ? "pending"
+                : "exhausted"
+            )
           : "skipped",
     };
 
@@ -3340,6 +3363,8 @@ export function recordGeneratedAppBuildFailure(
       ),
     repairEligible:
       record.repairResult === "pending",
+    repairExhausted:
+      record.repairResult === "exhausted",
   };
 }
 

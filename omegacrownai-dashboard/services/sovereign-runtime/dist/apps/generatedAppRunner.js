@@ -479,9 +479,19 @@ export async function startGeneratedApp(projectId) {
                                 .repairEligible,
                             repairAttemptsRemaining: buildFailureRepair
                                 .attemptsRemaining,
+                            repairExhausted: buildFailureRepair
+                                .repairExhausted === true,
+                            automaticRepairDisabled: buildFailureRepair
+                                .repairExhausted === true,
                             buildDiagnostic: buildFailureRepair
                                 .record
                                 .diagnosis,
+                            ...(buildFailureRepair
+                                .repairExhausted === true
+                                ? {
+                                    failureReason: "generated-repair-attempts-exhausted",
+                                }
+                                : {}),
                         }
                         : {}),
                 }
@@ -512,7 +522,8 @@ export async function startGeneratedApp(projectId) {
         if (failedDuringBuild &&
             buildFailureRepair &&
             buildFailureRepair.repairEligible === true &&
-            Number(buildFailureRepair.attemptsRemaining || 0) > 0) {
+            Number(buildFailureRepair.record?.attempt || 0) <=
+                GENERATED_APP_MAX_REPAIR_ATTEMPTS) {
             void (async () => {
                 try {
                     const repairResult = await orchestrateGeneratedAppRepair(projectId);
@@ -1760,10 +1771,11 @@ export function recordGeneratedAppBuildFailure(projectId, rawLog) {
         failurePhase: "build",
         diagnosis,
         repairApplied: false,
-        repairResult: diagnosis.repairEligible &&
-            attempt <=
+        repairResult: diagnosis.repairEligible
+            ? (attempt <=
                 GENERATED_APP_MAX_REPAIR_ATTEMPTS
-            ? "pending"
+                ? "pending"
+                : "exhausted")
             : "skipped",
     };
     const nextHistory = [
@@ -1778,6 +1790,7 @@ export function recordGeneratedAppBuildFailure(projectId, rawLog) {
         attemptsRemaining: Math.max(0, GENERATED_APP_MAX_REPAIR_ATTEMPTS -
             attempt),
         repairEligible: record.repairResult === "pending",
+        repairExhausted: record.repairResult === "exhausted",
     };
 }
 const GENERATED_APP_MAX_REPAIR_FILES = 12;
