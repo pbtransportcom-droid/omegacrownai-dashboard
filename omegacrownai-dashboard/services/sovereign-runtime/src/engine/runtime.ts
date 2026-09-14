@@ -269,9 +269,8 @@ export async function executeRun(projectId: string, input: any) {
 
     // BEHAVIORAL_COMPLIANCE_ARTIFACT
     const behavioralCompliancePath =
-      path.join(
-        process.cwd(),
-        "data",
+      // GENERATED_APP_CANONICAL_BEHAVIORAL_COMPLIANCE_ROOT
+      runtimeDataPath(
         "artifacts",
         projectId,
         "behavioral-compliance.json"

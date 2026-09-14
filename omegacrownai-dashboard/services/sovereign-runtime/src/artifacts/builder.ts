@@ -8,6 +8,7 @@ import { buildUniversalAnythingArtifacts, isUniversalAnythingPrompt } from "./un
 import { createLivingOSProductionPlan } from "./living-os-planner.js";
 import { composeLivingOSApplication } from "./living-os-composer.js";
 import { buildFinancePlatformArtifacts, isFinancePlatformPrompt } from "./finance-platform-builder.js";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 
 
 
@@ -84,6 +85,64 @@ console.log("Generated artifact smoke test passed");`
   }
 
   return ensureArtifactSmokeTest(artifacts);
+}
+
+
+// GENERATED_APP_UNIVERSAL_ARTIFACT_ROOT_FINALIZER
+//
+// Every generated Next.js application must be an independent build root,
+// regardless of which renderer or specialized builder produced it.
+//
+// Specialized builders may return before the generic artifact write loop.
+// Finalize their returned artifact records here so required root
+// infrastructure cannot be skipped by an early return.
+async function finalizeGeneratedArtifactRoot(
+  artifacts: any,
+  outDir: string
+) {
+  const resolvedArtifacts =
+    await Promise.resolve(artifacts);
+
+  const records =
+    Array.isArray(resolvedArtifacts)
+      ? resolvedArtifacts
+      : [];
+
+  const nextConfigPath =
+    path.join(
+      outDir,
+      "next.config.mjs"
+    );
+
+  if (!fs.existsSync(nextConfigPath)) {
+    const content = `import path from "node:path";
+
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  // GENERATED_APP_NEXT_WORKSPACE_ISOLATION
+  turbopack: {
+    root: path.resolve("."),
+  },
+  outputFileTracingRoot: path.resolve("."),
+};
+
+export default nextConfig;
+`;
+
+    write(
+      nextConfigPath,
+      content
+    );
+
+    records.push({
+      type: "javascript",
+      title: "Next.js Configuration",
+      path: nextConfigPath,
+      status: "generated",
+    });
+  }
+
+  return records;
 }
 
 
@@ -507,7 +566,7 @@ function modeProfile(mode: string, prompt: string, isTransport: boolean) {
 }
 
 export async function buildArtifacts(run: any) {
-  const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
+  const outDir = runtimeDataPath("artifacts", run.projectId);
 
   // Ensure regenerated projects do not keep stale files from older artifact schemas.
   fs.rmSync(outDir, { recursive: true, force: true });
@@ -649,8 +708,21 @@ export async function buildArtifacts(run: any) {
           file: "next.config.mjs",
           title: "Next.js Configuration",
           type: "javascript",
-          content: `/** @type {import("next").NextConfig} */
-const nextConfig = {};
+          content: `import path from "node:path";
+
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  // GENERATED_APP_NEXT_WORKSPACE_ISOLATION
+  //
+  // Each generated application is an independent Next.js project.
+  // Explicitly scope Turbopack and output-file tracing to the generated
+  // application directory so parent OmegaCrownAI lockfiles/workspaces
+  // cannot become the inferred build root.
+  turbopack: {
+    root: path.resolve("."),
+  },
+  outputFileTracingRoot: path.resolve("."),
+};
 
 export default nextConfig;
 `,
@@ -1302,32 +1374,50 @@ No personal founder information or internal infrastructure credentials are requi
         });
       }
 
-      return records;
+      return finalizeGeneratedArtifactRoot(records, outDir);
     }
   }
 
   if (!automationFromSpec && saasFromSpec) {
-    return buildSaasLandingArtifacts(run, outDir);
+    return finalizeGeneratedArtifactRoot(
+      buildSaasLandingArtifacts(run, outDir),
+      outDir
+    );
   }
 
   if (legalFromSpec) {
-    return buildLegalFirmArtifacts(run, outDir);
+    return finalizeGeneratedArtifactRoot(
+      buildLegalFirmArtifacts(run, outDir),
+      outDir
+    );
   }
 
   if (tradingFromSpec) {
-    return buildTradingPlatformArtifacts(run, outDir);
+    return finalizeGeneratedArtifactRoot(
+      buildTradingPlatformArtifacts(run, outDir),
+      outDir
+    );
   }
 
   if (restaurantFromSpec) {
-    return buildRestaurantPlatformArtifacts(run, outDir);
+    return finalizeGeneratedArtifactRoot(
+      buildRestaurantPlatformArtifacts(run, outDir),
+      outDir
+    );
   }
 
   if (financeFromSpec) {
-    return buildFinancePlatformArtifacts(run);
+    return finalizeGeneratedArtifactRoot(
+      buildFinancePlatformArtifacts(run),
+      outDir
+    );
   }
 
   if (isUniversalAnythingPrompt(run.prompt || "") && !transportFromSpec) {
-    return buildUniversalAnythingArtifacts(run, outDir);
+    return finalizeGeneratedArtifactRoot(
+      buildUniversalAnythingArtifacts(run, outDir),
+      outDir
+    );
   }
 
   const projectName = slug(normalizedPrompt || run.prompt);
@@ -4011,6 +4101,46 @@ Use README.md for setup, LAUNCH_CHECKLIST.md for final launch review, and script
         metadataFile.content = JSON.stringify(metadata, null, 2);
       } catch {}
     }
+  }
+
+  // GENERATED_APP_REQUIRED_ROOT_CONFIG_ENFORCEMENT
+  //
+  // Renderer-specific branches may replace or rebuild the artifact file
+  // collection after the base Next.js scaffold is created. Every generated
+  // Next.js application must nevertheless remain an independent build root.
+  //
+  // Preserve a renderer-provided next.config.mjs when present. Inject the
+  // platform-safe isolated config only when the final artifact set omitted it.
+  const generatedNextConfig =
+    files.find(
+      (entry) =>
+        entry.file ===
+        "next.config.mjs"
+    );
+
+  if (!generatedNextConfig) {
+    files.push({
+      file:
+        "next.config.mjs",
+      title:
+        "Next.js Configuration",
+      type:
+        "javascript",
+      content:
+        `import path from "node:path";
+
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  // GENERATED_APP_NEXT_WORKSPACE_ISOLATION
+  turbopack: {
+    root: path.resolve("."),
+  },
+  outputFileTracingRoot: path.resolve("."),
+};
+
+export default nextConfig;
+`,
+    });
   }
 
   for (const file of files) {

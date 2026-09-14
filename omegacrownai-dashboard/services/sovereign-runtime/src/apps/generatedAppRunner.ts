@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { execFileSync, spawn } from "child_process";
+
+import {
+  generateGeneratedAppRepairProposal,
+  getGeneratedRepairProviderStatus,
+} from "../ai/generatedRepairProvider.js";
 import http from "http";
 
 const ROOT = process.cwd();
@@ -560,11 +565,29 @@ export async function startGeneratedApp(projectId: string) {
   // copy instead of deleting it, reinstalling packages, and rebuilding.
   // prepareGeneratedApp remains the cold-start path when the runnable
   // copy is missing or incomplete.
+  // GENERATED_APP_EXPLICIT_BUILD_COMPLETION_MARKER
+  //
+  // .next/BUILD_ID can exist before the entire Next.js production build
+  // has completed successfully (for example, before prerender/static-page
+  // generation finishes). Therefore BUILD_ID alone is not authoritative.
+  //
+  // A cold build writes this marker only after `npm run build` exits zero.
+  // It is then the durable proof that the runnable copy may be reused.
+  const productionBuildCompleteMarker =
+    path.join(
+      RUNTIME_ROOT,
+      "data",
+      "runtime-apps",
+      projectId,
+      "production-build-complete"
+    );
+
   const reusableAppDir =
     existing?.appDir &&
     fs.existsSync(path.join(existing.appDir, "package.json")) &&
     fs.existsSync(path.join(existing.appDir, ".next", "BUILD_ID")) &&
-    fs.existsSync(path.join(existing.appDir, "node_modules"));
+    fs.existsSync(path.join(existing.appDir, "node_modules")) &&
+    fs.existsSync(productionBuildCompleteMarker);
 
   const manifest = reusableAppDir
     ? {
@@ -575,6 +598,19 @@ export async function startGeneratedApp(projectId: string) {
         warmRestart: true,
       }
     : await prepareGeneratedApp(projectId);
+
+  if (!reusableAppDir) {
+    try {
+      fs.rmSync(
+        productionBuildCompleteMarker,
+        {
+          force: true,
+        }
+      );
+    } catch {
+      // Missing/stale marker cleanup is intentionally non-fatal.
+    }
+  }
 
   const logDir = path.join(RUNTIME_ROOT, "logs", "generated-apps");
   fs.mkdirSync(logDir, { recursive: true });
@@ -588,7 +624,7 @@ export async function startGeneratedApp(projectId: string) {
       "-lc",
       reusableAppDir
         ? `cd "${manifest.appDir}" && PORT=${manifest.port} npm run start`
-        : `cd "${manifest.appDir}" && npm install && npm run build && PORT=${manifest.port} npm run start`,
+        : `cd "${manifest.appDir}" && npm install && npm run build && mkdir -p ${JSON.stringify(path.dirname(productionBuildCompleteMarker))} && printf '%s\\n' ${JSON.stringify("production-build-complete")} > ${JSON.stringify(productionBuildCompleteMarker)} && PORT=${manifest.port} npm run start`,
     ],
     {
       detached: true,
@@ -657,8 +693,21 @@ export async function startGeneratedApp(projectId: string) {
       // The process state stored immediately before exit tells us whether
       // a non-zero shell exit happened during the cold production build or
       // after the application had advanced into startup/runtime.
+      // GENERATED_APP_BUILD_COMPLETION_TRUTH_CLASSIFICATION
+      //
+      // Lifecycle status is presentation/reconciliation state and may be
+      // changed by readiness/status polling while the child is still inside
+      // `npm run build`. Classify phase from the explicit build-completion
+      // boundary instead.
+      const buildCompleted =
+        reusableAppDir ||
+        fs.existsSync(
+          productionBuildCompleteMarker
+        );
+
       const failedDuringBuild =
-        current?.status === "building";
+        code !== 0 &&
+        !buildCompleted;
 
       // GENERATED_APP_BUILD_FAILURE_DIAGNOSTIC_WIRING
       //
@@ -2562,11 +2611,36 @@ export async function getGeneratedAppStatus(projectId: string) {
     ? await checkPort(Number(manifest.port), "/")
     : { reachable: false, error: "Missing port" };
 
+  // GENERATED_APP_STATUS_BUILD_PHASE_PRESERVATION
+  //
+  // A live process with a closed port is not necessarily starting; during
+  // a cold deployment it may still be installing/building. Preserve the
+  // authoritative build phase until the explicit successful-build marker
+  // exists.
+  const productionBuildCompleteMarker =
+    path.join(
+      RUNTIME_ROOT,
+      "data",
+      "runtime-apps",
+      projectId,
+      "production-build-complete"
+    );
+
+  const buildCompleted =
+    fs.existsSync(
+      productionBuildCompleteMarker
+    );
+
   const reconciledStatus =
     portCheck.reachable
       ? "running"
       : processAlive
-        ? "starting"
+        ? (
+            manifest.status === "building" &&
+            !buildCompleted
+              ? "building"
+              : "starting"
+          )
         : "stopped";
 
   const checkedAt =
@@ -3661,6 +3735,408 @@ export function applyGeneratedAppRepairProposal(
     repairResult: "applied",
   };
 }
+
+// GENERATED_APP_AUTOMATIC_REPAIR_ORCHESTRATOR
+//
+// Product-neutral orchestration layer:
+//
+//   persisted build failure
+//        -> pending repair record
+//        -> C7D AI proposal
+//        -> C6 trusted repair executor
+//
+// This function does NOT restart the generated application and does NOT
+// bypass any existing repair limits or filesystem protections. Rebuild/retry
+// remains a separate lifecycle action until automatic triggering is accepted.
+export async function orchestrateGeneratedAppRepair(
+  projectId: string
+) {
+  const history =
+    getGeneratedAppRepairHistory(
+      projectId
+    );
+
+  const pending =
+    [...history]
+      .reverse()
+      .find(
+        (record: any) =>
+          record?.repairResult ===
+            "pending" &&
+          record?.repairApplied ===
+            false
+      );
+
+  if (!pending) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "no-pending-repair",
+    };
+  }
+
+  if (
+    Number(
+      pending.attempt || 0
+    ) >
+    GENERATED_APP_MAX_REPAIR_ATTEMPTS
+  ) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-limit-exceeded",
+      attempt:
+        pending.attempt,
+    };
+  }
+
+  if (
+    pending?.diagnosis
+      ?.repairEligible !== true
+  ) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-not-eligible",
+      attempt:
+        pending.attempt,
+    };
+  }
+
+  const providerStatus =
+    getGeneratedRepairProviderStatus();
+
+  if (
+    !providerStatus ||
+    providerStatus.configured !== true
+  ) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-provider-unavailable",
+      attempt:
+        pending.attempt,
+      provider:
+        providerStatus || null,
+    };
+  }
+
+  const artifactDir =
+    path.join(
+      RUNTIME_ROOT,
+      "data",
+      "artifacts",
+      projectId
+    );
+
+  if (
+    !fs.existsSync(
+      artifactDir
+    )
+  ) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "artifact-directory-missing",
+      attempt:
+        pending.attempt,
+    };
+  }
+
+  const requestedFiles =
+    new Set<string>();
+
+  const failingFile =
+    String(
+      pending?.diagnosis
+        ?.failingFile || ""
+    ).trim();
+
+  if (failingFile) {
+    try {
+      requestedFiles.add(
+        normalizeGeneratedRepairPath(
+          failingFile
+        )
+      );
+    } catch {
+      // The C6 executor remains authoritative for repair path safety.
+      // Invalid diagnosis paths are simply not supplied as AI source context.
+    }
+  }
+
+  // Small control files can provide enough context for module-resolution,
+  // TypeScript, configuration, and dependency failures without exposing
+  // secrets, runtime state, generated build output, or repair backups.
+  for (
+    const candidate
+    of [
+      "package.json",
+      "tsconfig.json",
+      "next.config.js",
+      "next.config.mjs",
+      "next.config.ts",
+    ]
+  ) {
+    try {
+      const target =
+        resolveGeneratedRepairPath(
+          artifactDir,
+          candidate
+        );
+
+      if (
+        fs.existsSync(
+          target.target
+        )
+      ) {
+        requestedFiles.add(
+          target.normalized
+        );
+      }
+    } catch {
+      // Candidate is optional context only.
+    }
+  }
+
+  const files: Array<{
+    file: string;
+    content: string;
+  }> = [];
+
+  for (
+    const relativeFile
+    of requestedFiles
+  ) {
+    let target: {
+      normalized: string;
+      target: string;
+    };
+
+    try {
+      target =
+        resolveGeneratedRepairPath(
+          artifactDir,
+          relativeFile
+        );
+    } catch {
+      continue;
+    }
+
+    if (
+      !fs.existsSync(
+        target.target
+      )
+    ) {
+      continue;
+    }
+
+    let stat: fs.Stats;
+
+    try {
+      stat =
+        fs.statSync(
+          target.target
+        );
+    } catch {
+      continue;
+    }
+
+    if (
+      !stat.isFile() ||
+      stat.size <= 0 ||
+      stat.size >
+        GENERATED_APP_MAX_REPAIR_FILE_BYTES
+    ) {
+      continue;
+    }
+
+    files.push({
+      file:
+        target.normalized,
+
+      content:
+        fs.readFileSync(
+          target.target,
+          "utf8"
+        ),
+    });
+  }
+
+  if (files.length === 0) {
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-source-context-unavailable",
+      attempt:
+        pending.attempt,
+    };
+  }
+
+  const planningAt =
+    new Date().toISOString();
+
+  const currentManifest =
+    getGeneratedAppManifest(
+      projectId
+    );
+
+  persistGeneratedAppLifecycle(
+    projectId,
+    Number(
+      currentManifest?.pid || 0
+    ),
+    {
+      status:
+        "repair-planning",
+      repairAttempt:
+        pending.attempt,
+      repairProvider:
+        providerStatus.provider,
+      repairModel:
+        providerStatus.model,
+      repairPlanningStartedAt:
+        planningAt,
+      checkedAt:
+        planningAt,
+    }
+  );
+
+  let proposal: any;
+
+  try {
+    proposal =
+      await generateGeneratedAppRepairProposal({
+        projectId,
+
+        attempt:
+          pending.attempt,
+
+        diagnosis:
+          pending.diagnosis,
+
+        files,
+      });
+  } catch (error) {
+    const failedAt =
+      new Date().toISOString();
+
+    persistGeneratedAppLifecycle(
+      projectId,
+      Number(
+        getGeneratedAppManifest(
+          projectId
+        )?.pid || 0
+      ),
+      {
+        status:
+          "failed",
+        buildFailed:
+          true,
+        failurePhase:
+          "build",
+        failureReason:
+          "generated-repair-provider-failed",
+        repairAttempt:
+          pending.attempt,
+        repairPlanningFailed:
+          true,
+        repairPlanningError:
+          String(error),
+        failedAt,
+        checkedAt:
+          failedAt,
+      }
+    );
+
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-provider-failed",
+      attempt:
+        pending.attempt,
+      error:
+        String(error),
+    };
+  }
+
+  let applied: any;
+
+  try {
+    applied =
+      applyGeneratedAppRepairProposal(
+        projectId,
+        proposal
+      );
+  } catch (error) {
+    const failedAt =
+      new Date().toISOString();
+
+    persistGeneratedAppLifecycle(
+      projectId,
+      Number(
+        getGeneratedAppManifest(
+          projectId
+        )?.pid || 0
+      ),
+      {
+        status:
+          "failed",
+        buildFailed:
+          true,
+        failurePhase:
+          "build",
+        failureReason:
+          "generated-repair-executor-failed",
+        repairAttempt:
+          pending.attempt,
+        repairExecutionFailed:
+          true,
+        repairExecutionError:
+          String(error),
+        failedAt,
+        checkedAt:
+          failedAt,
+      }
+    );
+
+    return {
+      ok: false,
+      projectId,
+      status:
+        "repair-executor-failed",
+      attempt:
+        pending.attempt,
+      error:
+        String(error),
+    };
+  }
+
+  return {
+    ok: true,
+    projectId,
+    status:
+      "repair-applied",
+    attempt:
+      pending.attempt,
+    provider:
+      proposal.provider,
+    model:
+      proposal.model,
+    filesChanged:
+      applied.filesChanged || [],
+    repair:
+      applied,
+  };
+}
+
 
 export function getGeneratedAppLogs(projectId: string) {
   const logDir = path.join(RUNTIME_ROOT, "logs", "generated-apps");

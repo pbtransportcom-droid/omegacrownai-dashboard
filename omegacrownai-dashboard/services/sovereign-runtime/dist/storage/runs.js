@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
-const runsDir = path.join(process.cwd(), "data", "runs");
+import { runtimeDataPath } from "./runtime-paths.js";
+// GENERATED_APP_CANONICAL_RUN_STORAGE_ROOT
+const runsDir = runtimeDataPath("runs");
 fs.mkdirSync(runsDir, { recursive: true });
 export function getRunPath(projectId) {
     return path.join(runsDir, `${projectId}.json`);

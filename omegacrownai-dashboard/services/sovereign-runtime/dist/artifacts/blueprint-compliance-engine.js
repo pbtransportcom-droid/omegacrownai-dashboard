@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 function normalizePath(value) {
     return String(value || "")
         .replace(/\\/g, "/")
@@ -95,7 +96,8 @@ function hasFile(artifacts, requiredFile) {
     return artifacts.some((artifact) => artifactName(artifact) === requiredFile);
 }
 function artifactDirectory(run) {
-    return path.join(process.cwd(), "data", "artifacts", String(run.projectId));
+    // GENERATED_APP_CANONICAL_BLUEPRINT_ARTIFACT_ROOT
+    return runtimeDataPath("artifacts", String(run.projectId));
 }
 function writeComplianceFile(directory, file, content) {
     const target = path.join(directory, file);

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 
 function writeFile(outDir: string, file: string, content: string) {
   const target = path.join(outDir, file);
@@ -42,7 +43,11 @@ export function isFinancePlatformPrompt(prompt: string) {
 }
 
 export async function buildFinancePlatformArtifacts(run: any) {
-  const outDir = path.join(process.cwd(), "data", "artifacts", run.projectId);
+  // GENERATED_APP_CANONICAL_FINANCE_ARTIFACT_ROOT
+  const outDir = runtimeDataPath(
+    "artifacts",
+    run.projectId
+  );
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
 

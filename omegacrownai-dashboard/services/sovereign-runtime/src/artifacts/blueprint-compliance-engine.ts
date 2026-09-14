@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 import type { RuntimeArtifact } from "../engine/schema.js";
 
 type GeneratedArtifact = RuntimeArtifact & {
@@ -184,9 +185,8 @@ function hasFile(
 }
 
 function artifactDirectory(run: any) {
-  return path.join(
-    process.cwd(),
-    "data",
+  // GENERATED_APP_CANONICAL_BLUEPRINT_ARTIFACT_ROOT
+  return runtimeDataPath(
     "artifacts",
     String(run.projectId)
   );

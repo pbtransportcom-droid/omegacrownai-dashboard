@@ -9,6 +9,7 @@ import { validateRun } from "../validation/validator.js";
 import { prepareDelivery } from "../delivery/delivery.js";
 import { appendTranscript } from "../storage/transcript.js";
 import { loadRun, saveRun, appendRunEvent } from "../storage/runs.js";
+import { runtimeDataPath } from "../storage/runtime-paths.js";
 import { createBuildSpec } from "../intelligence/build-spec.js";
 function id(prefix) {
     return `${prefix}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -192,7 +193,9 @@ export async function executeRun(projectId, input) {
         run.behavioralCompliance =
             behavioralCompliance;
         // BEHAVIORAL_COMPLIANCE_ARTIFACT
-        const behavioralCompliancePath = path.join(process.cwd(), "data", "artifacts", projectId, "behavioral-compliance.json");
+        const behavioralCompliancePath = 
+        // GENERATED_APP_CANONICAL_BEHAVIORAL_COMPLIANCE_ROOT
+        runtimeDataPath("artifacts", projectId, "behavioral-compliance.json");
         fs.writeFileSync(behavioralCompliancePath, JSON.stringify(behavioralCompliance, null, 2));
         run.artifacts.push({
             file: "behavioral-compliance.json",
